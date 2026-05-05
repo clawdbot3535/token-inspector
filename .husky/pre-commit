@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+# Pre-commit gate: same checks Vercel runs in CI.
+# Catches TS strict-mode regressions (vue-tsc) and broken tests before
+# they leave the local machine.
+
+set -e
+
+echo "→ vue-tsc typecheck…"
+npm run typecheck --silent
+
+echo "→ vitest…"
+npm test --silent
+
+echo "✓ pre-commit checks passed"
