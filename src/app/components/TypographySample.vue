@@ -12,14 +12,10 @@ const SAMPLE = "The quick brown fox jumps over the lazy dog";
 
 const styleObj = computed<Record<string, string>>(() => {
   const v = props.value.replace(/^["']|["']$/g, ""); // strip surrounding quotes
-  switch (props.type) {
-    case "fontFamily":
-      return { fontFamily: v };
-    case "fontWeight":
-      return { fontWeight: v };
-    default:
-      return {};
-  }
+  const out: Record<string, string> = {};
+  if (props.type === "fontFamily") out.fontFamily = v;
+  else if (props.type === "fontWeight") out.fontWeight = v;
+  return out;
 });
 </script>
 

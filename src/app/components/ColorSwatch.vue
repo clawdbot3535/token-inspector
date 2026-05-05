@@ -4,7 +4,7 @@ const props = defineProps<{ value: string; label?: string }>();
 function contrastAgainst(hex: string, bg: "white" | "black"): string {
   // Quick relative-luminance approximation. Good enough for a preview hint.
   const m = hex.match(/^#([0-9a-f]{6})$/i);
-  if (!m) return "—";
+  if (!m || !m[1]) return "—";
   const v = parseInt(m[1], 16);
   const r = (v >> 16) & 0xff;
   const g = (v >> 8) & 0xff;

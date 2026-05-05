@@ -208,7 +208,7 @@ function parseCurlyAlias(
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   const m = trimmed.match(/^\{([^{}]+)\}$/);
-  if (!m) return null;
+  if (!m || !m[1]) return null;
   const rawTarget = m[1];
   const key = applyNameFixes(rawTarget.toLowerCase().replace(/\./g, "/"));
   return { rawTarget, key };

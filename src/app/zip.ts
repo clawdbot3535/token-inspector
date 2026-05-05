@@ -104,14 +104,11 @@ export function buildZip(entries: readonly ZipEntry[]): Blob {
   eocdView.setUint16(10, built.length, true);
   eocdView.setUint32(12, centralSize, true);
   eocdView.setUint32(16, centralStart, true);
-  return new Blob(
-    [
-      ...built.map((b) => b.local),
-      ...built.map((b) => b.central),
-      eocd,
-    ],
-    { type: "application/zip" },
-  );
+  const parts: BlobPart[] = [];
+  for (const b of built) parts.push(b.local as BlobPart);
+  for (const b of built) parts.push(b.central as BlobPart);
+  parts.push(eocd as BlobPart);
+  return new Blob(parts, { type: "application/zip" });
 }
 
 export function downloadBlob(blob: Blob, filename: string): void {

@@ -5,7 +5,7 @@ const props = defineProps<{ value: string; label?: string }>();
 
 const parsed = computed(() => {
   const m = props.value.trim().match(/^(-?[\d.]+)(.*)$/);
-  if (!m) return null;
+  if (!m || !m[1]) return null;
   const num = parseFloat(m[1]);
   if (Number.isNaN(num)) return null;
   return { num, unit: m[2] || "" };
