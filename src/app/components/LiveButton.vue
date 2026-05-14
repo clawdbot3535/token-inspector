@@ -193,13 +193,13 @@ const empty = computed(() => Object.keys(tokenStyle.value).length === 0);
   transition: background-color 120ms;
 }
 .lb-col-active {
-  background: rgb(0 0 0 / 0.04);
+  background: var(--ui-bg-accented, rgb(0 0 0 / 0.04));
 }
 .lb-caption {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgb(0 0 0 / 0.55);
+  color: var(--ui-text-toned, rgb(0 0 0 / 0.7));
   margin-bottom: 0.4rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
