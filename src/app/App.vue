@@ -21,6 +21,8 @@ import {
   type FigmaMappingFile,
 } from "./figma-mapping.js";
 
+const appVersion = __APP_VERSION__;
+
 const builtInMapping = ref<FigmaMappingFile>({ components: [] });
 const droppedMapping = ref<FigmaMappingFile | null>(null);
 const pastedFileUrl = ref<string | null>(
@@ -150,6 +152,10 @@ function downloadAll() {
         <div class="flex items-center gap-3">
           <UIcon name="i-lucide-layers" class="text-primary size-5" />
           <h1 class="text-sm font-semibold">Figma → Nuxt UI v4 — Token Inspector</h1>
+          <span
+            class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-elevated text-muted border border-default"
+            :title="`Token Inspector v${appVersion}`"
+          >v{{ appVersion }}</span>
         </div>
         <div class="flex items-center gap-3 text-xs text-muted">
           <span v-if="state.graph.value">
