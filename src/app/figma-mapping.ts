@@ -26,6 +26,14 @@ export interface FigmaComponentMapping {
   screenshot?: string;
   /** Optional variant list — populated by the MCP sync runbook. */
   variants?: readonly FigmaComponentVariant[];
+  /**
+   * Optional default icon name for live component previews. Lucide naming
+   * convention with the `i-lucide-` prefix (e.g. `i-lucide-rocket`). Not a
+   * design token — icons are component structure (instance-swap in Figma),
+   * not theme-variable values, so they live in the mapping rather than the
+   * token graph.
+   */
+  defaultIcon?: string;
 }
 
 export interface FigmaMappingFile {

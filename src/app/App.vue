@@ -10,12 +10,14 @@ import UsedByList from "./components/UsedBy.vue";
 import CodePreview from "./components/CodePreview.vue";
 import IssuesView from "./components/IssuesView.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
+import LiveButton from "./components/LiveButton.vue";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import {
   loadFigmaMapping,
   parseFigmaFileUrl,
   buildTokenToVariants,
+  matchMapping,
   type FigmaMappingFile,
 } from "./figma-mapping.js";
 
@@ -90,6 +92,12 @@ const usedByForSelected = computed(() => {
   const node = selectedNode.value;
   if (!g || !node) return [];
   return usedBy(g, node.id);
+});
+
+const defaultIconForSelected = computed<string | undefined>(() => {
+  const node = selectedNode.value;
+  if (!node) return undefined;
+  return matchMapping(figmaMapping.value, node.id)?.defaultIcon;
 });
 
 async function handleFiles(files: FileList | null) {
@@ -214,16 +222,17 @@ function downloadAll() {
             class="border-2 border-dashed border-default rounded-lg p-12 text-center max-w-md"
           >
             <UIcon name="i-lucide-file-json" class="size-10 mx-auto text-muted mb-4" />
-            <p class="text-sm font-medium mb-2">Drop Figma token JSON files here</p>
+            <p class="text-sm font-medium mb-2">Drop Figma token files here</p>
             <p class="text-xs text-muted mb-4">
-              Expected: color · dimension · typography · light · dark · global
+              Accepts .json or .zip (Figma export bundle)
+              <br />Expected layers: color · dimension · typography · light · dark · global
               <br />Optional: figma-mapping.json (for component previews + variants)
             </p>
             <label
               class="inline-block px-3 py-1.5 text-xs rounded-md bg-primary text-inverted cursor-pointer hover:bg-primary/90"
             >
               Or pick files…
-              <input type="file" multiple accept=".json" class="hidden" @change="onPick" />
+              <input type="file" multiple accept=".json,.zip" class="hidden" @change="onPick" />
             </label>
             <p v-if="state.loadError.value" class="mt-4 text-xs text-error">
               {{ state.loadError.value }}
@@ -293,6 +302,14 @@ function downloadAll() {
                 :graph="state.graph.value"
                 :node="selectedNode"
                 :variant="variantForSelected"
+              />
+
+              <LiveButton
+                v-if="selectedNode.id === 'button' || selectedNode.id.startsWith('button-')"
+                :graph="state.graph.value"
+                :variant="state.theme.value"
+                :default-icon="defaultIconForSelected"
+                @highlight="state.highlightedIds.value = $event"
               />
 
               <FigmaPreview

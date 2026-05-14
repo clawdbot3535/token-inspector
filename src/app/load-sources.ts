@@ -6,6 +6,7 @@
 
 import type { SourceFile, SourceLayer } from "@core/token-graph.js";
 import type { FigmaMappingFile } from "./figma-mapping.js";
+import { unzipToFiles } from "./unzip.js";
 
 const FILENAME_TO_LAYER: Record<string, SourceLayer> = {
   "color.tokens.json": "color",
@@ -26,6 +27,35 @@ function detectLayer(filename: string): SourceLayer | null {
 function isFigmaMappingFile(filename: string): boolean {
   const base = filename.toLowerCase().split("/").pop() ?? filename.toLowerCase();
   return FIGMA_MAPPING_FILENAMES.has(base);
+}
+
+function isZip(file: File): boolean {
+  return file.name.toLowerCase().endsWith(".zip");
+}
+
+async function expandZips(
+  files: readonly File[],
+  warnings: string[],
+): Promise<File[]> {
+  const out: File[] = [];
+  for (const file of files) {
+    if (!isZip(file)) {
+      out.push(file);
+      continue;
+    }
+    try {
+      const inner = await unzipToFiles(file);
+      if (inner.length === 0) {
+        warnings.push(`Empty zip (skipped): ${file.name}`);
+        continue;
+      }
+      out.push(...inner);
+    } catch (cause) {
+      const msg = cause instanceof Error ? cause.message : String(cause);
+      warnings.push(`Failed to read zip ${file.name}: ${msg}`);
+    }
+  }
+  return out;
 }
 
 async function readJson(file: File): Promise<unknown> {
@@ -50,7 +80,9 @@ export async function loadSources(files: readonly File[]): Promise<LoadResult> {
   const seen = new Set<SourceLayer>();
   let figmaMapping: FigmaMappingFile | null = null;
 
-  for (const file of files) {
+  const expanded = await expandZips(files, warnings);
+
+  for (const file of expanded) {
     if (isFigmaMappingFile(file.name)) {
       const data = await readJson(file);
       if (data && typeof data === "object" && Array.isArray((data as FigmaMappingFile).components)) {

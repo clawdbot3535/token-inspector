@@ -20,6 +20,20 @@ describe("matchMapping", () => {
     expect(matchMapping(sample, "button-solid-bg")?.prefix).toBe("button-solid");
   });
 
+  it("returns the optional defaultIcon when present on the matched component", () => {
+    const withIcon: FigmaMappingFile = {
+      components: [
+        {
+          prefix: "button",
+          label: "Button",
+          url: "https://www.figma.com/design/abc/Library?node-id=1-2",
+          defaultIcon: "i-lucide-rocket",
+        },
+      ],
+    };
+    expect(matchMapping(withIcon, "button-padding-x")?.defaultIcon).toBe("i-lucide-rocket");
+  });
+
   it("falls back to the shorter prefix when the longer one does not apply", () => {
     expect(matchMapping(sample, "button-radius")?.prefix).toBe("button");
   });
