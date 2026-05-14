@@ -23,3 +23,4 @@ coverage/
 
 # TS build cache
 *.tsbuildinfo
+.gstack/
