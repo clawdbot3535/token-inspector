@@ -64,8 +64,7 @@ describe("smoke: real Figma exports", () => {
 
   it("CSS output contains all four cascade blocks", () => {
     const out = cssRenderer.render(graph);
-    expect(out.text).toContain(":root {");
-    expect(out.text).toContain('html.light, [data-theme="light"]');
+    expect(out.text).toContain("@theme {");
     expect(out.text).toContain('html.dark, [data-theme="dark"]');
   });
 

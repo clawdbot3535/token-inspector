@@ -14,7 +14,7 @@ import type { RenderedText } from "@core/token-graph.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "issues";
-export type OutputTab = "tokens.css" | "app.config.ts" | "tokens.ts";
+export type OutputTab = "tokens.css";
 
 export interface Filters {
   search: string;

@@ -1,9 +1,8 @@
 // CSS renderer — produces tokens.css from a TokenGraph.
 // Three cascade sections matching build-tokens.mjs:
-//   1. :root primitives (no aliases resolved — literal values)
-//   2. :root + html.light + [data-theme="light"] semantic light
-//      html.dark + [data-theme="dark"] semantic dark
-//   3. :root component overrides (aliased where possible)
+//   1. @theme primitives (no aliases resolved — literal values)
+//   2. @theme semantic light + html.dark semantic dark overrides
+//   3. @theme component overrides (aliased where possible)
 
 import type {
   GraphLayer,
@@ -36,6 +35,7 @@ function nodesByLayer(
  * Returns `null` if there is no value for this variant on this node.
  */
 function declFor(
+  graph: TokenGraph,
   node: TokenNode,
   variant: "base" | Theme,
   useAlias: boolean,
@@ -43,15 +43,59 @@ function declFor(
   const aliasVariant = useAlias ? node.alias[variant] : undefined;
   const value =
     aliasVariant !== undefined
-      ? `var(--${aliasVariant.to})`
+      ? `var(--${cssVarName(graph.nodes.get(aliasVariant.to) ?? { ...node, id: aliasVariant.to })})`
       : node.cssValue[variant];
-  if (value === undefined) return null;
-  return `  --${node.id}: ${value};`;
+  if (value === undefined || /^\{[^{}]+\}$/.test(value) || value === "undefined") {
+    return null;
+  }
+  return `  --${cssVarName(node)}: ${value};`;
+}
+
+function ensurePrefix(id: string, prefix: string): string {
+  return id.startsWith(`${prefix}-`) ? id : `${prefix}-${id}`;
+}
+
+function cssVarName(node: Pick<TokenNode, "id" | "type">): string {
+  if (node.type === "color") return ensurePrefix(node.id, "color");
+  if (node.type === "shadow") return ensurePrefix(node.id, "shadow");
+  if (node.type === "fontFamily") return ensurePrefix(node.id, "font");
+  if (node.type === "fontWeight") return ensurePrefix(node.id, "font-weight");
+
+  if (node.id.startsWith("font-family-")) return ensurePrefix(node.id.slice("font-family-".length), "font");
+  if (/-font-family(-|$)/.test(node.id)) return ensurePrefix(node.id, "font");
+
+  if (node.id.startsWith("font-size-")) return ensurePrefix(node.id.slice("font-size-".length), "text");
+  if (/-font-size(-|$)/.test(node.id)) return ensurePrefix(node.id, "text");
+
+  if (node.id.startsWith("line-height-")) return ensurePrefix(node.id.slice("line-height-".length), "leading");
+  if (/-line-height(-|$)/.test(node.id)) return ensurePrefix(node.id, "leading");
+
+  if (node.id.startsWith("letter-spacing-")) return ensurePrefix(node.id.slice("letter-spacing-".length), "tracking");
+  if (/-letter-spacing(-|$)/.test(node.id)) return ensurePrefix(node.id, "tracking");
+
+  if (node.id.startsWith("rounded-")) return ensurePrefix(node.id.slice("rounded-".length), "radius");
+  if (/^(radius|rounded)-/.test(node.id) || /-(radius|rounded)(-|$)/.test(node.id)) {
+    return ensurePrefix(node.id, "radius");
+  }
+
+  if (node.id.startsWith("border-width-")) {
+    return ensurePrefix(node.id.slice("border-width-".length), "border-width");
+  }
+  if (node.id.startsWith("border-")) {
+    return ensurePrefix(node.id.slice("border-".length), "border-width");
+  }
+
+  if (node.id.startsWith("spacing-") || /-(spacing|padding|gap|size|width|height|offset)(-|$)/.test(node.id)) {
+    return ensurePrefix(node.id, "spacing");
+  }
+
+  return node.id;
 }
 
 function emitBlock(
   lb: LineBuilder,
   selector: string,
+  graph: TokenGraph,
   nodes: readonly TokenNode[],
   variant: "base" | Theme,
   useAlias: boolean,
@@ -60,7 +104,7 @@ function emitBlock(
   if (sectionLabel) lb.push(sectionLabel);
   lb.push(`${selector} {`);
   for (const node of nodes) {
-    const decl = declFor(node, variant, useAlias);
+    const decl = declFor(graph, node, variant, useAlias);
     if (decl !== null) lb.pushWithToken(decl, node.id);
   }
   lb.push("}");
@@ -78,17 +122,20 @@ export const cssRenderer: TextRenderer = {
     const semantics = nodesByLayer(graph, "semantic");
     const components = nodesByLayer(graph, "component");
 
-    // Layer 1: primitives — literal values, no alias resolution.
+    // Layer 1: primitives — literal values in @theme so Tailwind can
+    // synthesize utility classes from the recognized namespaces.
     if (primitives.length > 0) {
-      emitBlock(lb, ":root", primitives, "base", false);
+      emitBlock(lb, "@theme", graph, primitives, "base", false);
     }
 
-    // Layer 2a: semantic light — alias-resolved.
+    // Layer 2a: semantic light/default — emit via @theme so Tailwind can
+    // synthesize utilities from recognized namespaces.
     const lightNodes = semantics.filter((n) => n.cssValue.light !== undefined);
     if (lightNodes.length > 0) {
       emitBlock(
         lb,
-        ':root, html.light, [data-theme="light"]',
+        "@theme",
+        graph,
         lightNodes,
         "light",
         true,
@@ -102,6 +149,7 @@ export const cssRenderer: TextRenderer = {
       emitBlock(
         lb,
         'html.dark, [data-theme="dark"]',
+        graph,
         darkNodes,
         "dark",
         true,
@@ -113,7 +161,8 @@ export const cssRenderer: TextRenderer = {
     if (components.length > 0) {
       emitBlock(
         lb,
-        ":root",
+        "@theme",
+        graph,
         components,
         "base",
         true,

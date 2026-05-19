@@ -96,9 +96,9 @@ describe("buildTokenToVariants", () => {
 describe("parseFigmaFileUrl", () => {
   it("accepts standard /design/ URLs", () => {
     const u = parseFigmaFileUrl(
-      "https://www.figma.com/design/h5QnKt8fjvkm1awcXRJNDy/MM?node-id=0-1",
+      "https://www.figma.com/design/aBcDeFgHiJkLmNoPqRsTuV/Library?node-id=0-1",
     );
-    expect(u).toContain("figma.com/design/h5QnKt8fjvkm1awcXRJNDy");
+    expect(u).toContain("figma.com/design/aBcDeFgHiJkLmNoPqRsTuV");
   });
 
   it("accepts /file/ URLs", () => {

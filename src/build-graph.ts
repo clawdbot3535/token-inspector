@@ -190,8 +190,13 @@ function buildForwardAliasIndex(
   for (const file of files) {
     for (const { path } of walk(file.data)) {
       const id = slug(path);
-      const key = applyNameFixes(path.join("/").toLowerCase());
-      if (!idx.has(key)) idx.set(key, id);
+      const keys = [
+        applyNameFixes(path.join("/").toLowerCase()),
+        applyNameFixes(path.join(".").toLowerCase()),
+      ];
+      for (const key of keys) {
+        if (!idx.has(key)) idx.set(key, id);
+      }
     }
   }
   return idx;
@@ -279,9 +284,9 @@ function assembleNodes(
     for (const { path, token } of walk(file.data)) {
       const id = slug(path);
       const slugged = id;
-      const formatted = formatValue(token, slugged);
       const aliasAttempt = resolveAliasFor(token, aliasIndex);
       const alias = aliasAttempt.resolved;
+      const formatted = formatValue(token, slugged);
       // Only emit malformed-value when no resolved alias shadows the
       // literal cssValue — otherwise the literal is unused in the output.
       if (formatted.issue && !alias) {

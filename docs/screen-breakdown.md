@@ -89,8 +89,6 @@ Wenn nichts gewählt:
 Tab-Bar oben:
 
 - **`tokens.css`** (default)
-- **`app.config.ts`**
-- **`tokens.ts`**
 
 Inhalt:
 
@@ -100,8 +98,7 @@ Inhalt:
 
 Footer der Output-Pane:
 
-- "Download all (.zip)" — bündelt alle drei Artefakte
-- File-Size-Anzeige pro Tab
+- File-Size-Anzeige
 
 ---
 
@@ -126,14 +123,14 @@ Footer der Output-Pane:
 | File-Name | Zeigt geladene Quelle(n), Hover → Liste aller Source-Files |
 | Build-Status | Grün (clean) · Gelb (n issues) · Klick → Issues View |
 | Re-Drop | Öffnet Drop-Modal über bestehendem Graph (Replace) |
-| Download all | Triggert ZIP-Bundle aller Artefakte |
+| Download | Lädt `tokens.css` herunter |
 
 ---
 
 ## Keyboard
 
 - `Cmd/Ctrl+K` — Sidebar-Suche fokussieren
-- `Cmd/Ctrl+1/2/3` — Output-Tabs wechseln
+- `Cmd/Ctrl+1` — Output fokussieren
 - `Cmd/Ctrl+D` — Theme toggle (light/dark)
 - `Cmd/Ctrl+/` — Output-Pane togglen
 - `Esc` — Selektion löschen / Modal schließen
@@ -152,7 +149,7 @@ AppState =
       selection: TokenId | null,
       filters: { search: string, layers: GraphLayer[], types: TokenType[] },
       view: "inspector" | "issues",
-      outputTab: "css" | "appConfig" | "ts",
+      outputTab: "css",
       theme: Theme }
   | { kind: "error", message: string, files: File[] }
 ```
@@ -166,6 +163,6 @@ Theme-Switch ändert nur `cssValue`-Lookup für Semantic-Layer-Nodes (light vs d
 
 - Diff zwischen zwei Graphen (= Option c, später)
 - Token-Editing im Tool (nur read-only Inspector)
-- Export anderer Frameworks als Nuxt UI v4
+- Export anderer Artefakte als `tokens.css`
 - User-Accounts / Cloud-Save
 - Code-Connect-Generierung
