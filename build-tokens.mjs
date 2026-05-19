@@ -20,6 +20,17 @@ const FILES = {
   global: "global.tokens.json",
 };
 
+const layerForSource = (name) => {
+  if (name === "color" || name === "dimension" || name === "typography") return "primitive";
+  if (name === "light" || name === "dark") return "semantic";
+  return "component";
+};
+
+const slugForLayer = (parts, layer) => {
+  if (layer !== "primitive" && parts[0] === "color") return slug(parts.slice(1));
+  return slug(parts);
+};
+
 // Slug uses '-' as separator, so all matchers operate on dash-form
 const NUMBER_UNIT_MAP = [
   { match: /^(spacing|rounded|border|shadow)-/, unit: "px" },
@@ -63,6 +74,10 @@ const slug = (parts) => {
 const ensurePrefix = (id, prefix) => (id.startsWith(`${prefix}-`) ? id : `${prefix}-${id}`);
 
 function themeVarName(slugged, type) {
+  if (/^(surface|bg|text|border|action|state|status|button|input|card|badge|dropdown|modal|typography|table|progress|kbd|checkbox|radio|switch|chip|textarea|nav)-/.test(slugged)) {
+    return slugged;
+  }
+
   if (/^(color|spacing|radius|shadow|font|font-weight|text|tracking|leading|border-width)-/.test(slugged)) {
     return slugged;
   }
@@ -158,10 +173,12 @@ function buildAliasIndex(...sources) {
       const targets = [path.join("/")];
       const ext = token.$extensions?.["com.figma.aliasData"];
       if (ext?.targetVariableName) targets.push(ext.targetVariableName);
+      const layer = layerForSource(src.name);
+      const cssName = `--${layer === "primitive" ? themeVarName(slugForLayer(path, layer), token?.$type) : slugForLayer(path, layer)}`;
       for (const t of targets) {
         let key = t.toLowerCase();
         for (const [from, to] of NAME_FIXES) key = key.replace(from, to);
-        if (!idx.has(key)) idx.set(key, cssVar(path, token));
+        if (!idx.has(key)) idx.set(key, cssName);
       }
     }
   }
@@ -202,6 +219,11 @@ const emitDecl = (varName, token, sourceSlugged, aliasIndex, useAlias = true) =>
   return `  ${varName}: ${value};`;
 };
 
+const cssVarForLayer = (parts, token, layer) => {
+  const slugged = slugForLayer(parts, layer);
+  return `--${layer === "primitive" ? themeVarName(slugged, token?.$type) : slugged}`;
+};
+
 function buildCss() {
   const color = { name: "color", data: load("color") };
   const dimension = { name: "dimension", data: load("dimension") };
@@ -221,7 +243,7 @@ function buildCss() {
   for (const src of [color, dimension, typography]) {
     primitiveLines.push(`  /* ${src.name} */`);
     for (const { path, token } of walk(src.data)) {
-      const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, false);
+      const decl = emitDecl(cssVarForLayer(path, token, "primitive"), token, slug(path), aliasIndex, false);
       if (decl) primitiveLines.push(decl);
     }
   }
@@ -230,7 +252,7 @@ function buildCss() {
   // Layer 2: semantic light — plain CSS variables, alias resolved to primitives
   const lightLines = [];
   for (const { path, token } of walk(light.data)) {
-    const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, true);
+    const decl = emitDecl(cssVarForLayer(path, token, "semantic"), token, slug(path), aliasIndex, true);
     if (decl) lightLines.push(decl);
   }
   sections.push(`/* Semantic — light theme (default) */\n:root {\n${lightLines.join("\n")}\n}\n`);
@@ -238,7 +260,7 @@ function buildCss() {
   // Layer 2b: semantic dark — overrides under .dark / [data-theme=dark]
   const darkLines = [];
   for (const { path, token } of walk(dark.data)) {
-    const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, true);
+    const decl = emitDecl(cssVarForLayer(path, token, "semantic"), token, slug(path), aliasIndex, true);
     if (decl) darkLines.push(decl);
   }
   sections.push(`/* Semantic — dark theme (Nuxt UI sets html.dark by default) */\nhtml.dark, [data-theme="dark"] {\n${darkLines.join("\n")}\n}\n`);
@@ -246,7 +268,7 @@ function buildCss() {
   // Layer 3: component tokens — plain CSS variables, alias to semantic/primitives where possible
   const componentLines = [];
   for (const { path, token } of walk(global.data)) {
-    const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, true);
+    const decl = emitDecl(cssVarForLayer(path, token, "component"), token, slug(path), aliasIndex, true);
     if (decl) componentLines.push(decl);
   }
   sections.push(`/* Component tokens (overrides resolve to semantic/primitive aliases) */\n:root {\n${componentLines.join("\n")}\n}\n`);

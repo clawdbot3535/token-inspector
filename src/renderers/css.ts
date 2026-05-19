@@ -41,6 +41,7 @@ function declFor(
   useAlias: boolean,
 ): string | null {
   const aliasVariant = useAlias ? node.alias[variant] : undefined;
+  const varName = cssVarName(node);
   const value =
     aliasVariant !== undefined
       ? `var(--${cssVarName(graph.nodes.get(aliasVariant.to) ?? { ...node, id: aliasVariant.to })})`
@@ -48,14 +49,18 @@ function declFor(
   if (value === undefined || /^\{[^{}]+\}$/.test(value) || value === "undefined") {
     return null;
   }
-  return `  --${cssVarName(node)}: ${value};`;
+  return `  --${varName}: ${value};`;
 }
 
 function ensurePrefix(id: string, prefix: string): string {
   return id.startsWith(`${prefix}-`) ? id : `${prefix}-${id}`;
 }
 
-function cssVarName(node: Pick<TokenNode, "id" | "type">): string {
+function cssVarName(node: Pick<TokenNode, "id" | "type" | "layer">): string {
+  if (node.layer !== "primitive") {
+    return node.id;
+  }
+
   if (node.id.startsWith("color-") || node.id.startsWith("spacing-") || node.id.startsWith("radius-") || node.id.startsWith("shadow-") || node.id.startsWith("font-") || node.id.startsWith("font-weight-") || node.id.startsWith("text-") || node.id.startsWith("tracking-") || node.id.startsWith("leading-") || node.id.startsWith("border-width-")) {
     return node.id;
   }
