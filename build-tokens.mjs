@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Transforms Figma W3C design tokens into Nuxt UI compatible artifacts.
+// Transforms Figma W3C design tokens into a Tailwind-compatible tokens.css.
 // Inputs:  components/{color,dimension,typography,light,dark,global}.tokens.json
-// Outputs: output/{tokens.css, tokens.ts, nuxt-ui.app.config.ts}
+// Output:  output/tokens.css
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,17 @@ const FILES = {
   light: "light.tokens.json",
   dark: "dark.tokens.json",
   global: "global.tokens.json",
+};
+
+const layerForSource = (name) => {
+  if (name === "color" || name === "dimension" || name === "typography") return "primitive";
+  if (name === "light" || name === "dark") return "semantic";
+  return "component";
+};
+
+const slugForLayer = (parts, layer) => {
+  if (layer !== "primitive" && parts[0] === "color") return slug(parts.slice(1));
+  return slug(parts);
 };
 
 // Slug uses '-' as separator, so all matchers operate on dash-form
@@ -60,7 +71,58 @@ const slug = (parts) => {
     .replace(/^-|-$/g, "");
 };
 
-const cssVar = (parts) => `--${slug(parts)}`;
+const ensurePrefix = (id, prefix) => (id.startsWith(`${prefix}-`) ? id : `${prefix}-${id}`);
+
+function themeVarName(slugged, type) {
+  if (/^(surface|bg|text|border|action|state|status|button|input|card|badge|dropdown|modal|typography|table|progress|kbd|checkbox|radio|switch|chip|textarea|nav)-/.test(slugged)) {
+    return slugged;
+  }
+
+  if (/^(color|spacing|radius|shadow|font|font-weight|text|tracking|leading|border-width)-/.test(slugged)) {
+    return slugged;
+  }
+
+  if (type !== "color" && type !== "shadow" && type !== "fontFamily" && type !== "fontWeight" && !slugged.startsWith("font-size-") && !slugged.startsWith("line-height-") && !slugged.startsWith("letter-spacing-") && !slugged.startsWith("rounded-") && !slugged.startsWith("border-") && !slugged.startsWith("spacing-")) {
+    return slugged;
+  }
+
+  if (type === "color") return ensurePrefix(slugged, "color");
+  if (type === "shadow") return ensurePrefix(slugged, "shadow");
+  if (type === "fontFamily") return ensurePrefix(slugged, "font");
+  if (type === "fontWeight") return ensurePrefix(slugged, "font-weight");
+
+  if (slugged.startsWith("font-family-")) return ensurePrefix(slugged.slice("font-family-".length), "font");
+  if (/-font-family(-|$)/.test(slugged)) return ensurePrefix(slugged, "font");
+
+  if (slugged.startsWith("font-size-")) return ensurePrefix(slugged.slice("font-size-".length), "text");
+  if (/-font-size(-|$)/.test(slugged)) return ensurePrefix(slugged, "text");
+
+  if (slugged.startsWith("line-height-")) return ensurePrefix(slugged.slice("line-height-".length), "leading");
+  if (/-line-height(-|$)/.test(slugged)) return ensurePrefix(slugged, "leading");
+
+  if (slugged.startsWith("letter-spacing-")) return ensurePrefix(slugged.slice("letter-spacing-".length), "tracking");
+  if (/-letter-spacing(-|$)/.test(slugged)) return ensurePrefix(slugged, "tracking");
+
+  if (slugged.startsWith("rounded-")) return ensurePrefix(slugged.slice("rounded-".length), "radius");
+  if (/^(radius|rounded)-/.test(slugged) || /-(radius|rounded)(-|$)/.test(slugged)) {
+    return ensurePrefix(slugged, "radius");
+  }
+
+  if (slugged.startsWith("border-width-")) {
+    return ensurePrefix(slugged.slice("border-width-".length), "border-width");
+  }
+  if (slugged.startsWith("border-")) {
+    return ensurePrefix(slugged.slice("border-".length), "border-width");
+  }
+
+  if (slugged.startsWith("spacing-") || /-(spacing|padding|gap|size|width|height|offset)(-|$)/.test(slugged)) {
+    return ensurePrefix(slugged, "spacing");
+  }
+
+  return slugged;
+}
+
+const cssVar = (parts, token) => `--${themeVarName(slug(parts), token?.$type)}`;
 
 const inferUnit = (slugged) => {
   for (const re of NO_UNIT) if (re.test(slugged)) return "";
@@ -91,14 +153,15 @@ const formatValue = (token, slugged) => {
   const t = token.$type;
   const v = token.$value;
   if (t === "color") return colorToCss(v);
-  if (t === "number") {
+  if (t === "number" || t === "dimension") {
     const unit = inferUnit(slugged);
     return unit ? `${v}${unit}` : String(v);
   }
-  if (t === "string") {
+  if (t === "string" || t === "fontFamily" || t === "fontWeight" || t === "duration") {
     if (isCssValueString(slugged)) return balanceParens(v);
     return /\s/.test(v) ? `"${v}"` : v;
   }
+  if (t === "shadow") return balanceParens(String(v));
   return String(v);
 };
 
@@ -110,31 +173,55 @@ function buildAliasIndex(...sources) {
       const targets = [path.join("/")];
       const ext = token.$extensions?.["com.figma.aliasData"];
       if (ext?.targetVariableName) targets.push(ext.targetVariableName);
+      const layer = layerForSource(src.name);
+      const cssName = `--${layer === "primitive" ? themeVarName(slugForLayer(path, layer), token?.$type) : slugForLayer(path, layer)}`;
       for (const t of targets) {
         let key = t.toLowerCase();
         for (const [from, to] of NAME_FIXES) key = key.replace(from, to);
-        if (!idx.has(key)) idx.set(key, cssVar(path));
+        if (!idx.has(key)) idx.set(key, cssName);
       }
     }
   }
   return idx;
 }
 
-const resolveAlias = (token, aliasIndex) => {
-  const ext = token.$extensions?.["com.figma.aliasData"];
-  if (!ext?.targetVariableName) return null;
-  let key = ext.targetVariableName.toLowerCase();
+const parseCurlyAlias = (value) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const m = trimmed.match(/^\{([^{}]+)\}$/);
+  if (!m || !m[1]) return null;
+  const rawTarget = m[1];
+  let key = rawTarget.toLowerCase().replace(/\./g, "/");
   for (const [from, to] of NAME_FIXES) key = key.replace(from, to);
-  return aliasIndex.get(key) || null;
+  return { rawTarget, key };
 };
 
-const emitDecl = (varName, token, aliasIndex, useAlias = true) => {
-  const slugged = varName.replace(/^--/, "");
+const resolveAlias = (token, aliasIndex) => {
+  const ext = token.$extensions?.["com.figma.aliasData"];
+  if (ext?.targetVariableName) {
+    let key = ext.targetVariableName.toLowerCase();
+    for (const [from, to] of NAME_FIXES) key = key.replace(from, to);
+    return aliasIndex.get(key) || null;
+  }
+  const curly = parseCurlyAlias(token.$value);
+  if (curly) return aliasIndex.get(curly.key) || null;
+  return null;
+};
+
+const emitDecl = (varName, token, sourceSlugged, aliasIndex, useAlias = true) => {
   if (useAlias) {
     const aliasVar = resolveAlias(token, aliasIndex);
     if (aliasVar) return `  ${varName}: var(${aliasVar});`;
+    if (parseCurlyAlias(token.$value)) return null;
   }
-  return `  ${varName}: ${formatValue(token, slugged)};`;
+  const value = formatValue(token, sourceSlugged);
+  if (/^\{[^{}]+\}$/.test(value) || value === "undefined") return null;
+  return `  ${varName}: ${value};`;
+};
+
+const cssVarForLayer = (parts, token, layer) => {
+  const slugged = slugForLayer(parts, layer);
+  return `--${layer === "primitive" ? themeVarName(slugged, token?.$type) : slugged}`;
 };
 
 function buildCss() {
@@ -145,106 +232,52 @@ function buildCss() {
   const dark = { name: "dark", data: load("dark") };
   const global = { name: "global", data: load("global") };
 
-  const aliasIndex = buildAliasIndex(color, dimension, typography, light, dark);
+  const aliasIndex = buildAliasIndex(color, dimension, typography, light, dark, global);
 
   const sections = [];
   sections.push("/* Generated by build-tokens.mjs — do not edit by hand */");
   sections.push("/* Source: components/*.tokens.json (Figma W3C export) */\n");
 
-  // Layer 1: primitives — :root, no alias resolution
+  // Layer 1: primitives — @theme, no alias resolution
   const primitiveLines = [];
   for (const src of [color, dimension, typography]) {
     primitiveLines.push(`  /* ${src.name} */`);
     for (const { path, token } of walk(src.data)) {
-      primitiveLines.push(emitDecl(cssVar(path), token, aliasIndex, false));
+      const decl = emitDecl(cssVarForLayer(path, token, "primitive"), token, slug(path), aliasIndex, false);
+      if (decl) primitiveLines.push(decl);
     }
   }
-  sections.push(`:root {\n${primitiveLines.join("\n")}\n}\n`);
+  sections.push(`@theme {\n${primitiveLines.join("\n")}\n}\n`);
 
-  // Layer 2: semantic light — :root, alias resolved to primitives
+  // Layer 2: semantic light — plain CSS variables, alias resolved to primitives
   const lightLines = [];
   for (const { path, token } of walk(light.data)) {
-    lightLines.push(emitDecl(cssVar(path), token, aliasIndex, true));
+    const decl = emitDecl(cssVarForLayer(path, token, "semantic"), token, slug(path), aliasIndex, true);
+    if (decl) lightLines.push(decl);
   }
-  sections.push(`/* Semantic — light theme (default) */\n:root, html.light, [data-theme="light"] {\n${lightLines.join("\n")}\n}\n`);
+  sections.push(`/* Semantic — light theme (default) */\n:root {\n${lightLines.join("\n")}\n}\n`);
 
   // Layer 2b: semantic dark — overrides under .dark / [data-theme=dark]
   const darkLines = [];
   for (const { path, token } of walk(dark.data)) {
-    darkLines.push(emitDecl(cssVar(path), token, aliasIndex, true));
+    const decl = emitDecl(cssVarForLayer(path, token, "semantic"), token, slug(path), aliasIndex, true);
+    if (decl) darkLines.push(decl);
   }
   sections.push(`/* Semantic — dark theme (Nuxt UI sets html.dark by default) */\nhtml.dark, [data-theme="dark"] {\n${darkLines.join("\n")}\n}\n`);
 
-  // Layer 3: component tokens — :root, alias to semantic/primitives where possible
+  // Layer 3: component tokens — plain CSS variables, alias to semantic/primitives where possible
   const componentLines = [];
   for (const { path, token } of walk(global.data)) {
-    componentLines.push(emitDecl(cssVar(path), token, aliasIndex, true));
+    const decl = emitDecl(cssVarForLayer(path, token, "component"), token, slug(path), aliasIndex, true);
+    if (decl) componentLines.push(decl);
   }
   sections.push(`/* Component tokens (overrides resolve to semantic/primitive aliases) */\n:root {\n${componentLines.join("\n")}\n}\n`);
 
   return sections.join("\n");
 }
 
-function buildTs() {
-  const all = {};
-  for (const key of ["color", "dimension", "typography", "light", "dark", "global"]) {
-    const data = load(key);
-    for (const { path, token } of walk(data)) {
-      const slugged = slug(path);
-      all[slugged] = formatValue(token, slugged);
-    }
-  }
-  const entries = Object.entries(all)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
-    .join("\n");
-  return `// Generated by build-tokens.mjs — do not edit by hand
-export const tokens = {
-${entries}
-} as const;
-
-export type TokenName = keyof typeof tokens;
-
-export const cssVar = (name: TokenName): string => \`var(--\${name})\`;
-`;
-}
-
-function buildAppConfig() {
-  // Map our component slot tokens to Nuxt UI v3 ui.* keys where the names align.
-  // Most of our component values are CSS-variable bound, so the Nuxt UI app.config
-  // primarily aliases color roles. Other component overrides should be applied via
-  // the tokens.css custom properties.
-  return `// Generated by build-tokens.mjs
-// Drop into your Nuxt project as app.config.ts (or merge with existing).
-// Nuxt UI v3 reads colors from this config; component sizing/spacing is driven
-// by the CSS variables in tokens.css.
-
-export default defineAppConfig({
-  ui: {
-    colors: {
-      primary: 'blue',
-      neutral: 'zinc',
-    },
-    // Example: bind Nuxt UI button slot to our CSS variables.
-    // Uncomment / extend as needed.
-    // button: {
-    //   slots: {
-    //     base: 'rounded-[var(--button-radius)] gap-[var(--button-gap)] font-[var(--button-font-weight)]',
-    //   },
-    // },
-  },
-});
-`;
-}
-
 const css = buildCss();
-const ts = buildTs();
-const appCfg = buildAppConfig();
 
 writeFileSync(resolve(outDir, "tokens.css"), css);
-writeFileSync(resolve(outDir, "tokens.ts"), ts);
-writeFileSync(resolve(outDir, "nuxt-ui.app.config.ts"), appCfg);
 
 console.log("✓ output/tokens.css           ", css.length, "bytes");
-console.log("✓ output/tokens.ts            ", ts.length, "bytes");
-console.log("✓ output/nuxt-ui.app.config.ts", appCfg.length, "bytes");

@@ -1,7 +1,7 @@
 // Token-Graph-Contract — single internal data structure for the
-// Figma → Nuxt UI v4 adapter tool.
+// Figma token inspector and tokens.css generator.
 //
-// Both the adapter output (tokens.css, app.config.ts) and the inspector/
+// Both the generated tokens.css and the inspector/
 // preview UI render over this graph. Build it once from the dropped Figma
 // W3C JSON files; never mutate it — produce a new graph for new input.
 
@@ -175,8 +175,8 @@ export interface RenderedText {
 
 /**
  * A renderer takes the immutable graph and produces an output artifact.
- * Adapter outputs (tokens.css, app.config.ts) and inspector views are
- * both renderers — they never mutate the graph.
+ * The generated tokens.css and inspector views are both renderers — they
+ * never mutate the graph.
  */
 export interface Renderer<T> {
   readonly id: string;
@@ -184,7 +184,7 @@ export interface Renderer<T> {
 }
 
 /**
- * Text renderers (CSS, TS, app.config.ts) are the common case. They
+ * Text renderers are the common case. They
  * return both the rendered string and a LineMap so the inspector can
  * scroll to and highlight the line(s) for the currently-selected token.
  */

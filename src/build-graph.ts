@@ -181,6 +181,13 @@ function themeFor(source: SourceLayer): Theme | null {
   return null;
 }
 
+function idForPath(path: readonly string[], layer: GraphLayer): string {
+  if (layer !== "primitive" && path[0] === "color") {
+    return slug(path.slice(1));
+  }
+  return slug(path);
+}
+
 // ---------- Alias index ----------
 
 function buildForwardAliasIndex(
@@ -189,9 +196,14 @@ function buildForwardAliasIndex(
   const idx = new Map<string, TokenId>();
   for (const file of files) {
     for (const { path } of walk(file.data)) {
-      const id = slug(path);
-      const key = applyNameFixes(path.join("/").toLowerCase());
-      if (!idx.has(key)) idx.set(key, id);
+      const id = idForPath(path, layerFor(file.name));
+      const keys = [
+        applyNameFixes(path.join("/").toLowerCase()),
+        applyNameFixes(path.join(".").toLowerCase()),
+      ];
+      for (const key of keys) {
+        if (!idx.has(key)) idx.set(key, id);
+      }
     }
   }
   return idx;
@@ -277,11 +289,11 @@ function assembleNodes(
     const layer = layerFor(file.name);
 
     for (const { path, token } of walk(file.data)) {
-      const id = slug(path);
+      const id = idForPath(path, layer);
       const slugged = id;
-      const formatted = formatValue(token, slugged);
       const aliasAttempt = resolveAliasFor(token, aliasIndex);
       const alias = aliasAttempt.resolved;
+      const formatted = formatValue(token, slugged);
       // Only emit malformed-value when no resolved alias shadows the
       // literal cssValue — otherwise the literal is unused in the output.
       if (formatted.issue && !alias) {

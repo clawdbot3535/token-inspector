@@ -1,14 +1,11 @@
 # Token Inspector
 
-> Figma → Nuxt UI v4 design-token adapter and inspector.
+> Figma design-token inspector and `tokens.css` generator.
 
 Drop your Figma W3C DTCG token export into the browser and the tool builds a single
 in-memory token graph, surfaces it through a searchable inspector (alias chains,
-used-by lookups, issues), and renders out:
-
-- a Nuxt UI v4 `app.config.ts`
-- CSS custom-property declarations for light + dark themes
-- live component previews driven by the actual token values
+used-by lookups, issues), and renders out a Tailwind-compatible `tokens.css` with
+light + dark theme variables and component aliases.
 
 100% client-side. No backend, no upload, nothing leaves the browser tab.
 
@@ -56,8 +53,7 @@ A Husky pre-commit hook runs `typecheck` + `tests` on every commit.
 - **Used-by lookup** — find every token that references the selected one.
 - **Issues view** — surfaces broken aliases, unresolved references, type
   mismatches.
-- **Code preview** — generated `tokens.css` and `app.config.ts` side-by-side, copy
-  or download as a zip.
+- **Code preview** — generated `tokens.css`, copy or download directly.
 - **Figma embeds** — if `figma-mapping.json` is supplied, the inspector links each
   component to its Figma node and renders the official Figma embed.
 - **Live Button preview** — for any `button-*` token, renders a real `<button>`
@@ -71,7 +67,7 @@ A Husky pre-commit hook runs `typecheck` + `tests` on every commit.
 src/
 ├── token-graph.ts          # type contract for the in-memory graph
 ├── build-graph.ts          # SourceFile[] → TokenGraph
-├── renderers/              # graph → CSS / TS / app.config.ts emitters
+├── renderers/              # graph → CSS emitter
 └── app/                    # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
     ├── App.vue             # top-level inspector layout
     ├── load-sources.ts     # drop → SourceFile[] (zip unwrap + layer detection)

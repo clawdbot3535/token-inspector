@@ -2,8 +2,6 @@ import { describe, it, expect } from "vitest";
 import { buildGraph } from "../build-graph.js";
 import type { SourceFile } from "../token-graph.js";
 import { cssRenderer } from "./css.js";
-import { tsRenderer } from "./ts.js";
-import { appConfigRenderer } from "./app-config.js";
 
 const sources: SourceFile[] = [
   {
@@ -94,14 +92,14 @@ describe("cssRenderer", () => {
     const g = buildGraph(sources);
     const out = cssRenderer.render(g);
     expect(out.text).toContain("--color-blue-600: #2563EB;");
-    expect(out.text).toContain("--rounded-md: 6px;");
+    expect(out.text).toContain("--radius-md: 6px;");
   });
 
   it("emits semantic light + dark blocks under the right selectors", () => {
     const g = buildGraph(sources);
     const out = cssRenderer.render(g);
     expect(out.text).toMatch(
-      /:root, html\.light, \[data-theme="light"\] \{[\s\S]*--surface-primary: var\(--color-zinc-100\);/,
+      /:root \{[\s\S]*--surface-primary: var\(--color-zinc-100\);/,
     );
     expect(out.text).toMatch(
       /html\.dark, \[data-theme="dark"\] \{[\s\S]*--surface-primary: var\(--color-zinc-900\);/,
@@ -114,7 +112,7 @@ describe("cssRenderer", () => {
     expect(out.text).toContain(
       "--button-primary-background: var(--color-blue-600);",
     );
-    expect(out.text).toContain("--button-primary-radius: var(--rounded-md);");
+    expect(out.text).toContain("--button-primary-radius: var(--radius-md);");
   });
 
   it("records LineMap entries for every emitted token", () => {
@@ -140,40 +138,6 @@ describe("cssRenderer", () => {
     const [first, second] = out.lines.get("surface-primary")!;
     expect(lines[first - 1]).toContain("--surface-primary:");
     expect(lines[second - 1]).toContain("--surface-primary:");
-  });
-});
-
-describe("tsRenderer", () => {
-  it("emits sorted keys and a const assertion", () => {
-    const g = buildGraph(sources);
-    const out = tsRenderer.render(g);
-    expect(out.text).toContain("export const tokens = {");
-    expect(out.text).toContain("} as const;");
-    expect(out.text).toContain('"button-primary-background"');
-    expect(out.text).toContain("export type TokenName");
-  });
-
-  it("LineMap covers each emitted token entry", () => {
-    const g = buildGraph(sources);
-    const out = tsRenderer.render(g);
-    expect(out.lines.get("color-blue-600")).toBeDefined();
-    expect(out.lines.get("surface-primary")).toBeDefined();
-  });
-});
-
-describe("appConfigRenderer", () => {
-  it("emits a defineAppConfig wrapper with ui.colors", () => {
-    const g = buildGraph(sources);
-    const out = appConfigRenderer.render(g);
-    expect(out.text).toContain("defineAppConfig({");
-    expect(out.text).toMatch(/primary:\s*'blue'/);
-    expect(out.text).toMatch(/neutral:\s*'zinc'/);
-  });
-
-  it("includes a commented hint when component tokens for a slot exist", () => {
-    const g = buildGraph(sources);
-    const out = appConfigRenderer.render(g);
-    expect(out.text).toContain("button: tokens detected");
   });
 });
 

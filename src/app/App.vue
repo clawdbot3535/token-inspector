@@ -12,7 +12,6 @@ import IssuesView from "./components/IssuesView.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import { defaultRenderers } from "@core/renderers/index.js";
-import { buildZip, downloadBlob } from "./zip.js";
 import {
   loadFigmaMapping,
   parseFigmaFileUrl,
@@ -133,14 +132,18 @@ function onPick(e: Event) {
   handleFiles(input.files);
 }
 
-function downloadAll() {
+function downloadTokensCss() {
   const g = state.graph.value;
   if (!g) return;
-  const entries = defaultRenderers.map((r) => ({
-    name: r.id,
-    data: r.render(g).text,
-  }));
-  downloadBlob(buildZip(entries), "tokens-bundle.zip");
+  const css = defaultRenderers[0]?.render(g).text;
+  if (!css) return;
+  const blob = new Blob([css], { type: "text/css;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "tokens.css";
+  link.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 
@@ -198,9 +201,9 @@ function downloadAll() {
             color="primary"
             variant="ghost"
             size="xs"
-            @click="downloadAll"
+            @click="downloadTokensCss"
           >
-            Download .zip
+            Download CSS
           </UButton>
           <UButton
             v-if="state.graph.value"
@@ -348,18 +351,9 @@ function downloadAll() {
           <!-- Output: live preview -->
           <aside class="w-[28rem] border-l border-default flex flex-col">
             <div class="flex border-b border-default">
-              <button
-                v-for="tab in (['tokens.css', 'app.config.ts', 'tokens.ts'] as const)"
-                :key="tab"
-                class="px-3 py-2 text-xs border-r border-default"
-                :class="{
-                  'bg-elevated font-medium': state.outputTab.value === tab,
-                  'text-muted': state.outputTab.value !== tab,
-                }"
-                @click="state.outputTab.value = tab"
-              >
-                {{ tab }}
-              </button>
+              <div class="px-3 py-2 text-xs border-r border-default bg-elevated font-medium">
+                tokens.css
+              </div>
             </div>
             <CodePreview
               v-if="rendered"
