@@ -99,7 +99,7 @@ describe("cssRenderer", () => {
     const g = buildGraph(sources);
     const out = cssRenderer.render(g);
     expect(out.text).toMatch(
-      /@theme \{[\s\S]*--color-surface-primary: var\(--color-zinc-100\);/,
+      /:root \{[\s\S]*--color-surface-primary: var\(--color-zinc-100\);/,
     );
     expect(out.text).toMatch(
       /html\.dark, \[data-theme="dark"\] \{[\s\S]*--color-surface-primary: var\(--color-zinc-900\);/,
@@ -112,7 +112,7 @@ describe("cssRenderer", () => {
     expect(out.text).toContain(
       "--color-button-primary-background: var(--color-blue-600);",
     );
-    expect(out.text).toContain("--radius-button-primary-radius: var(--radius-md);");
+    expect(out.text).toContain("--button-primary-radius: var(--radius-md);");
   });
 
   it("records LineMap entries for every emitted token", () => {

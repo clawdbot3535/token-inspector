@@ -63,6 +63,14 @@ const slug = (parts) => {
 const ensurePrefix = (id, prefix) => (id.startsWith(`${prefix}-`) ? id : `${prefix}-${id}`);
 
 function themeVarName(slugged, type) {
+  if (/^(color|spacing|radius|shadow|font|font-weight|text|tracking|leading|border-width)-/.test(slugged)) {
+    return slugged;
+  }
+
+  if (type !== "color" && type !== "shadow" && type !== "fontFamily" && type !== "fontWeight" && !slugged.startsWith("font-size-") && !slugged.startsWith("line-height-") && !slugged.startsWith("letter-spacing-") && !slugged.startsWith("rounded-") && !slugged.startsWith("border-") && !slugged.startsWith("spacing-")) {
+    return slugged;
+  }
+
   if (type === "color") return ensurePrefix(slugged, "color");
   if (type === "shadow") return ensurePrefix(slugged, "shadow");
   if (type === "fontFamily") return ensurePrefix(slugged, "font");
@@ -219,13 +227,13 @@ function buildCss() {
   }
   sections.push(`@theme {\n${primitiveLines.join("\n")}\n}\n`);
 
-  // Layer 2: semantic light — @theme, alias resolved to primitives
+  // Layer 2: semantic light — plain CSS variables, alias resolved to primitives
   const lightLines = [];
   for (const { path, token } of walk(light.data)) {
     const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, true);
     if (decl) lightLines.push(decl);
   }
-  sections.push(`/* Semantic — light theme (default) */\n@theme {\n${lightLines.join("\n")}\n}\n`);
+  sections.push(`/* Semantic — light theme (default) */\n:root {\n${lightLines.join("\n")}\n}\n`);
 
   // Layer 2b: semantic dark — overrides under .dark / [data-theme=dark]
   const darkLines = [];
@@ -235,13 +243,13 @@ function buildCss() {
   }
   sections.push(`/* Semantic — dark theme (Nuxt UI sets html.dark by default) */\nhtml.dark, [data-theme="dark"] {\n${darkLines.join("\n")}\n}\n`);
 
-  // Layer 3: component tokens — @theme, alias to semantic/primitives where possible
+  // Layer 3: component tokens — plain CSS variables, alias to semantic/primitives where possible
   const componentLines = [];
   for (const { path, token } of walk(global.data)) {
     const decl = emitDecl(cssVar(path, token), token, slug(path), aliasIndex, true);
     if (decl) componentLines.push(decl);
   }
-  sections.push(`/* Component tokens (overrides resolve to semantic/primitive aliases) */\n@theme {\n${componentLines.join("\n")}\n}\n`);
+  sections.push(`/* Component tokens (overrides resolve to semantic/primitive aliases) */\n:root {\n${componentLines.join("\n")}\n}\n`);
 
   return sections.join("\n");
 }

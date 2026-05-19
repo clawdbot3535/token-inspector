@@ -1,8 +1,8 @@
 // CSS renderer — produces tokens.css from a TokenGraph.
 // Three cascade sections matching build-tokens.mjs:
-//   1. @theme primitives (no aliases resolved — literal values)
-//   2. @theme semantic light + html.dark semantic dark overrides
-//   3. @theme component overrides (aliased where possible)
+//   1. @theme primitives (Tailwind-native namespaces)
+//   2. :root semantic light + html.dark semantic dark overrides
+//   3. :root component overrides (plain CSS variables)
 
 import type {
   GraphLayer,
@@ -56,6 +56,14 @@ function ensurePrefix(id: string, prefix: string): string {
 }
 
 function cssVarName(node: Pick<TokenNode, "id" | "type">): string {
+  if (node.id.startsWith("color-") || node.id.startsWith("spacing-") || node.id.startsWith("radius-") || node.id.startsWith("shadow-") || node.id.startsWith("font-") || node.id.startsWith("font-weight-") || node.id.startsWith("text-") || node.id.startsWith("tracking-") || node.id.startsWith("leading-") || node.id.startsWith("border-width-")) {
+    return node.id;
+  }
+
+  if (node.type !== "color" && node.type !== "shadow" && node.type !== "fontFamily" && node.type !== "fontWeight" && !node.id.startsWith("font-size-") && !node.id.startsWith("line-height-") && !node.id.startsWith("letter-spacing-") && !node.id.startsWith("rounded-") && !node.id.startsWith("border-") && !node.id.startsWith("spacing-")) {
+    return node.id;
+  }
+
   if (node.type === "color") return ensurePrefix(node.id, "color");
   if (node.type === "shadow") return ensurePrefix(node.id, "shadow");
   if (node.type === "fontFamily") return ensurePrefix(node.id, "font");
@@ -128,13 +136,13 @@ export const cssRenderer: TextRenderer = {
       emitBlock(lb, "@theme", graph, primitives, "base", false);
     }
 
-    // Layer 2a: semantic light/default — emit via @theme so Tailwind can
-    // synthesize utilities from recognized namespaces.
+    // Layer 2a: semantic light/default — plain CSS variables for reliable
+    // component consumption via var(--token).
     const lightNodes = semantics.filter((n) => n.cssValue.light !== undefined);
     if (lightNodes.length > 0) {
       emitBlock(
         lb,
-        "@theme",
+        ":root",
         graph,
         lightNodes,
         "light",
@@ -157,11 +165,11 @@ export const cssRenderer: TextRenderer = {
       );
     }
 
-    // Layer 3: component overrides — alias-resolved where possible.
+    // Layer 3: component overrides — plain CSS variables.
     if (components.length > 0) {
       emitBlock(
         lb,
-        "@theme",
+        ":root",
         graph,
         components,
         "base",
