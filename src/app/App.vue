@@ -14,6 +14,7 @@ import LiveButton from "./components/LiveButton.vue";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
 import FilterChips from "./components/FilterChips.vue";
 import SummaryPanel from "./components/SummaryPanel.vue";
+import OutputSection from "./components/OutputSection.vue";
 import { useClassifications } from "./classifications.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
@@ -62,7 +63,13 @@ function setFigmaUrl(input: string) {
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const rendered = useRenderedOutput(state);
-const { kindOf, summary } = useClassifications(state.graph);
+const { kindOf, summary, classifications } = useClassifications(state.graph);
+
+const selectedClassification = computed(() => {
+  const id = state.selection.value;
+  if (!id) return null;
+  return classifications.value.get(id) ?? null;
+});
 
 const visibleNodes = computed(() => {
   const filter = state.filters.value.classification;
@@ -361,6 +368,11 @@ function downloadAll() {
               />
 
               <UsedByList :nodes="usedByForSelected" @select="state.selection.value = $event" />
+
+              <OutputSection
+                v-if="selectedClassification"
+                :classification="selectedClassification"
+              />
 
               <details class="text-xs">
                 <summary class="cursor-pointer text-muted">Raw node</summary>
