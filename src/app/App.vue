@@ -11,6 +11,8 @@ import CodePreview from "./components/CodePreview.vue";
 import IssuesView from "./components/IssuesView.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
+import ClassificationBadge from "./components/ClassificationBadge.vue";
+import { useClassifications } from "./classifications.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import {
@@ -58,6 +60,7 @@ function setFigmaUrl(input: string) {
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const rendered = useRenderedOutput(state);
+const { kindOf } = useClassifications(state.graph);
 
 const issueCount = computed(() => state.graph.value?.issues.length ?? 0);
 const nodeCount = computed(() => state.graph.value?.nodes.size ?? 0);
@@ -262,7 +265,7 @@ function downloadAll() {
               <button
                 v-for="node in filteredNodes"
                 :key="node.id"
-                class="w-full text-left px-3 py-1 hover:bg-elevated transition-colors"
+                class="w-full text-left px-3 py-1 hover:bg-elevated transition-colors flex items-center gap-2"
                 :class="{
                   'bg-primary/10 text-primary': state.selection.value === node.id,
                   'bg-warning/15 text-warning':
@@ -271,7 +274,8 @@ function downloadAll() {
                 }"
                 @click="state.selection.value = node.id"
               >
-                {{ node.id }}
+                <span class="flex-1 truncate">{{ node.id }}</span>
+                <ClassificationBadge v-if="kindOf(node.id)" :kind="kindOf(node.id)!" />
               </button>
             </div>
           </aside>
