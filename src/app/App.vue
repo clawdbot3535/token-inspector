@@ -13,6 +13,7 @@ import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
 import FilterChips from "./components/FilterChips.vue";
+import SummaryPanel from "./components/SummaryPanel.vue";
 import { useClassifications } from "./classifications.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
@@ -260,6 +261,18 @@ function downloadAll() {
         <template v-else>
           <!-- Sidebar: token browser -->
           <aside class="w-72 border-r border-default flex flex-col">
+            <div class="px-2 pt-2 border-b border-default">
+              <SummaryPanel
+                :summary="summary"
+                @select="
+                  (f) =>
+                    (state.filters.value = {
+                      ...state.filters.value,
+                      classification: f,
+                    })
+                "
+              />
+            </div>
             <div class="p-2 border-b border-default space-y-2">
               <UInput
                 v-model="state.filters.value.search"
