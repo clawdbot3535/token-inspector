@@ -1408,9 +1408,276 @@ git commit -m "refactor: LiveButton uses Tailwind classes from recipe engine"
 
 ---
 
+## Phase M — Resizable Sidebars
+
+### Task 7: Resizable inspector panes via custom composable
+
+**Files:**
+- Create: `src/app/composables/use-resizable-pane.ts`
+- Create: `src/app/components/ResizeHandle.vue`
+- Modify: `src/app/App.vue` (replace fixed-width panel containers with resizable layout)
+
+**Context:** App.vue currently uses fixed-width columns for the token list (left sidebar) and the detail / code-preview pane (right). Make both pane boundaries draggable. Persist user choice to `localStorage` under namespaced keys so the layout survives reloads. No new runtime dependencies — a small custom composable plus a hairline drag-handle component.
+
+### Step 1: Inspect current layout
+
+```bash
+grep -n "class=\".*w-\\[\\|flex-1\\|sidebar\\|aside\\|grid-cols" src/app/App.vue | head -30
+```
+
+Identify the column structure. Most likely a flex layout with the left pane having a fixed Tailwind width (e.g. `w-80`, `w-96`) and the right content using `flex-1`. Or a CSS grid layout.
+
+Note **how many resizable boundaries** there actually are. The user said "beide sidebars" — confirm whether there is one divider (left list vs. main detail) or two (left list, main, right code-preview). Adapt the rest of the task accordingly.
+
+### Step 2: Write the composable
+
+Create `src/app/composables/use-resizable-pane.ts`:
+
+```ts
+// Drag-resize state for a single pane boundary.
+//
+// Usage:
+//   const { width, onPointerDown } = useResizablePane({
+//     storageKey: 'inspector.leftPaneWidth',
+//     initialWidth: 320,
+//     minWidth: 240,
+//     maxWidth: 640,
+//   });
+//
+// Apply width to the pane via :style="{ width: width + 'px' }".
+// Attach onPointerDown to a <ResizeHandle> sibling component.
+
+import { ref, onMounted, onBeforeUnmount, type Ref } from "vue";
+
+export interface ResizableOptions {
+  storageKey: string;
+  initialWidth: number;
+  minWidth: number;
+  maxWidth: number;
+}
+
+export interface ResizableHandle {
+  width: Ref<number>;
+  onPointerDown: (event: PointerEvent) => void;
+}
+
+export function useResizablePane(opts: ResizableOptions): ResizableHandle {
+  const width = ref(opts.initialWidth);
+  let dragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  function load(): void {
+    if (typeof localStorage === "undefined") return;
+    const raw = localStorage.getItem(opts.storageKey);
+    if (!raw) return;
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) return;
+    width.value = clamp(parsed, opts.minWidth, opts.maxWidth);
+  }
+
+  function persist(): void {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(opts.storageKey, String(width.value));
+  }
+
+  function onPointerDown(event: PointerEvent): void {
+    dragging = true;
+    startX = event.clientX;
+    startWidth = width.value;
+    (event.target as Element | null)?.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  }
+
+  function onPointerMove(event: PointerEvent): void {
+    if (!dragging) return;
+    const delta = event.clientX - startX;
+    width.value = clamp(startWidth + delta, opts.minWidth, opts.maxWidth);
+  }
+
+  function onPointerUp(): void {
+    if (!dragging) return;
+    dragging = false;
+    persist();
+  }
+
+  onMounted(() => {
+    load();
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+  });
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointercancel", onPointerUp);
+  });
+
+  return { width, onPointerDown };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+```
+
+### Step 3: Write the drag-handle component
+
+Create `src/app/components/ResizeHandle.vue`:
+
+```vue
+<script setup lang="ts">
+interface Props {
+  /** Position relative to the pane that owns this handle. */
+  side: "left" | "right";
+}
+
+interface Emits {
+  (event: "pointerdown", e: PointerEvent): void;
+}
+
+defineProps<Props>();
+const emit = defineEmits<Emits>();
+</script>
+
+<template>
+  <div
+    :class="[
+      'absolute top-0 bottom-0 w-1 cursor-col-resize select-none group',
+      side === 'right' ? 'right-0' : 'left-0',
+    ]"
+    @pointerdown="(e) => emit('pointerdown', e)"
+    role="separator"
+    aria-orientation="vertical"
+  >
+    <!-- Visible hairline on hover -->
+    <div
+      class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-transparent group-hover:bg-blue-400 group-active:bg-blue-500 transition-colors"
+    />
+  </div>
+</template>
+```
+
+### Step 4: Wire into App.vue
+
+In `src/app/App.vue`:
+
+1. Add imports:
+```ts
+import { useResizablePane } from "./composables/use-resizable-pane.js";
+import ResizeHandle from "./components/ResizeHandle.vue";
+```
+
+2. Instantiate one composable per resizable pane. If there is only one boundary (most common case — left list pane vs. main content):
+
+```ts
+const leftPane = useResizablePane({
+  storageKey: "inspector.leftPaneWidth",
+  initialWidth: 320,
+  minWidth: 240,
+  maxWidth: 640,
+});
+```
+
+If there are two boundaries (left list and right code-preview), add a second:
+
+```ts
+const rightPane = useResizablePane({
+  storageKey: "inspector.rightPaneWidth",
+  initialWidth: 480,
+  minWidth: 320,
+  maxWidth: 800,
+});
+```
+
+3. Update the template. Find the existing pane container with the fixed Tailwind width class (e.g. `class="w-80 ..."`). Replace with:
+
+```vue
+<aside
+  class="relative shrink-0 border-r border-zinc-200 dark:border-zinc-800"
+  :style="{ width: leftPane.width.value + 'px' }"
+>
+  <!-- existing left sidebar content (search, FilterChips, SummaryPanel, list) -->
+  …
+  <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
+</aside>
+```
+
+The handle is positioned on the **right edge** of the left pane (visually between left and main).
+
+If there is a right pane too (code-preview / detail panel that should also be resizable), repeat the pattern with the handle on the `left` side of the right pane:
+
+```vue
+<aside
+  class="relative shrink-0 border-l border-zinc-200 dark:border-zinc-800"
+  :style="{ width: rightPane.width.value + 'px' }"
+>
+  <ResizeHandle side="left" @pointerdown="rightPane.onPointerDown" />
+  <!-- existing right pane content -->
+</aside>
+```
+
+For the `rightPane` case, the delta direction flips — dragging left should INCREASE the right pane's width. Adjust the composable invocation:
+
+Either:
+- Add a `direction: 'shrink' | 'grow'` option to the composable and invert the sign internally, OR
+- Pass `-deltaX` from a wrapper handler in App.vue, OR
+- Use the simplest local solution: when wiring the `rightPane`, multiply `event.clientX - startX` by `-1` before passing to `width.value = clamp(startWidth - delta, ...)`.
+
+The cleanest approach is to add the `direction` option to the composable. Update the composable:
+
+```ts
+export interface ResizableOptions {
+  storageKey: string;
+  initialWidth: number;
+  minWidth: number;
+  maxWidth: number;
+  direction?: "grow-right" | "grow-left"; // default "grow-right" (left pane)
+}
+```
+
+And in `onPointerMove`:
+```ts
+const rawDelta = event.clientX - startX;
+const delta = (opts.direction ?? "grow-right") === "grow-right" ? rawDelta : -rawDelta;
+width.value = clamp(startWidth + delta, opts.minWidth, opts.maxWidth);
+```
+
+If the layout has only one boundary, skip this option entirely.
+
+### Step 5: Visual smoke
+
+```bash
+npm run dev
+```
+
+Open in browser, grab each handle, drag left/right. Confirm:
+- Width adjusts smoothly during drag
+- Snap to min/max at boundaries
+- Reload preserves the new width
+- Cursor changes to `col-resize` on hover
+
+### Step 6: Typecheck + tests + commit
+
+```bash
+npm run typecheck && npm test
+```
+
+Expected: all green.
+
+```bash
+git add src/app/composables/use-resizable-pane.ts src/app/components/ResizeHandle.vue src/app/App.vue
+git commit -m "feat: resizable inspector sidebars with localStorage persistence"
+```
+
+Pre-commit hook must stay green.
+
+---
+
 ## Phase L — Legacy removal + Release
 
-### Task 7: Delete legacy code paths
+### Task 8: Delete legacy code paths
 
 **Files:**
 - Delete: `src/renderers/css.ts`, `src/renderers/ts.ts`
@@ -1512,7 +1779,7 @@ Pre-commit hook must stay green.
 
 ---
 
-### Task 8: README + CHANGELOG
+### Task 9: README + CHANGELOG
 
 **Files:**
 - Modify: `README.md`
@@ -1586,7 +1853,7 @@ git commit -m "docs: update README and add CHANGELOG for v0.3.0"
 
 ---
 
-### Task 9: Version bump to v0.3.0 + tag + push
+### Task 10: Version bump to v0.3.0 + tag + push
 
 **Files:**
 - Modify: `package.json` (version)
@@ -1663,9 +1930,10 @@ Each PR 2 requirement from `2026-05-20-tailwind-utility-first-tokens-design.md` 
 - **Updated `app-config.ts` renderer with recipes (Phase I)** → Task 4
 - **OutputSection `skip` branch filled (Phase J)** → Task 5
 - **LiveButton Strategy B (Phase K)** → Task 6
-- **Legacy removal (Phase L)** → Task 7
-- **README + CHANGELOG (Phase L)** → Task 8
-- **v0.3.0 bump + tag + push (Phase L)** → Task 9
+- **Resizable Sidebars (Phase M)** → Task 7
+- **Legacy removal (Phase L)** → Task 8
+- **README + CHANGELOG (Phase L)** → Task 9
+- **v0.3.0 bump + tag + push (Phase L)** → Task 10
 
 ### Deferred (not in PR 2)
 

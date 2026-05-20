@@ -424,7 +424,8 @@ Existing categories retained (broken aliases, unresolved references, type mismat
 - Phase I: Updated `src/renderers/app-config.ts` consuming the recipe engine. Emits the full `defineAppConfig` body (colors + button recipes).
 - Phase J: Inspector OutputSection for `skip` tokens — render the resolved Tailwind class list using `resolve-token.ts` + `classifyToken`. Replaces the PR 1 "available in PR 2" placeholder.
 - Phase K: LiveButton Strategy B — refactor LiveButton to render plain `<button>` with Tailwind classes computed from the recipe engine. Inject `<style id="inspector-utilities">` for utility-class generation. Adjacent code-block shows the exact class string.
-- Phase L: Remove `renderers/css.ts` + `renderers/ts.ts` + legacy `output/tokens.ts` + legacy `build-tokens.mjs`. Delete `smoke.legacy.test.ts`. Update README. Add CHANGELOG. Bump to **v0.3.0**, push annotated tag.
+- Phase M: Resizable inspector sidebars. Custom `useResizablePane` composable (no new runtime dependencies), `ResizeHandle` component, localStorage persistence per pane.
+- Phase L: Remove `renderers/css.ts` + `renderers/ts.ts` + legacy `output/tokens.ts` + legacy `build-tokens.mjs`. Delete `smoke.legacy.test.ts` + `diff.test.ts`. Update README. Add CHANGELOG. Bump to **v0.3.0**, push annotated tag.
 
 Both PRs independently green-tested and mergeable. Visual smoke after PR 2 done locally via `gstack /browse` — no Playwright in CI yet.
 
@@ -466,6 +467,7 @@ Close with a comment summarizing the new architecture and acknowledging `layerFo
 - Component recipes for components beyond `button` in PR 2. `badge`, `card`, `input`, etc. follow in subsequent PRs once the slot-mapping pattern is validated.
 - Cross-component composite recipes (e.g. "a card with a button inside inherits these tokens"). Each component recipe is self-contained.
 - Hue-proximity matching for color role mapping. PR 2 may attempt name-similarity matching but falls back to defaults; sophisticated color-space matching is deferred.
+- Figma REST API import via Personal Access Token. Currently the tool accepts drag-and-drop W3C DTCG `*.tokens.json` files only. Direct fetch from `GET /v1/files/:key/variables/local` plus a Figma-Variables → DTCG converter is planned as **PR 3** (post v0.3.0); needs its own brainstorming round given the security model (browser-side PAT handling) and format-conversion scope.
 
 ## Open Items
 
