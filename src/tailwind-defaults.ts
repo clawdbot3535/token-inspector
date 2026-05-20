@@ -25,14 +25,14 @@ export function normalizeToRem(value: string, remBase = DEFAULT_REM_BASE): strin
   if (trimmed === "0" || /^0(px|rem)$/.test(trimmed)) return "0";
 
   const pxMatch = trimmed.match(/^(-?\d+(?:\.\d+)?)px$/);
-  if (pxMatch) {
+  if (pxMatch?.[1] !== undefined) {
     const px = Number.parseFloat(pxMatch[1]);
     const rem = px / remBase;
     return `${trimRem(rem)}rem`;
   }
 
   const remMatch = trimmed.match(/^(-?\d+(?:\.\d+)?)rem$/);
-  if (remMatch) {
+  if (remMatch?.[1] !== undefined) {
     const n = Number.parseFloat(remMatch[1]);
     return `${trimRem(n)}rem`;
   }
