@@ -4,6 +4,10 @@ import {
   matchSpacing,
   matchRadius,
   matchFontSize,
+  matchTracking,
+  matchLeading,
+  matchBorderWidth,
+  matchFontWeight,
 } from "./tailwind-defaults.js";
 
 describe("normalizeToRem", () => {
@@ -64,5 +68,48 @@ describe("matchFontSize", () => {
   it("matches base font sizes", () => {
     expect(matchFontSize("1rem")).toBe("base");
     expect(matchFontSize("0.875rem")).toBe("sm");
+  });
+});
+
+describe("matchTracking", () => {
+  it("matches em-based tracking values via literal lookup", () => {
+    expect(matchTracking("0.025em")).toBe("wide");
+    expect(matchTracking("-0.025em")).toBe("tight");
+    expect(matchTracking("0em")).toBe("normal");
+  });
+
+  it("returns null for unknown tracking values", () => {
+    expect(matchTracking("0.123em")).toBeNull();
+  });
+});
+
+describe("matchLeading", () => {
+  it("matches unitless line-height values via literal lookup", () => {
+    expect(matchLeading("1.5")).toBe("normal");
+    expect(matchLeading("1.25")).toBe("tight");
+    expect(matchLeading("2")).toBe("loose");
+  });
+
+  it("returns null for unknown leading values", () => {
+    expect(matchLeading("1.7")).toBeNull();
+  });
+});
+
+describe("matchBorderWidth", () => {
+  it("returns null because Tailwind v4 does not expose --border-* in @theme", () => {
+    expect(matchBorderWidth("1px")).toBeNull();
+    expect(matchBorderWidth("2px")).toBeNull();
+  });
+});
+
+describe("matchFontWeight", () => {
+  it("matches unitless weight values", () => {
+    expect(matchFontWeight("400")).toBe("normal");
+    expect(matchFontWeight("700")).toBe("bold");
+    expect(matchFontWeight("100")).toBe("thin");
+  });
+
+  it("returns null for unknown weight values", () => {
+    expect(matchFontWeight("450")).toBeNull();
   });
 });

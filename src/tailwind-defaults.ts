@@ -48,8 +48,14 @@ function trimRem(n: number): string {
 function matcher(table: Readonly<Record<string, string>>) {
   return (value: string, remBase?: number): string | null => {
     const normalized = normalizeToRem(value, remBase);
-    if (normalized === null) return null;
-    return table[normalized] ?? table[value] ?? null;
+    if (normalized !== null) {
+      const hit = table[normalized];
+      if (hit !== undefined) return hit;
+    }
+    // Fall back to literal lookup for em/unitless values that
+    // normalizeToRem does not handle (tracking is em-based,
+    // leading is unitless line-height multipliers).
+    return table[value.trim()] ?? null;
   };
 }
 
