@@ -46,6 +46,16 @@ for (const line of themeMatch[1].split("\n")) {
   if (m) declarations[m[1]] = m[2].trim();
 }
 
+const MIN_EXPECTED_DECLARATIONS = 50;
+const declarationCount = Object.keys(declarations).length;
+if (declarationCount < MIN_EXPECTED_DECLARATIONS) {
+  console.error(
+    `Parsed only ${declarationCount} declarations from @theme — expected at least ${MIN_EXPECTED_DECLARATIONS}.`,
+  );
+  console.error("The @theme regex may have truncated. Inspect", tailwindCssPath, "and adjust.");
+  process.exit(1);
+}
+
 // Group: prefix -> { value -> suffix }
 function group(prefix) {
   const out = {};
@@ -53,6 +63,10 @@ function group(prefix) {
   for (const [name, value] of Object.entries(declarations)) {
     if (!name.startsWith(stripped)) continue;
     const suffix = name.slice(stripped.length);
+    if (suffix.includes("--")) {
+      // sub-variables like "9xl--line-height" belong to a related property, not this category
+      continue;
+    }
     if (suffix.includes("-") && !/^\d/.test(suffix)) {
       // multi-segment names like "weight-bold" go to a sub-map
       continue;

@@ -114,7 +114,6 @@ export const RADIUS: Readonly<Record<string, string>> = Object.freeze({
 export const FONT_SIZE: Readonly<Record<string, string>> = Object.freeze({
   "0.75rem": "xs",
   "0.875rem": "sm",
-  "1": "9xl--line-height",
   "1.125rem": "lg",
   "1.25rem": "xl",
   "1.5rem": "2xl",
@@ -126,9 +125,6 @@ export const FONT_SIZE: Readonly<Record<string, string>> = Object.freeze({
   "4.5rem": "7xl",
   "6rem": "8xl",
   "8rem": "9xl",
-  "calc(2 / 1.5)": "2xl--line-height",
-  "calc(2.25 / 1.875)": "3xl--line-height",
-  "calc(2.5 / 2.25)": "4xl--line-height",
 });
 export const FONT_WEIGHT: Readonly<Record<string, string>> = Object.freeze({
   "100": "thin",
