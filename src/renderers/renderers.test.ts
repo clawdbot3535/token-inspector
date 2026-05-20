@@ -166,14 +166,18 @@ describe("appConfigRenderer", () => {
     const g = buildGraph(sources);
     const out = appConfigRenderer.render(g);
     expect(out.text).toContain("defineAppConfig({");
-    expect(out.text).toMatch(/primary:\s*'blue'/);
-    expect(out.text).toMatch(/neutral:\s*'zinc'/);
+    expect(out.text).toContain("ui:");
+    expect(out.text).toContain("colors:");
   });
 
-  it("includes a commented hint when component tokens for a slot exist", () => {
+  it("includes all seven Nuxt UI color roles with string values", () => {
     const g = buildGraph(sources);
     const out = appConfigRenderer.render(g);
-    expect(out.text).toContain("button: tokens detected");
+    for (const role of ["primary", "neutral", "secondary", "success", "info", "warning", "error"]) {
+      expect(out.text).toMatch(new RegExp(`${role}:\\s*"[a-z]+"`));
+    }
+    expect(out.text).not.toContain("button.slots");
+    expect(out.text).not.toContain("slots: {");
   });
 });
 
