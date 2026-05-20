@@ -12,6 +12,7 @@ import IssuesView from "./components/IssuesView.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
+import FilterChips from "./components/FilterChips.vue";
 import { useClassifications } from "./classifications.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
@@ -60,7 +61,13 @@ function setFigmaUrl(input: string) {
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const rendered = useRenderedOutput(state);
-const { kindOf } = useClassifications(state.graph);
+const { kindOf, summary } = useClassifications(state.graph);
+
+const visibleNodes = computed(() => {
+  const filter = state.filters.value.classification;
+  if (filter === "all") return filteredNodes.value;
+  return filteredNodes.value.filter((node) => kindOf(node.id) === filter);
+});
 
 const issueCount = computed(() => state.graph.value?.issues.length ?? 0);
 const nodeCount = computed(() => state.graph.value?.nodes.size ?? 0);
@@ -253,17 +260,22 @@ function downloadAll() {
         <template v-else>
           <!-- Sidebar: token browser -->
           <aside class="w-72 border-r border-default flex flex-col">
-            <div class="p-2 border-b border-default">
+            <div class="p-2 border-b border-default space-y-2">
               <UInput
                 v-model="state.filters.value.search"
                 placeholder="Search tokens…"
                 icon="i-lucide-search"
                 size="xs"
               />
+              <FilterChips
+                :model-value="state.filters.value.classification"
+                :summary="summary"
+                @update:model-value="(v) => (state.filters.value = { ...state.filters.value, classification: v })"
+              />
             </div>
             <div class="flex-1 overflow-y-auto text-xs font-mono">
               <button
-                v-for="node in filteredNodes"
+                v-for="node in visibleNodes"
                 :key="node.id"
                 class="w-full text-left px-3 py-1 hover:bg-elevated transition-colors flex items-center gap-2"
                 :class="{

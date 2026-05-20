@@ -15,11 +15,18 @@ import { defaultRenderers } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "issues";
 export type OutputTab = "tokens.css" | "app.config.ts" | "tokens.ts";
+export type ClassificationFilter =
+  | "all"
+  | "tailwind-default"
+  | "theme-static"
+  | "theme-mode-variant"
+  | "skip";
 
 export interface Filters {
   search: string;
   layers: ReadonlyArray<GraphLayer>;
   types: ReadonlyArray<TokenType>;
+  classification: ClassificationFilter;
 }
 
 export interface AppState {
@@ -41,7 +48,7 @@ export function createAppState(): AppState {
     graph: ref<TokenGraph | null>(null),
     selection: ref<TokenId | null>(null),
     highlightedIds: ref<ReadonlySet<TokenId>>(new Set()),
-    filters: ref<Filters>({ search: "", layers: ALL_LAYERS, types: [] }),
+    filters: ref<Filters>({ search: "", layers: ALL_LAYERS, types: [], classification: "all" }),
     view: ref<ViewMode>("inspector"),
     outputTab: ref<OutputTab>("tokens.css"),
     theme: ref<Theme>("light"),
