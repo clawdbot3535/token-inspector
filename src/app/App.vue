@@ -388,18 +388,22 @@ function downloadAll() {
 
           <!-- Output: live preview -->
           <aside class="w-[28rem] border-l border-default flex flex-col">
-            <div class="flex border-b border-default">
+            <div class="flex border-b border-default overflow-x-auto">
               <button
-                v-for="tab in (['tokens.css', 'app.config.ts', 'tokens.ts'] as const)"
+                v-for="tab in (['tokens.css', 'tokens-css', 'app.config.ts', 'tokens.ts'] as const)"
                 :key="tab"
-                class="px-3 py-2 text-xs border-r border-default"
+                class="px-3 py-2 text-xs border-r border-default whitespace-nowrap"
                 :class="{
                   'bg-elevated font-medium': state.outputTab.value === tab,
                   'text-muted': state.outputTab.value !== tab,
                 }"
                 @click="state.outputTab.value = tab"
               >
-                {{ tab }}
+                {{ tab === 'tokens-css' ? 'tokens.css (new)' : tab }}
+                <span
+                  v-if="tab === 'tokens-css'"
+                  class="ml-1 text-[9px] text-muted/60 font-normal"
+                >assets/css/tokens.css</span>
               </button>
             </div>
             <CodePreview
