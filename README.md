@@ -2,38 +2,72 @@
 
 > Figma → Nuxt UI v4 design-token adapter and inspector.
 
-Drop your Figma W3C DTCG token export into the browser and the tool builds a single
-in-memory token graph, surfaces it through a searchable inspector (alias chains,
-used-by lookups, issues), and renders out:
+Drop your Figma W3C DTCG token export into the browser. The tool builds a
+single in-memory token graph, surfaces it through a searchable inspector
+(alias chains, used-by lookups, issues), and renders out:
 
-- a Nuxt UI v4 `app.config.ts`
-- CSS custom-property declarations for light + dark themes
-- live component previews driven by the actual token values
+- A lean `tokens.css` with a Tailwind v4 `@theme` block plus `.dark` overrides
+  for mode-variant semantic tokens.
+- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus a
+  `button` component recipe (slots + size variants) derived from your
+  Figma component tokens.
 
 100% client-side. No backend, no upload, nothing leaves the browser tab.
 
-## What it accepts
+## Philosophy: Tailwind-utility-first
 
-Drop any combination of these files (drag-and-drop or file picker):
+A token becomes a CSS Custom Property only if its resolved value differs
+between light and dark mode. Everything else either matches a Tailwind
+default (no output) or extends Tailwind's `@theme` as a static value:
 
-| File | Layer |
-| --- | --- |
-| `color.tokens.json` | color |
-| `dimension.tokens.json` | dimension |
-| `typography.tokens.json` | typography |
-| `light.tokens.json` | light theme |
-| `dark.tokens.json` | dark theme |
-| `global.tokens.json` | global |
-| `figma-mapping.json` | optional — Figma component links + default icons |
-| `*.zip` | Figma export bundle, auto-extracted |
+| Token shape | What it becomes |
+|---|---|
+| Mode-variant semantic (light ≠ dark) | `@theme` + `.dark` override |
+| Mode-invariant matching Tailwind default | Nothing — use the Tailwind utility |
+| Mode-invariant not matching Tailwind default | `@theme` extension |
+| Component-layer (button-*, badge-*, …) | `app.config.ts` recipe, not CSS var |
 
-The naming convention matches Figma's default DTCG export, so the typical workflow
-is: export from Figma → drop the whole zip → done.
+This keeps `tokens.css` lean (~70% smaller than the legacy output) and
+moves component customization to Nuxt UI's recipe layer where it belongs.
 
-## Quick start
+## What gets written
+
+```
+output/
+├── css/
+│   └── tokens.css        # @theme + .dark overrides
+└── nuxt/
+    └── app.config.ts     # Nuxt UI v4 color roles + button recipe
+```
+
+## Build
 
 ```bash
 npm install
+npm run build:tokens
+```
+
+Inputs are read from `components/*.tokens.json` (Figma W3C DTCG export).
+
+## Integration in a Nuxt project
+
+In your Nuxt project's main stylesheet:
+
+```css
+/* assets/css/main.css */
+@import "tailwindcss";
+@import "./tokens.css";
+@import "@nuxt/ui";
+```
+
+Drop the generated `app.config.ts` next to your existing one (or merge).
+Nuxt UI v4 picks up the color roles and the button recipe automatically.
+
+## Inspector UI
+
+Run the live inspector to explore the loaded token graph:
+
+```bash
 npm run dev          # http://localhost:5173
 ```
 
@@ -48,49 +82,71 @@ npm run typecheck    # vue-tsc --noEmit
 
 A Husky pre-commit hook runs `typecheck` + `tests` on every commit.
 
-## Features
+The UI shows:
 
-- **Token graph** — single immutable structure over all source layers, built once
-  per drop. Both renderers and UI read the same graph.
-- **Alias chain inspector** — click any token to see the full reference chain.
-- **Used-by lookup** — find every token that references the selected one.
-- **Issues view** — surfaces broken aliases, unresolved references, type
-  mismatches.
-- **Code preview** — generated `tokens.css` and `app.config.ts` side-by-side, copy
-  or download as a zip.
-- **Figma embeds** — if `figma-mapping.json` is supplied, the inspector links each
-  component to its Figma node and renders the official Figma embed.
-- **Live Button preview** — for any `button-*` token, renders a real `<button>`
-  grid (variants × states × sizes) styled by the live token values, with
-  synchronized hover-highlighting across preview, sidebar, and code panel.
-- **Zip drop** — accepts the Figma export bundle directly; no need to unpack.
+- **Token list** with classification badges (`tailwind`, `theme`,
+  `mode-var`, `skip`) and quick filters
+- **Summary panel** with per-classification counts (clickable as
+  quick-filters)
+- **Token detail** panel showing alias chains, used-by, and a per-token
+  "Output" section describing exactly how the token surfaces in
+  `tokens.css` or `app.config.ts`
+- **Live button preview** rendering the three button sizes with their
+  computed Tailwind class strings shown adjacent for copy-paste
+- **Code preview** tabs for both output files with target-path hints
+- **Issues view** for broken aliases, type mismatches, unresolved refs
+- **Resizable sidebars** — drag the boundaries to resize the panes;
+  width persists in `localStorage`
 
-## Architecture
+## What it accepts
+
+Drop any combination of these files (drag-and-drop or file picker):
+
+| File | Layer |
+|---|---|
+| `color.tokens.json` | color |
+| `dimension.tokens.json` | dimension |
+| `typography.tokens.json` | typography |
+| `light.tokens.json` | light theme |
+| `dark.tokens.json` | dark theme |
+| `global.tokens.json` | global |
+| `figma-mapping.json` | optional — Figma component links + default icons |
+| `*.zip` | Figma export bundle, auto-extracted |
+
+The naming convention matches Figma's default DTCG export, so the typical
+workflow is: export from Figma → drop the whole zip → done.
+
+## Repository layout
 
 ```
-src/
-├── token-graph.ts          # type contract for the in-memory graph
-├── build-graph.ts          # SourceFile[] → TokenGraph
-├── renderers/              # graph → CSS / TS / app.config.ts emitters
-└── app/                    # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
-    ├── App.vue             # top-level inspector layout
-    ├── load-sources.ts     # drop → SourceFile[] (zip unwrap + layer detection)
-    ├── figma-mapping.ts    # optional Figma component mapping
-    ├── component-preview.ts # token resolution for live previews
-    └── components/         # inspector and preview Vue components
+.
+├── components/             # Figma DTCG token exports (color, light, dark, global, …)
+├── scripts/
+│   ├── build-cli.ts        # Typed CLI: graph → renderers → output/
+│   └── extract-tailwind-defaults.mjs  # Re-run after Tailwind upgrades
+├── src/
+│   ├── classify-token.ts   # Pure classification engine
+│   ├── resolve-token.ts    # Alias-chain resolver
+│   ├── slot-mapping.ts     # Figma token → Nuxt UI slot/variant heuristic
+│   ├── recipe-engine.ts    # Walks component tokens → Nuxt UI recipes
+│   ├── tailwind-defaults.* # Generated lookup tables + public matchers
+│   ├── token-graph.ts      # Type contract: TokenNode, TokenGraph, …
+│   ├── build-graph.ts      # Source files → TokenGraph (pure builder)
+│   ├── renderers/          # tokens-css.ts, app-config.ts, line-builder.ts
+│   └── app/                # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
+└── docs/superpowers/       # Spec + plan documents driving the design
 ```
 
-The pipeline is one-directional: raw Figma JSON → `SourceFile[]` → `TokenGraph` →
-(renderers + UI). The graph is never mutated; new input produces a new graph.
+## Tests
 
-## Deployment
+135 tests across the typed pipeline. Run:
 
-Configured for static deployment on Vercel. Any static host works
-(GitHub Pages, S3+CloudFront, Cloudflare Pages) since there are no API routes,
-no SSR, and no server-side state.
+```bash
+npm test         # full suite
+npm run typecheck
+```
 
-The build version is injected from `package.json` at build time and surfaced as a
-badge in the header so the running build is always visible.
+A Husky pre-commit hook runs typecheck + tests on every commit.
 
 ## Stack
 
@@ -99,6 +155,22 @@ badge in the header so the running build is always visible.
 - Tailwind CSS v4
 - Vite 6
 - Vitest
+
+## Deployment
+
+Configured for static deployment on Vercel. Any static host works
+(GitHub Pages, S3+CloudFront, Cloudflare Pages) since there are no API routes,
+no SSR, and no server-side state.
+
+The build version is injected from `package.json` at build time and surfaced
+as a badge in the header so the running build is always visible.
+
+## Status
+
+v0.3.0 ships the Tailwind-utility-first pipeline. Currently the Nuxt UI
+v4 recipe emission covers the `button` component only. Additional
+components (badge, card, input, …) follow in subsequent releases once
+the slot-mapping pattern is validated against more Figma systems.
 
 ## License
 
