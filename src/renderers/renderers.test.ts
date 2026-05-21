@@ -176,7 +176,96 @@ describe("appConfigRenderer", () => {
     for (const role of ["primary", "neutral", "secondary", "success", "info", "warning", "error"]) {
       expect(out.text).toMatch(new RegExp(`${role}:\\s*"[a-z]+"`));
     }
-    expect(out.text).not.toContain("button.slots");
+    // The test fixture's button tokens (button-primary-*) don't match
+    // the slot-mapping heuristics, so no recipe block should be emitted.
+    expect(out.text).not.toContain("button.slots.base");
+  });
+});
+
+describe("appConfigRenderer — recipe emission", () => {
+  // Build a minimal graph whose component-layer tokens match the slot-mapping
+  // heuristics for the button component. The "global" source name is treated
+  // as component layer by build-graph.
+  const recipeSources: SourceFile[] = [
+    {
+      name: "dimension",
+      data: {
+        rounded: { md: { $type: "number", $value: 6 } },
+        spacing: {
+          "2": { $type: "number", $value: 2 },
+          "1": { $type: "number", $value: 1 },
+        },
+      },
+    },
+    {
+      name: "global",
+      data: {
+        button: {
+          // slot base — no size variant → slots.base gets rounded-md
+          radius: {
+            $type: "number",
+            $value: 6,
+            $extensions: {
+              "com.figma.aliasData": { targetVariableName: "rounded/md" },
+            },
+          },
+          // size-sm variants → variants.size.sm.base gets px-2 py-1
+          "padding-x": {
+            sm: {
+              $type: "number",
+              $value: 2,
+              $extensions: {
+                "com.figma.aliasData": { targetVariableName: "spacing/2" },
+              },
+            },
+          },
+          "padding-y": {
+            sm: {
+              $type: "number",
+              $value: 1,
+              $extensions: {
+                "com.figma.aliasData": { targetVariableName: "spacing/1" },
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+
+  it("emits button recipe when component tokens present", () => {
+    const g = buildGraph(recipeSources);
+    const out = appConfigRenderer.render(g);
+    expect(out.text).toContain("button: {");
+    expect(out.text).toContain("slots: {");
+    expect(out.text).toContain("rounded-");
+    expect(out.text).toContain("variants: {");
+    expect(out.text).toContain("size: {");
+    expect(out.text).toContain("sm: {");
+    expect(out.text).toContain("px-");
+    expect(out.text).toContain("py-");
+  });
+
+  it("omits button block entirely when no matching component tokens", () => {
+    // Use only primitive sources — no component-layer tokens at all.
+    const primitiveSources: SourceFile[] = [
+      {
+        name: "color",
+        data: {
+          color: {
+            blue: {
+              "600": {
+                $type: "color",
+                $value: { components: [0.15, 0.39, 0.92], hex: "#2563EB" },
+              },
+            },
+          },
+        },
+      },
+    ];
+    const g = buildGraph(primitiveSources);
+    const out = appConfigRenderer.render(g);
+    expect(out.text).not.toContain("button: {");
     expect(out.text).not.toContain("slots: {");
   });
 });
