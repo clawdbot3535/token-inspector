@@ -16,6 +16,10 @@ import FilterChips from "./components/FilterChips.vue";
 import SummaryPanel from "./components/SummaryPanel.vue";
 import OutputSection from "./components/OutputSection.vue";
 import { useClassifications } from "./classifications.js";
+import { resolveTokenToValue } from "@core/resolve-token.js";
+import { classifyToken } from "@core/classify-token.js";
+import { getSlotMapping } from "@core/slot-mapping.js";
+import { shadowIdFor, prefixForUtility, utilityFor } from "@core/recipe-engine.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import {
@@ -69,6 +73,33 @@ const selectedClassification = computed(() => {
   const id = state.selection.value;
   if (!id) return null;
   return classifications.value.get(id) ?? null;
+});
+
+const selectedVueTemplateClasses = computed<string | undefined>(() => {
+  const id = state.selection.value;
+  const graph = state.graph.value;
+  if (!id || !graph) return undefined;
+  const node = graph.nodes.get(id);
+  if (!node || node.layer !== "component") return undefined;
+
+  const mapping = getSlotMapping(id);
+  if (!mapping) return undefined;
+
+  const resolved = resolveTokenToValue(id, graph);
+  if ("error" in resolved) return undefined;
+
+  // Fabricate a shadow node with a canonical primitive-style id so
+  // classifyToken's tailwindCategoryFor picks the right category.
+  // Same technique used by the recipe engine for per-graph resolution.
+  const shadowNode = {
+    ...node,
+    id: shadowIdFor(mapping.utilityType),
+    layer: "primitive" as const,
+    cssValue: { base: resolved.value },
+  };
+  const classification = classifyToken(shadowNode, graph);
+
+  return utilityFor(mapping.utilityType, classification) ?? undefined;
 });
 
 const visibleNodes = computed(() => {
@@ -372,6 +403,7 @@ function downloadAll() {
               <OutputSection
                 v-if="selectedClassification"
                 :classification="selectedClassification"
+                :vue-template-classes="selectedVueTemplateClasses"
               />
 
               <details class="text-xs">

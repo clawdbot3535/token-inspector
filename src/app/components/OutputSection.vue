@@ -4,6 +4,7 @@ import type { Classification } from "@core/classify-token.js";
 
 interface Props {
   classification: Classification;
+  vueTemplateClasses?: string;
 }
 
 const props = defineProps<Props>();
@@ -95,8 +96,20 @@ function copy(text: string): void {
       <p class="text-xs text-zinc-500">
         Component-layer token — resolved at design-system-author time.
       </p>
-      <p class="text-xs text-zinc-500 italic">
-        Detailed Tailwind class list available in PR 2 (resolve-token.ts).
+      <template v-if="vueTemplateClasses">
+        <code class="block text-sm font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 whitespace-pre-wrap break-words">
+          {{ vueTemplateClasses }}
+        </code>
+        <button
+          type="button"
+          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          @click="copy(vueTemplateClasses)"
+        >
+          Copy class string
+        </button>
+      </template>
+      <p v-else class="text-xs text-zinc-500 italic">
+        No Tailwind utility mapping available (token does not match any slot heuristic).
       </p>
     </div>
   </section>

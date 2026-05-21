@@ -103,8 +103,11 @@ export function buildComponentRecipes(
  * classify-token.ts) will map to the correct Tailwind category for this
  * utility type. This avoids the component token's original id (e.g.
  * "button-radius") failing the prefix regex checks.
+ *
+ * Exported so App.vue's per-token skip-branch resolver can reuse this
+ * without duplicating the switch.
  */
-function shadowIdFor(utilityType: UtilityType): string {
+export function shadowIdFor(utilityType: UtilityType): string {
   switch (utilityType) {
     case "padding-x":
     case "padding-y":
@@ -120,7 +123,15 @@ function shadowIdFor(utilityType: UtilityType): string {
   }
 }
 
-function utilityFor(
+/**
+ * Derive a single Tailwind utility string from a classification result
+ * produced on a shadow node. Returns null if the classification cannot
+ * produce a concrete utility (e.g. mode-variant shadows, skip).
+ *
+ * Exported so App.vue's per-token skip-branch resolver can reuse this
+ * without duplicating the derivation logic.
+ */
+export function utilityFor(
   utilityType: UtilityType,
   classification: ReturnType<typeof classifyToken>,
 ): string | null {
@@ -163,7 +174,11 @@ function escapeArbitrary(value: string): string {
   return value.replace(/\s+/g, "_");
 }
 
-function prefixForUtility(utilityType: UtilityType): string {
+/**
+ * Exported so App.vue's per-token skip-branch resolver can reuse this
+ * without duplicating the switch.
+ */
+export function prefixForUtility(utilityType: UtilityType): string {
   switch (utilityType) {
     case "padding-x":
       return "px-";
