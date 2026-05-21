@@ -1,16 +1,20 @@
-# Tailwind-Utility-First — PR 4: Token Scan + Smart Recipe Engine
+# Tailwind-Utility-First — PR 4a: Engine + Scanner Foundations
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
 
-**Goal:** Promote the Inspector's quality-feedback surface from a hidden side panel to a first-class scan view that runs automatically after every token import. Make the recipe engine smarter so it stops dumping `button.padding-y` into `slots.base` while leaving `button.padding-x-md` in `variants.size.md`. Add a configurable `slot-mapping.json` override file. Ship as v0.4.0.
+**Goal:** Build the foundation for the PR 4 quality-gate work without touching the Inspector's user-facing UI. Add the `scanner.ts` module aggregating data-quality + classification-hint + build-time issues into a structured `ScanReport`. Make the recipe engine smarter — a two-pass walk that reassigns non-suffix tokens to a configurable default size when the same utility has size-suffix siblings. Add the `slot-mapping.json` override file. Emit completeness annotations in `app.config.ts`. NO new UI surfaces, NO release.
 
-**Architecture:** A new `src/scanner.ts` module aggregates four categories of issues (data-quality, classification-hint, build-time, output-forecast) into a structured `ScanReport`. The recipe engine grows a two-pass walk: pass 1 detects which utility types have size variants in the graph, pass 2 reassigns non-suffix tokens to the configurable default size (typically `md`) instead of `slots.base`. The Inspector gains a `ScanView.vue` component with a permanent header status strip; the existing `IssuesView.vue` is folded into it. LiveButton shows a `n/m` partial badge per size variant.
+**What ships:** Cleaner `app.config.ts` output, per-variant `// Incomplete in Figma: …` comments, scanner module ready to be consumed by PR 4b.
 
-**Tech Stack:** TypeScript strict + `noUncheckedIndexedAccess: true`, Vitest (table-driven + snapshot), Vue 3 Composition API, Tailwind v4, Nuxt UI v4, Node 22+ with `tsx`.
+**Architecture:** Pure-logic additions. `src/scanner.ts` aggregates issues into a `ScanReport`. The recipe engine grows a pre-scan pass to detect which utility types have size variants; the main loop redirects non-suffix tokens for those utilities to `variants.size.<defaultSize>` instead of `slots.base`. `src/slot-mapping-loader.ts` reads optional `slot-mapping.json` from project root and feeds overrides + per-component default sizes into the engine. The `appConfigRenderer` consumes the scanner's completeness scores to emit per-variant comments.
 
-**Spec:** `docs/superpowers/specs/2026-05-20-tailwind-utility-first-tokens-design.md` (commit `82c871b` with the PR 4 expansion).
+**Tech Stack:** TypeScript strict + `noUncheckedIndexedAccess: true`, Vitest (table-driven + snapshot), Node 22+ with `tsx`.
 
-**Prerequisites:** PR 2 merged on commit `a9f901b`. v0.3.0 tag + GitHub release shipped. 135 tests pass. Branch from `main`.
+**Spec:** `docs/superpowers/specs/2026-05-20-tailwind-utility-first-tokens-design.md` (commit `82c871b`).
+
+**Prerequisites:** PR 2 merged on `a9f901b`. v0.3.0 tag + GitHub release shipped. 135 tests pass. Branch from `main` as `pr4a-engine-and-scanner`.
+
+**Follow-up:** PR 4b (separate plan: `2026-05-21-tailwind-utility-first-pr4b-scan-view-and-release.md`) wires the scanner into Inspector UI (`ScanView`, `HeaderStatusStrip`, LiveButton partial badge) and ships the combined work as v0.4.0.
 
 ---
 
@@ -22,26 +26,19 @@
 - `src/scanner.test.ts` — Table-driven tests per scan category.
 - `src/slot-mapping-loader.ts` — Loads optional `slot-mapping.json` from project root.
 - `src/slot-mapping-loader.test.ts` — Loader tests.
-- `src/app/components/ScanView.vue` — Categorized accordion view; replaces the standalone IssuesView call site in App.vue.
-- `src/app/components/HeaderStatusStrip.vue` — Permanent compact strip at the top of the inspector showing scan counts.
 
 ### Modified files
 
-- `src/token-graph.ts` — Extend `GraphIssue` to carry severity + category mapping (or add a new `ScanIssue` type alongside; pick whichever survives type-narrow checks cleanest in `src/scanner.ts`).
-- `src/recipe-engine.ts` — Two-pass walk: pre-scan to detect utility-types with size variants, then assign non-suffix tokens to the default size. Conflict detection.
-- `src/renderers/app-config.ts` — Emit completeness comments per incomplete variant.
-- `scripts/build-cli.ts` — Read `slot-mapping.json` from repo root (if present) and pass override + default-size config into `buildComponentRecipes`.
-- `src/app/state.ts` — Add `scanReport` ref to app state; replace standalone `view: 'inspector' | 'issues'` mode with `'inspector' | 'scan'`.
-- `src/app/App.vue` — Mount `HeaderStatusStrip`. Replace `IssuesView` mount with `ScanView`. Compute reactive `ScanReport` via composable.
-- `src/app/composables/use-scan-report.ts` (new) — Reactive composable wrapping `scanGraph(state.graph.value)`.
-- `src/app/components/LiveButton.vue` — Show `n/m` partial badge per size cell, derived from the scan report's completeness scores.
-- `README.md` — Document the Scan view and `slot-mapping.json` config.
-- `CHANGELOG.md` — v0.4.0 entry.
-- `package.json` + `package-lock.json` — Version bump.
+- `src/token-graph.ts` — Add `ScanIssue`, `ScanReport`, `CompletenessScore`, `OutputForecast` types alongside the existing `GraphIssue`.
+- `src/recipe-engine.ts` — Two-pass walk: pre-scan to detect utility-types with size variants, then assign non-suffix tokens to the default size. Size-suffix wins on conflict (the scanner surfaces the warning separately).
+- `src/renderers/app-config.ts` — Emit completeness comments per incomplete variant. Accept optional `AppConfigRendererOptions` second argument carrying scan completeness scores.
+- `scripts/build-cli.ts` — Read `slot-mapping.json` from repo root if present; pass overrides + default-size config + scan completeness scores into the renderer.
 
-### Deleted / replaced
+### Untouched in PR 4a (PR 4b handles)
 
-- `src/app/components/IssuesView.vue` — Functionality absorbed into `ScanView.vue`. Delete after the new view is wired and verified.
+- Inspector UI files (`App.vue`, `LiveButton.vue`, `IssuesView.vue`, no new `ScanView.vue`/`HeaderStatusStrip.vue`/`composables/use-scan-report.ts` yet)
+- README + CHANGELOG (only edited in PR 4b's release)
+- Version bump + tag (PR 4b release)
 
 ---
 
@@ -1068,394 +1065,34 @@ git commit -m "feat: emit completeness comments per incomplete variant"
 
 ---
 
-## Phase P — Inspector Scan View
 
-### Task 6: useScanReport composable
+## Spec coverage (PR 4a only)
 
-**Files:**
-- Create: `src/app/composables/use-scan-report.ts`
+- **ScanIssue / ScanReport type contract** → Task 1
+- **Scanner module + categories** → Task 2
+- **Smart non-suffix → default-size + size-suffix-wins** → Task 3
+- **slot-mapping.json loader + build-cli integration** → Task 4
+- **app-config completeness comments per incomplete variant** → Task 5
 
-**Context:** Reactive composable wrapping `scanGraph(graph.value, options)`. Recomputes when graph changes.
+### Deferred to PR 4b
 
-```ts
-import { computed, type ComputedRef, type Ref } from "vue";
-import { scanGraph, type ScanOptions } from "@core/scanner.js";
-import type { TokenGraph, ScanReport } from "@core/token-graph.js";
+`useScanReport`, `ScanView.vue`, `HeaderStatusStrip.vue`, IssuesView removal, LiveButton partial badge, README + CHANGELOG + v0.4.0 release.
 
-const EMPTY_REPORT: ScanReport = {
-  issues: [],
-  completeness: [],
-  forecast: {
-    tokensCss: { estimatedBytes: 0, tailwindMatches: 0, themeExtensions: 0, modeVariantEntries: 0 },
-    components: [],
-    unmappedComponentPrefixes: [],
-  },
-  generatedAt: 0,
-};
+### Out of scope (later PRs)
 
-export function useScanReport(
-  graph: Ref<TokenGraph | null>,
-  options: ScanOptions = { components: ["button"] },
-): ComputedRef<ScanReport> {
-  return computed(() => {
-    const g = graph.value;
-    if (!g) return EMPTY_REPORT;
-    return scanGraph(g, options);
-  });
-}
-```
+- Hue-proximity color role derivation
+- `badge`, `card`, `input` recipes (PR 5+)
+- Playwright CI
 
-Commit:
+## How to ship PR 4a
+
+After all 5 tasks complete + tests green:
 
 ```bash
-git add src/app/composables/use-scan-report.ts
-git commit -m "feat: useScanReport composable wrapping scanGraph"
-```
-
----
-
-### Task 7: ScanView component
-
-**Files:**
-- Create: `src/app/components/ScanView.vue`
-
-**Context:** The main UI surface. Sections:
-
-1. **Summary** — total counts per severity, total tokens, generated-at timestamp.
-2. **Category accordions** — collapsible per category (data-quality, classification-hint, build-time). Each row inside an accordion is a clickable issue; click highlights affected tokens in the list.
-3. **Component readiness table** — one row per component with each variant's completeness score.
-4. **Output forecast** — single text line with predicted bytes, tailwind matches, theme extensions, mode-variant entries, unmapped prefixes.
-
-Sketch the component shape:
-
-```vue
-<script setup lang="ts">
-import { computed } from "vue";
-import type { ScanReport, ScanIssue, ScanCategory } from "@core/token-graph.js";
-
-interface Props {
-  report: ScanReport;
-}
-interface Emits {
-  (event: "select-tokens", tokenIds: readonly string[]): void;
-}
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const CATEGORIES: ReadonlyArray<{ key: ScanCategory; label: string }> = [
-  { key: "build-time", label: "Build errors" },
-  { key: "data-quality", label: "Data quality" },
-  { key: "classification-hint", label: "Classification hints" },
-];
-
-const counts = computed(() => {
-  const c: Record<ScanCategory, number> = {
-    "build-time": 0,
-    "data-quality": 0,
-    "classification-hint": 0,
-  };
-  for (const i of props.report.issues) c[i.category]++;
-  return c;
-});
-
-const grouped = computed(() => {
-  const out: Record<ScanCategory, ScanIssue[]> = {
-    "build-time": [],
-    "data-quality": [],
-    "classification-hint": [],
-  };
-  for (const i of props.report.issues) out[i.category].push(i);
-  return out;
-});
-
-const severityClass = (sev: string) => ({
-  error: "text-red-600 dark:text-red-400",
-  warning: "text-amber-600 dark:text-amber-400",
-  hint: "text-zinc-500 dark:text-zinc-400",
-}[sev] ?? "");
-</script>
-
-<template>
-  <div class="space-y-4 p-3">
-    <!-- Summary line -->
-    <div class="flex flex-wrap items-baseline gap-x-3 text-sm">
-      <span class="font-semibold">{{ report.issues.length }} issues</span>
-      <span class="text-zinc-500">across {{ Object.values(counts).filter(c => c > 0).length }} categories</span>
-    </div>
-
-    <!-- Category accordions -->
-    <details v-for="cat in CATEGORIES" :key="cat.key" open class="rounded border border-zinc-200 dark:border-zinc-800">
-      <summary class="cursor-pointer px-3 py-2 flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900">
-        <span class="font-medium">{{ cat.label }}</span>
-        <span class="text-xs font-mono text-zinc-500">{{ counts[cat.key] }}</span>
-      </summary>
-      <ul v-if="grouped[cat.key].length > 0" class="divide-y divide-zinc-100 dark:divide-zinc-800">
-        <li
-          v-for="issue in grouped[cat.key]"
-          :key="issue.id"
-          class="px-3 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
-          @click="emit('select-tokens', issue.tokenIds)"
-        >
-          <div class="flex items-baseline gap-2">
-            <span class="text-xs font-mono uppercase" :class="severityClass(issue.severity)">{{ issue.severity }}</span>
-            <span class="text-xs text-zinc-500">{{ issue.kind }}</span>
-          </div>
-          <p class="text-sm mt-1">{{ issue.message }}</p>
-        </li>
-      </ul>
-      <p v-else class="px-3 py-2 text-xs text-zinc-500 italic">No issues.</p>
-    </details>
-
-    <!-- Component readiness table -->
-    <div v-if="report.completeness.length > 0">
-      <h3 class="text-xs font-mono uppercase text-zinc-500 mb-1">Component readiness</h3>
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-left text-xs text-zinc-500">
-            <th class="py-1">Component</th>
-            <th class="py-1">Variant</th>
-            <th class="py-1">Score</th>
-            <th class="py-1">Missing</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in report.completeness" :key="`${c.component}-${c.variantKey}`" class="border-t border-zinc-100 dark:border-zinc-800">
-            <td class="py-1 font-mono text-xs">{{ c.component }}</td>
-            <td class="py-1 font-mono text-xs">{{ c.variantKey }}</td>
-            <td class="py-1 font-mono text-xs">
-              <span :class="c.defined === c.total ? 'text-emerald-600' : 'text-amber-600'">{{ c.defined }}/{{ c.total }}</span>
-            </td>
-            <td class="py-1 text-xs text-zinc-500">{{ c.missingUtilities.join(', ') || '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Forecast -->
-    <div class="text-xs text-zinc-500 border-t border-zinc-200 dark:border-zinc-800 pt-3">
-      Forecast:
-      ~{{ Math.round(report.forecast.tokensCss.estimatedBytes / 100) / 10 }}KB tokens.css,
-      {{ report.forecast.tokensCss.tailwindMatches }} Tailwind matches,
-      {{ report.forecast.tokensCss.themeExtensions }} theme extensions,
-      {{ report.forecast.tokensCss.modeVariantEntries }} mode-variant entries.
-      <span v-if="report.forecast.unmappedComponentPrefixes.length > 0">
-        Unmapped: {{ report.forecast.unmappedComponentPrefixes.join(', ') }}.
-      </span>
-    </div>
-  </div>
-</template>
-```
-
-Commit:
-
-```bash
-git add src/app/components/ScanView.vue
-git commit -m "feat: ScanView component aggregating issues, readiness, forecast"
-```
-
----
-
-### Task 8: HeaderStatusStrip + App.vue wiring
-
-**Files:**
-- Create: `src/app/components/HeaderStatusStrip.vue`
-- Modify: `src/app/state.ts` (replace `view: 'inspector' | 'issues'` with `'inspector' | 'scan'`)
-- Modify: `src/app/App.vue` (mount HeaderStatusStrip, replace IssuesView mount with ScanView, wire token highlighting)
-
-**Context:** A permanent compact strip at the very top of the inspector — shows the scan summary and lets the user toggle to the Scan view.
-
-`HeaderStatusStrip.vue`:
-
-```vue
-<script setup lang="ts">
-import { computed } from "vue";
-import type { ScanReport } from "@core/token-graph.js";
-
-interface Props {
-  report: ScanReport;
-  scanViewActive: boolean;
-}
-interface Emits {
-  (event: "open-scan"): void;
-}
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const errorCount = computed(() => props.report.issues.filter((i) => i.severity === "error").length);
-const warningCount = computed(() => props.report.issues.filter((i) => i.severity === "warning").length);
-const hintCount = computed(() => props.report.issues.filter((i) => i.severity === "hint").length);
-</script>
-
-<template>
-  <button
-    type="button"
-    class="w-full flex items-baseline gap-3 px-3 py-1.5 text-xs font-mono border-b border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-    :class="scanViewActive && 'bg-zinc-100 dark:bg-zinc-800'"
-    @click="emit('open-scan')"
-  >
-    <span class="text-zinc-500">Scan:</span>
-    <span :class="errorCount > 0 ? 'text-red-600' : 'text-zinc-400'">{{ errorCount }} errors</span>
-    <span class="text-zinc-400">·</span>
-    <span :class="warningCount > 0 ? 'text-amber-600' : 'text-zinc-400'">{{ warningCount }} warnings</span>
-    <span class="text-zinc-400">·</span>
-    <span class="text-zinc-500">{{ hintCount }} hints</span>
-    <span class="ml-auto text-zinc-400">{{ report.forecast.tokensCss.tailwindMatches }} tw · {{ report.forecast.tokensCss.themeExtensions }} theme · {{ report.forecast.tokensCss.modeVariantEntries }} mode-var</span>
-  </button>
-</template>
-```
-
-In `state.ts`, update the view union:
-
-```ts
-export type ViewMode = "inspector" | "scan";
-```
-
-(Drop `"issues"` if it was there.)
-
-In App.vue, replace the IssuesView mount with ScanView when `view === "scan"`. Pass the scan report. Wire the `select-tokens` event to set `state.selection.value` and `state.highlightedIds.value` to highlight the affected tokens in the list. Mount HeaderStatusStrip at the very top of the layout (above the SummaryPanel from PR 1).
-
-Commit:
-
-```bash
-git add src/app/components/HeaderStatusStrip.vue src/app/state.ts src/app/App.vue
-git commit -m "feat: header status strip + ScanView wired in App.vue"
-```
-
----
-
-### Task 9: Remove IssuesView.vue
-
-**Files:**
-- Delete: `src/app/components/IssuesView.vue`
-
-If any other components still reference IssuesView, update them to use ScanView or remove the imports.
-
-```bash
-grep -rn "IssuesView" src/ 2>/dev/null
-git rm src/app/components/IssuesView.vue
-git commit -m "refactor: remove standalone IssuesView, absorbed into ScanView"
-```
-
----
-
-## Phase Q — LiveButton partial badge
-
-### Task 10: LiveButton shows n/m partial badge per size
-
-**Files:**
-- Modify: `src/app/components/LiveButton.vue`
-
-**Context:** Each rendered preview cell gets a small badge next to the button label showing the variant's completeness (e.g., `sm · 2/5 ⚠`). LiveButton receives the scan report or completeness scores via props (App.vue computes upstream).
-
-In `LiveButton.vue`, extend Props:
-
-```ts
-interface Props {
-  graph: TokenGraph | null;
-  completeness?: ReadonlyArray<CompletenessScore>;
-}
-```
-
-In the template, look up the score for each size:
-
-```vue
-<div v-for="cell in previewCells" :key="cell.size" class="flex items-center gap-4">
-  <button
-    type="button"
-    :class="cell.classes + ' bg-blue-500 text-white hover:bg-blue-600 transition-colors'"
-  >
-    Button {{ cell.size }}
-    <span v-if="cellCompleteness(cell.size)" class="ml-2 text-xs font-mono opacity-70">
-      {{ cellCompleteness(cell.size)!.defined }}/{{ cellCompleteness(cell.size)!.total }}
-    </span>
-  </button>
-  <!-- existing code preview block -->
-</div>
-```
-
-With a helper:
-
-```ts
-function cellCompleteness(size: string) {
-  return props.completeness?.find((c) => c.component === "button" && c.variantKey === size);
-}
-```
-
-In App.vue, pass `completeness` from the scan report to LiveButton.
-
-Commit:
-
-```bash
-git add src/app/components/LiveButton.vue src/app/App.vue
-git commit -m "feat: LiveButton shows completeness badge per size variant"
-```
-
----
-
-## Phase R — Release
-
-### Task 11: README + CHANGELOG
-
-**Files:**
-- Modify: `README.md` (add Scan View + slot-mapping.json sections)
-- Modify: `CHANGELOG.md` (v0.4.0 entry)
-
-In README, add a "Token Scan" subsection describing the categories the scan covers and how to read the readiness table.
-
-In CHANGELOG, add `## [0.4.0] — 2026-05-XX` with Added (scanner, ScanView, HeaderStatusStrip, slot-mapping.json, smart non-suffix, completeness annotations, LiveButton badges), Changed (engine behavior), Removed (IssuesView).
-
-Commit:
-
-```bash
-git add README.md CHANGELOG.md
-git commit -m "docs: README + CHANGELOG for v0.4.0"
-```
-
-### Task 12: Version bump + tag + release
-
-```bash
-npm version 0.4.0 --no-git-tag-version
-git add package.json package-lock.json
-git commit -m "chore: bump version to 0.4.0"
 git checkout main
-git merge --ff-only pr4-token-scan-and-smart-recipes
+git merge --ff-only pr4a-engine-and-scanner
 git push origin main
-git tag -a v0.4.0 -m "v0.4.0 — Token Scan + Smart Recipe Engine
-
-Scan view aggregates data-quality issues, classification hints,
-completeness scores, and output forecast. Engine reassigns non-suffix
-tokens to default size when they compete with size-suffix siblings.
-slot-mapping.json enables project-level overrides.
-
-See CHANGELOG.md for the full list."
-git push origin v0.4.0
-git branch -d pr4-token-scan-and-smart-recipes
-
-# GitHub release
-awk '/^## \[0\.4\.0\]/,/^## \[0\.3\.0\]/' CHANGELOG.md | sed '$d' > /tmp/v040-notes.md
-gh release create v0.4.0 --title "v0.4.0 — Token Scan + Smart Recipe Engine" --notes-file /tmp/v040-notes.md
-rm /tmp/v040-notes.md
+git branch -d pr4a-engine-and-scanner
 ```
 
----
-
-## Spec coverage check
-
-Each PR 4 requirement from the spec is covered by:
-
-- **Scanner module + categories** → Tasks 1, 2
-- **Smart non-suffix → default-size + conflict detection** → Task 3
-- **slot-mapping.json loader** → Task 4
-- **app-config completeness comments** → Task 5
-- **useScanReport composable** → Task 6
-- **ScanView component (categorized accordions, completeness table, forecast)** → Task 7
-- **HeaderStatusStrip + App.vue rewiring** → Task 8
-- **IssuesView removal** → Task 9
-- **LiveButton partial badge** → Task 10
-- **README + CHANGELOG + v0.4.0 release** → Tasks 11, 12
-
-### Open items / deferred
-
-- **Hue-proximity color role derivation** — still deferred from PR 2 spec; not in PR 4.
-- **`badge`, `card`, `input` component recipes** — still scoped to PR 5+.
-- **Playwright CI integration** — visual smoke remains local-only.
+**No version bump, no tag, no GitHub release.** PR 4b ships the combined work as v0.4.0.
