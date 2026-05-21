@@ -380,9 +380,6 @@ function downloadAll() {
               <LiveButton
                 v-if="selectedNode.id === 'button' || selectedNode.id.startsWith('button-')"
                 :graph="state.graph.value"
-                :variant="state.theme.value"
-                :default-icon="defaultIconForSelected"
-                @highlight="state.highlightedIds.value = $event"
               />
 
               <FigmaPreview
