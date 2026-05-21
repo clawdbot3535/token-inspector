@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildComponentRecipes > snapshot for a representative button recipe 1`] = `
+{
+  "button": {
+    "slots": {
+      "base": "font-medium rounded-md",
+    },
+    "variants": {
+      "size": {
+        "md": {
+          "base": "px-3 py-2 text-base",
+        },
+        "sm": {
+          "base": "px-2 py-1 text-sm",
+        },
+      },
+    },
+  },
+}
+`;
