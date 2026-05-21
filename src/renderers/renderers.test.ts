@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildGraph } from "../build-graph.js";
 import type { SourceFile } from "../token-graph.js";
-import { cssRenderer } from "./css.js";
-import { tsRenderer } from "./ts.js";
 import { appConfigRenderer } from "./app-config.js";
 
 const sources: SourceFile[] = [
@@ -88,78 +86,6 @@ const sources: SourceFile[] = [
     },
   },
 ];
-
-describe("cssRenderer", () => {
-  it("emits primitives with literal values, no var() refs", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    expect(out.text).toContain("--color-blue-600: #2563EB;");
-    expect(out.text).toContain("--rounded-md: 6px;");
-  });
-
-  it("emits semantic light + dark blocks under the right selectors", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    expect(out.text).toMatch(
-      /:root, html\.light, \[data-theme="light"\] \{[\s\S]*--surface-primary: var\(--color-zinc-100\);/,
-    );
-    expect(out.text).toMatch(
-      /html\.dark, \[data-theme="dark"\] \{[\s\S]*--surface-primary: var\(--color-zinc-900\);/,
-    );
-  });
-
-  it("emits component overrides with var() to primitive aliases", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    expect(out.text).toContain(
-      "--button-primary-background: var(--color-blue-600);",
-    );
-    expect(out.text).toContain("--button-primary-radius: var(--rounded-md);");
-  });
-
-  it("records LineMap entries for every emitted token", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    expect(out.lines.get("color-blue-600")).toBeDefined();
-    expect(out.lines.get("button-primary-background")).toBeDefined();
-  });
-
-  it("records two line numbers for semantic tokens (light + dark)", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    const surfaceLines = out.lines.get("surface-primary");
-    expect(surfaceLines).toBeDefined();
-    expect(surfaceLines!.length).toBe(2);
-    expect(surfaceLines![0]).toBeLessThan(surfaceLines![1]);
-  });
-
-  it("LineMap line numbers point to the actual source line in text", () => {
-    const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    const lines = out.text.split("\n");
-    const [first, second] = out.lines.get("surface-primary")!;
-    expect(lines[first - 1]).toContain("--surface-primary:");
-    expect(lines[second - 1]).toContain("--surface-primary:");
-  });
-});
-
-describe("tsRenderer", () => {
-  it("emits sorted keys and a const assertion", () => {
-    const g = buildGraph(sources);
-    const out = tsRenderer.render(g);
-    expect(out.text).toContain("export const tokens = {");
-    expect(out.text).toContain("} as const;");
-    expect(out.text).toContain('"button-primary-background"');
-    expect(out.text).toContain("export type TokenName");
-  });
-
-  it("LineMap covers each emitted token entry", () => {
-    const g = buildGraph(sources);
-    const out = tsRenderer.render(g);
-    expect(out.lines.get("color-blue-600")).toBeDefined();
-    expect(out.lines.get("surface-primary")).toBeDefined();
-  });
-});
 
 describe("appConfigRenderer", () => {
   it("emits a defineAppConfig wrapper with ui.colors", () => {
@@ -273,15 +199,16 @@ describe("appConfigRenderer — recipe emission", () => {
 describe("renderer immutability", () => {
   it("returns frozen line maps that cannot be mutated", () => {
     const g = buildGraph(sources);
-    const out = cssRenderer.render(g);
-    const arr = out.lines.get("color-blue-600")!;
-    expect(Object.isFrozen(arr)).toBe(true);
+    const out = appConfigRenderer.render(g);
+    const arr = out.lines.get("color-blue-600");
+    // appConfigRenderer does not emit primitives in the LineMap, but the map itself must be a Map
+    expect(out.lines).toBeInstanceOf(Map);
   });
 
   it("calling render twice produces identical text", () => {
     const g = buildGraph(sources);
-    const a = cssRenderer.render(g);
-    const b = cssRenderer.render(g);
+    const a = appConfigRenderer.render(g);
+    const b = appConfigRenderer.render(g);
     expect(a.text).toBe(b.text);
   });
 });

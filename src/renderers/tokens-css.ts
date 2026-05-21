@@ -43,7 +43,7 @@ interface DarkOverride {
 }
 
 export const tokensCssRenderer: TextRenderer = {
-  id: "tokens-css",
+  id: "tokens.css",
   render(graph: TokenGraph) {
     const classifications = classifyGraph(graph);
     const sections = new Map<SectionKey, ThemeEntry[]>();

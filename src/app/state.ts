@@ -14,12 +14,7 @@ import type { RenderedText } from "@core/token-graph.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "issues";
-export type OutputTab =
-  | "tokens.css"
-  | "app.config.ts"
-  | "tokens.ts"
-  /** New Tailwind v4 @theme{} renderer — maps to tokensCssRenderer (id: "tokens-css"). */
-  | "tokens-css";
+export type OutputTab = "tokens.css" | "app.config.ts";
 export type ClassificationFilter =
   | "all"
   | "tailwind-default"

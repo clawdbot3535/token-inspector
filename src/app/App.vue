@@ -444,7 +444,7 @@ function downloadAll() {
             <ResizeHandle side="left" @pointerdown="rightPane.onPointerDown" />
             <div class="flex border-b border-default overflow-x-auto">
               <button
-                v-for="tab in (['tokens.css', 'tokens-css', 'app.config.ts', 'tokens.ts'] as const)"
+                v-for="tab in (['tokens.css', 'app.config.ts'] as const)"
                 :key="tab"
                 class="px-3 py-2 text-xs border-r border-default whitespace-nowrap"
                 :class="{
@@ -453,11 +453,15 @@ function downloadAll() {
                 }"
                 @click="state.outputTab.value = tab"
               >
-                {{ tab === 'tokens-css' ? 'tokens.css (new)' : tab }}
+                {{ tab }}
                 <span
-                  v-if="tab === 'tokens-css'"
+                  v-if="tab === 'tokens.css'"
                   class="ml-1 text-[9px] text-muted/60 font-normal"
                 >assets/css/tokens.css</span>
+                <span
+                  v-if="tab === 'app.config.ts'"
+                  class="ml-1 text-[9px] text-muted/60 font-normal"
+                >app.config.ts (or merge with existing)</span>
               </button>
             </div>
             <CodePreview
