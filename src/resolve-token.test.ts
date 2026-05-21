@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveTokenToValue } from "./resolve-token.js";
-import type { TokenGraph, TokenNode, Theme } from "./token-graph.js";
+import type { TokenGraph, TokenNode } from "./token-graph.js";
 
 function makeNode(opts: {
   id: string;
