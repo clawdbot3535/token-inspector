@@ -168,9 +168,22 @@ as a badge in the header so the running build is always visible.
 ## Status
 
 v0.3.0 ships the Tailwind-utility-first pipeline. Currently the Nuxt UI
-v4 recipe emission covers the `button` component only. Additional
-components (badge, card, input, …) follow in subsequent releases once
-the slot-mapping pattern is validated against more Figma systems.
+v4 recipe emission covers the `button` component only.
+
+## Roadmap
+
+| Milestone | Status | What ships |
+|---|---|---|
+| **v0.1.0** | ✅ done | Initial inspector — drag-and-drop, alias chain, code preview, issues view |
+| **v0.2.0** | ✅ done | LiveButton preview pipeline, Figma embeds, version badge |
+| **v0.3.0** | ✅ done | Tailwind-utility-first output: classification engine, `tokens.css` with `@theme` + `.dark`, Nuxt UI v4 `button` recipe, dual-emit CLI, Inspector classification badges + filter chips + summary panel + per-token Output section, resizable sidebars |
+| **PR 4a** | 📋 planned | Engine + scanner foundations: `scanner.ts` aggregating data-quality issues + classification hints + output forecast, smart non-suffix → default-size assignment in recipe engine, `slot-mapping.json` project override, app-config completeness comments. No UI changes, no release |
+| **PR 4b → v0.4.0** | 📋 planned | Inspector ScanView (categorized accordions, completeness table, forecast line), permanent HeaderStatusStrip, LiveButton `n/m` partial badge, IssuesView absorbed into ScanView, full v0.4.0 release |
+| **PR 3** | 🧊 queued | Figma REST API import via Personal Access Token. Browser-side PAT handling, Figma-Variables → W3C DTCG converter, fetch UI. Needs its own brainstorming round |
+| **PR 5+** | 🧊 backlog | Component recipes beyond `button` (`badge`, `card`, `input`, …) once the slot-mapping pattern is validated against more Figma systems |
+| **Later** | 🧊 backlog | Hue-proximity color role derivation, `@tailwindcss/browser` runtime compiler for richer LiveButton previews, Playwright CI integration |
+
+Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
 ## License
 
