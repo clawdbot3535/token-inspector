@@ -200,7 +200,6 @@ describe("renderer immutability", () => {
   it("returns frozen line maps that cannot be mutated", () => {
     const g = buildGraph(sources);
     const out = appConfigRenderer.render(g);
-    const arr = out.lines.get("color-blue-600");
     // appConfigRenderer does not emit primitives in the LineMap, but the map itself must be a Map
     expect(out.lines).toBeInstanceOf(Map);
   });
