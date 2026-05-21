@@ -136,11 +136,31 @@ function utilityFor(
     return prefixForUtility(utilityType) + suffix;
   }
 
-  if (classification.kind === "theme-static" || classification.kind === "theme-mode-variant") {
-    return `${prefixForUtility(utilityType)}[var(${classification.cssName})]`;
+  if (classification.kind === "theme-static") {
+    // The shadow node fabricates a primitive-style id ("spacing-temp" etc.)
+    // so classifyToken can run on it. That id's cssName ("--spacing-temp")
+    // does not exist in tokens.css. Emit the raw resolved value as a
+    // Tailwind arbitrary value (px-[16px]) instead of var(--spacing-temp).
+    return `${prefixForUtility(utilityType)}[${escapeArbitrary(classification.value)}]`;
+  }
+
+  if (classification.kind === "theme-mode-variant") {
+    // Defensive — shadow nodes have no light/dark cssValue so this branch
+    // should be unreachable for numeric tokens. If we do land here, emit
+    // the light value as arbitrary so the output stays valid Tailwind.
+    return `${prefixForUtility(utilityType)}[${escapeArbitrary(classification.lightValue)}]`;
   }
 
   return null;
+}
+
+/**
+ * Escape spaces for Tailwind v4 arbitrary-value syntax. Tailwind reads
+ * underscores as literal spaces inside `[...]`, so any space in the raw
+ * CSS value must be converted to `_`.
+ */
+function escapeArbitrary(value: string): string {
+  return value.replace(/\s+/g, "_");
 }
 
 function prefixForUtility(utilityType: UtilityType): string {
