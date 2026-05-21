@@ -277,6 +277,71 @@ export default defineAppConfig({
 
 The consuming project imports Tailwind itself; `tokens.css` is portable and contains only the `@theme` block plus `.dark` overrides.
 
+## Token Scan + Smart Recipe Engine (PR 4)
+
+After token import (drag-drop or Figma REST API in PR 3), a dedicated **Scan view** aggregates data-quality issues, classification hints, completeness scores, and an output forecast. Purely informative — never blocks export. The Inspector's existing `IssuesView.vue` is promoted from "errors-only side panel" to "first-class quality gate" with new categories and a permanent header status strip.
+
+### Trigger and lifecycle
+
+The scan runs automatically after each `loadSources` (drop or fetch). Results live until the next graph load. A status strip at the top of the Inspector shows the issue count plus a category breakdown; clicking opens the full Scan view.
+
+### Categories
+
+**Data-quality issues** (new in PR 4 — drive the engine improvements below):
+
+- **Incomplete size variant**: a component utility has tokens for some sizes but not others (e.g., `button.padding-y` exists without suffix while `button.padding-x` has all three of `-sm`, `-md`, `-lg`).
+- **Asymmetric size coverage**: a utility has partial size coverage (`button.gap-xs` + `button.gap-sm` exist, `gap-md` and `gap-lg` are missing).
+- **Non-suffix vs size-suffix conflict**: both `button.padding-x` and `button.padding-x-md` exist with different resolved values; the engine has to pick one.
+- **Orphaned size key**: a size suffix (e.g., `-xs`) appears on exactly one token, suggesting a typo or unfinished pass.
+
+**Classification hints** (promised in PR 1, never implemented):
+
+- **Snap to Tailwind default**: a custom numeric value is close to a Tailwind default (`5px` when `4px` = `p-1` or `6px` = `p-1.5` are available).
+- **Mode-invariant in semantic layer**: a token lives in `light.tokens.json` + `dark.tokens.json` with identical values; it belongs in a primitive file.
+- **Component token references mode-variant semantic**: a component-layer token aliases a semantic token whose value flips with dark mode, complicating the "use a single Tailwind class" story.
+
+**Build-time issues** (existing — surfaced through the scan):
+
+- Broken aliases (unresolved-alias)
+- Duplicate ids
+- Unknown types
+- Malformed values
+
+**Completeness score per component/variant**:
+
+For each component in the allow-list, compute the canonical utility set (the union of utility types defined across all sizes) and score each size variant as `defined / canonical`. Example: button canonical set is `{padding-x, padding-y, font-size, gap, icon-size}`; `size.md` covers 5/5 ✓, `size.sm` covers 3/5 ⚠, `size.lg` covers 1/5 ❌, `size.xs` covers 0/5.
+
+**Output forecast**:
+
+- Predicted `tokens.css` size (KB)
+- Number of Tailwind matches vs theme extensions vs mode-variant entries
+- Which components in the allow-list will produce a recipe (and which variants are complete)
+- Unmapped component prefixes (tokens whose prefix matches no allow-listed component)
+
+### Engine improvements
+
+- **Smart non-suffix assignment**: when `<component>.<utility>` (no suffix) AND any `<component>.<utility>-<size>` both exist, the non-suffix value is reassigned to the configurable default size (default `md`) instead of `slots.base`. This requires a two-pass walk: first detect which utility-types have size variants in this graph, then assign tokens accordingly.
+- **Conflict detection**: when non-suffix and size-suffix versions resolve to different values, emit a `non-suffix-vs-size-conflict` issue and prefer the size-specific value (more specific wins). Non-dogmatic: warn, do not silently correct.
+- **Completeness annotations on emitted recipes**: each variant gets an optional comment header in `app.config.ts` listing the missing utility types ("size.lg incomplete: missing padding-y, font-size, gap").
+
+### UI
+
+- **Header status strip**: `217 tokens · 12 issues across 4 categories · button: md 5/5 · sm 3/5 · lg 1/5`. Permanent. Clickable to open the Scan view.
+- **Scan view** (`src/app/components/ScanView.vue`): a new top-level inspector view alongside the existing inspector/issues split. Expandable accordion per category. Each issue lists affected tokens; clicking a token highlights it in the token list and selects it.
+- **LiveButton "partial" badge**: each preview size shows `n/m` next to the button label (e.g., `Button lg · 1/5`).
+
+### Configuration
+
+- `slot-mapping.json` at project root (optional) overrides the heuristic per token id (already supported by PR 2's `getSlotMapping`, but PR 4 wires it into `build-cli.ts`).
+- The default size per component is configurable via the same `slot-mapping.json`:
+  ```json
+  {
+    "components": {
+      "button": { "defaultSize": "md" }
+    }
+  }
+  ```
+
 ## Component Recipes (PR 2)
 
 The PR 2 `app-config-renderer` walks component-layer tokens (currently filtered as `skip` by the classifier), groups them by component name, and emits Nuxt UI v4 `slots` + `variants` recipes. Three new modules drive this:
