@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
+import { useResizablePane } from "./composables/use-resizable-pane.js";
+import ResizeHandle from "./components/ResizeHandle.vue";
 import { buildGraph } from "@core/build-graph.js";
 import { createAppState, useFilteredNodes, useRenderedOutput } from "./state.js";
 import { loadSources } from "./load-sources.js";
@@ -63,6 +65,21 @@ function setFigmaUrl(input: string) {
   if (typeof localStorage !== "undefined") localStorage.setItem("figma-file-url", parsed);
   return true;
 }
+
+const leftPane = useResizablePane({
+  storageKey: "inspector.leftPaneWidth",
+  initialWidth: 288,
+  minWidth: 200,
+  maxWidth: 600,
+});
+
+const rightPane = useResizablePane({
+  storageKey: "inspector.rightPaneWidth",
+  initialWidth: 448,
+  minWidth: 320,
+  maxWidth: 800,
+  direction: "grow-left",
+});
 
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
@@ -298,7 +315,10 @@ function downloadAll() {
         <!-- Inspector shell -->
         <template v-else>
           <!-- Sidebar: token browser -->
-          <aside class="w-72 border-r border-default flex flex-col">
+          <aside
+            class="relative shrink-0 border-r border-default flex flex-col"
+            :style="{ width: leftPane.width.value + 'px' }"
+          >
             <div class="px-2 pt-2 border-b border-default">
               <SummaryPanel
                 :summary="summary"
@@ -341,6 +361,7 @@ function downloadAll() {
                 <ClassificationBadge v-if="kindOf(node.id)" :kind="kindOf(node.id)!" />
               </button>
             </div>
+            <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
           </aside>
 
           <!-- Main: issues view OR node detail -->
@@ -416,7 +437,11 @@ function downloadAll() {
           </section>
 
           <!-- Output: live preview -->
-          <aside class="w-[28rem] border-l border-default flex flex-col">
+          <aside
+            class="relative shrink-0 border-l border-default flex flex-col"
+            :style="{ width: rightPane.width.value + 'px' }"
+          >
+            <ResizeHandle side="left" @pointerdown="rightPane.onPointerDown" />
             <div class="flex border-b border-default overflow-x-auto">
               <button
                 v-for="tab in (['tokens.css', 'tokens-css', 'app.config.ts', 'tokens.ts'] as const)"
