@@ -217,7 +217,7 @@ function downloadAll() {
       <header class="flex items-center justify-between px-4 h-12 border-b border-default">
         <div class="flex items-center gap-3">
           <UIcon name="i-lucide-layers" class="text-primary size-5" />
-          <h1 class="text-sm font-semibold">Figma → Nuxt UI v4 — Token Inspector</h1>
+          <h1 class="text-sm font-semibold">Token Inspector</h1>
           <span
             class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-elevated text-muted border border-default"
             :title="`Token Inspector v${appVersion}`"

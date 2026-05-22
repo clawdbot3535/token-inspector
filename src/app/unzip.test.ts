@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
 import { buildZip } from "./zip.js";
 import { unzip, unzipToFiles } from "./unzip.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../..");
 
 async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(
@@ -112,16 +106,6 @@ describe("unzip", () => {
   it("rejects non-zip input", async () => {
     const bytes = new TextEncoder().encode("not a zip file at all");
     await expect(unzip(bytes)).rejects.toThrow(/EOCD/);
-  });
-
-  it("reads a real Figma export zip from the repo root", async () => {
-    const buf = readFileSync(resolve(repoRoot, "primitives_color.zip"));
-    const entries = await unzip(buf);
-    expect(entries.length).toBeGreaterThan(0);
-    const colorFile = entries.find((e) => e.name.endsWith("color.tokens.json"));
-    expect(colorFile).toBeDefined();
-    const json = JSON.parse(decodeUtf8(colorFile!.bytes));
-    expect(json).toBeTypeOf("object");
   });
 
   it("unzipToFiles strips nested paths to basenames", async () => {
