@@ -11,12 +11,19 @@ import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer } from "../src/renderers/app-config.ts";
+import { loadSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import type { SourceFile, SourceLayer } from "../src/token-graph.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..");
 const inDir = resolve(repoRoot, "components");
 const outRoot = resolve(repoRoot, "output");
+
+const slotMappingPath = resolve(repoRoot, "slot-mapping.json");
+const slotMapping = loadSlotMappingFile(slotMappingPath);
+if (slotMapping.overrides || slotMapping.defaultSizeByComponent) {
+  console.log("loaded slot-mapping.json overrides + default sizes");
+}
 
 const SOURCE_FILES: ReadonlyArray<{ name: SourceLayer; file: string }> = [
   { name: "color", file: "color.tokens.json" },
@@ -51,7 +58,10 @@ if (graph.issues.length > 0) {
 }
 
 const cssRendered = tokensCssRenderer.render(graph);
-const appConfigRendered = appConfigRenderer.render(graph);
+const appConfigRendered = appConfigRenderer.render(graph, {
+  slotMappingOverride: slotMapping.overrides,
+  defaultSizeByComponent: slotMapping.defaultSizeByComponent,
+});
 
 writeOut("css/tokens.css", cssRendered.text);
 writeOut("nuxt/app.config.ts", appConfigRendered.text);
