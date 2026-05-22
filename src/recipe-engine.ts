@@ -29,6 +29,14 @@ export interface BuildRecipesOptions {
   components: ReadonlyArray<string>;
   slotMappingOverride?: SlotMappingOverride;
   remBase?: number;
+  /**
+   * Per-component default size for non-suffix tokens that compete with
+   * size-suffixed siblings. When a non-suffix token's utility type has
+   * any size variant defined in the graph, the non-suffix value goes
+   * into variants.size.<defaultSize> instead of slots.base.
+   * Defaults to "md" if not specified.
+   */
+  defaultSizeByComponent?: Readonly<Record<string, string>>;
 }
 
 export function buildComponentRecipes(
@@ -38,6 +46,27 @@ export function buildComponentRecipes(
   const allowSet = new Set(options.components);
   const out: Record<string, ComponentRecipe> = {};
   const utilityBuckets = new Map<string, string[]>();
+
+  // Pre-scan: for each (component, utilityType), collect which size keys are
+  // defined. Used to decide whether non-suffix tokens go to slots.base or to
+  // the default size variant.
+  const utilityHasSizeVariants = new Map<string, Set<string>>(); // key: `${component}|${utility}`
+
+  for (const node of graph.nodes.values()) {
+    if (node.layer !== "component") continue;
+    const componentName = node.id.split("-")[0];
+    if (componentName === undefined || !allowSet.has(componentName)) continue;
+    const mapping = getSlotMapping(node.id, options.slotMappingOverride);
+    if (!mapping || mapping.variantKey === null) continue;
+    if (mapping.variantAxis !== "size") continue;
+    const key = `${componentName}|${mapping.utilityType}`;
+    let set = utilityHasSizeVariants.get(key);
+    if (!set) {
+      set = new Set();
+      utilityHasSizeVariants.set(key, set);
+    }
+    set.add(mapping.variantKey);
+  }
 
   for (const node of graph.nodes.values()) {
     if (node.layer !== "component") continue;
@@ -51,6 +80,27 @@ export function buildComponentRecipes(
     const resolved = resolveTokenToValue(node.id, graph);
     if ("error" in resolved) continue;
 
+    // Redirect non-suffix tokens to the default size variant when the utility
+    // type has size-suffixed siblings in the graph.
+    let effectiveMapping = mapping;
+    if (mapping.variantKey === null) {
+      const presenceKey = `${componentName}|${mapping.utilityType}`;
+      const sizesPresent = utilityHasSizeVariants.get(presenceKey);
+      if (sizesPresent && sizesPresent.size > 0) {
+        const defaultSize =
+          options.defaultSizeByComponent?.[componentName] ?? "md";
+        // Skip if the default size already has its own token — size-suffix wins.
+        if (sizesPresent.has(defaultSize)) {
+          continue;
+        }
+        effectiveMapping = {
+          ...mapping,
+          variantAxis: "size",
+          variantKey: defaultSize,
+        };
+      }
+    }
+
     const classification = classifyToken(
       // Fabricate a tiny shadow node carrying the resolved primitive value so
       // classifyToken does not skip it as component-layer.
@@ -59,7 +109,7 @@ export function buildComponentRecipes(
       // of falling through to the "spacing" default.
       {
         ...node,
-        id: shadowIdFor(mapping.utilityType),
+        id: shadowIdFor(effectiveMapping.utilityType),
         layer: "primitive",
         cssValue: { base: resolved.value },
       },
@@ -67,10 +117,10 @@ export function buildComponentRecipes(
       { remBase: options.remBase },
     );
 
-    const utility = utilityFor(mapping.utilityType, classification);
+    const utility = utilityFor(effectiveMapping.utilityType, classification);
     if (!utility) continue;
 
-    const bucketKey = bucketKeyFor(componentName, mapping);
+    const bucketKey = bucketKeyFor(componentName, effectiveMapping);
     const arr = utilityBuckets.get(bucketKey) ?? [];
     arr.push(utility);
     utilityBuckets.set(bucketKey, arr);

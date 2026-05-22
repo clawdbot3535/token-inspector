@@ -178,3 +178,48 @@ describe("buildComponentRecipes", () => {
     expect(recipes).toMatchSnapshot();
   });
 });
+
+describe("buildComponentRecipes — smart non-suffix assignment", () => {
+  it("non-suffix token goes to slots.base when the utility has no size variants", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-radius", layer: "component", type: "dimension", source: "global", base: "0.375rem" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("rounded-md");
+    expect(recipes.button?.variants.size?.md?.base).toBeUndefined();
+  });
+
+  it("non-suffix token goes to variants.size.md when the utility has size variants elsewhere", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-x", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "16px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toBeUndefined();
+    expect(recipes.button?.variants.size?.md?.base).toContain("px-2");
+    expect(recipes.button?.variants.size?.lg?.base).toContain("px-4");
+  });
+
+  it("size-suffix wins when both non-suffix and size-suffix exist for the same default size", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-x", layer: "component", type: "dimension", source: "global", base: "6px" }),
+      makeNode({ id: "button-padding-x-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.size?.md?.base).toContain("px-2");
+    expect(recipes.button?.variants.size?.md?.base).not.toContain("px-[6px]");
+  });
+
+  it("respects defaultSizeByComponent override", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-x", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "16px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, {
+      components: ["button"],
+      defaultSizeByComponent: { button: "sm" },
+    });
+    expect(recipes.button?.variants.size?.sm?.base).toContain("px-2");
+    expect(recipes.button?.variants.size?.md?.base).toBeUndefined();
+  });
+});
