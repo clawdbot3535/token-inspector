@@ -150,6 +150,64 @@ export interface TokenGraph {
   };
 }
 
+// ---------- Scanner report types (PR 4) ----------
+
+export type ScanSeverity = "error" | "warning" | "hint";
+
+export type ScanCategory =
+  | "data-quality"
+  | "classification-hint"
+  | "build-time";
+
+export interface ScanIssue {
+  /** Stable id for UI keying and click-to-highlight. */
+  id: string;
+  category: ScanCategory;
+  severity: ScanSeverity;
+  /** Sub-kind within category. Used for grouping in the UI. */
+  kind: string;
+  /** Human-readable message. */
+  message: string;
+  /** Token ids affected by this issue. */
+  tokenIds: readonly string[];
+  /** Component name when the issue is component-scoped. */
+  componentName?: string;
+  /** Variant key (e.g. "sm") when the issue is variant-scoped. */
+  variantKey?: string;
+}
+
+export interface CompletenessScore {
+  component: string;
+  axis: "size" | "color" | "state";
+  variantKey: string;
+  defined: number;
+  total: number;
+  missingUtilities: readonly string[];
+}
+
+export interface OutputForecast {
+  tokensCss: {
+    estimatedBytes: number;
+    tailwindMatches: number;
+    themeExtensions: number;
+    modeVariantEntries: number;
+  };
+  components: ReadonlyArray<{
+    name: string;
+    inAllowList: boolean;
+    variants: readonly CompletenessScore[];
+  }>;
+  unmappedComponentPrefixes: readonly string[];
+}
+
+export interface ScanReport {
+  issues: readonly ScanIssue[];
+  completeness: readonly CompletenessScore[];
+  forecast: OutputForecast;
+  /** When the scan was produced (epoch ms). Used for cache busting in UI. */
+  generatedAt: number;
+}
+
 // ---------- Builder & renderer contracts ----------
 
 /**
