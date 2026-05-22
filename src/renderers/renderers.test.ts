@@ -194,6 +194,46 @@ describe("appConfigRenderer — recipe emission", () => {
     expect(out.text).not.toContain("button: {");
     expect(out.text).not.toContain("slots: {");
   });
+
+  it("emits completeness comment when a variant has missing utilities", () => {
+    const g = buildGraph(recipeSources);
+    const out = appConfigRenderer.render(g, {
+      completeness: [
+        {
+          component: "button",
+          axis: "size",
+          variantKey: "sm",
+          defined: 1,
+          total: 2,
+          missingUtilities: ["padding-y"],
+        },
+      ],
+    });
+    expect(out.text).toContain("// Incomplete in Figma: missing padding-y");
+  });
+
+  it("does not emit completeness comment when completeness option is absent", () => {
+    const g = buildGraph(recipeSources);
+    const out = appConfigRenderer.render(g);
+    expect(out.text).not.toContain("Incomplete in Figma");
+  });
+
+  it("does not emit completeness comment when variant has no missing utilities", () => {
+    const g = buildGraph(recipeSources);
+    const out = appConfigRenderer.render(g, {
+      completeness: [
+        {
+          component: "button",
+          axis: "size",
+          variantKey: "sm",
+          defined: 2,
+          total: 2,
+          missingUtilities: [],
+        },
+      ],
+    });
+    expect(out.text).not.toContain("Incomplete in Figma");
+  });
 });
 
 describe("renderer immutability", () => {

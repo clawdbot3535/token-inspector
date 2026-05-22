@@ -12,6 +12,7 @@ import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer } from "../src/renderers/app-config.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
+import { scanGraph } from "../src/scanner.ts";
 import type { SourceFile, SourceLayer } from "../src/token-graph.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -60,10 +61,13 @@ if (graph.issues.length > 0) {
   }
 }
 
+const scanReport = scanGraph(graph, { components: ["button"] });
+
 const cssRendered = tokensCssRenderer.render(graph);
 const appConfigRendered = appConfigRenderer.render(graph, {
   slotMappingOverride: slotMapping.overrides,
   defaultSizeByComponent: slotMapping.defaultSizeByComponent,
+  completeness: scanReport.completeness,
 });
 
 writeOut("css/tokens.css", cssRendered.text);

@@ -8,7 +8,7 @@
 // and match the slot-mapping heuristics. The body is always rendered as a suggestion —
 // the consuming project may merge or replace.
 
-import type { TextRenderer, TokenGraph } from "../token-graph.js";
+import type { TextRenderer, TokenGraph, CompletenessScore } from "../token-graph.js";
 import type { RenderedText } from "../token-graph.js";
 import { LineBuilder } from "./line-builder.js";
 import {
@@ -20,6 +20,12 @@ import type { SlotMappingOverride } from "../slot-mapping.js";
 export interface AppConfigRendererOptions {
   slotMappingOverride?: SlotMappingOverride;
   defaultSizeByComponent?: Readonly<Record<string, string>>;
+  /**
+   * Completeness scores from scanGraph(). When present, each incomplete
+   * variant gets a `// Incomplete in Figma: missing X, Y` comment.
+   * When absent, no comments are emitted (graceful fallback).
+   */
+  completeness?: ReadonlyArray<CompletenessScore>;
 }
 
 interface AppConfigRenderer extends TextRenderer {
@@ -79,7 +85,10 @@ export const appConfigRenderer: AppConfigRenderer = {
     for (const component of COMPONENT_ALLOW_LIST) {
       const recipe = recipes[component];
       if (recipe !== undefined) {
-        emitRecipe(lb, component, recipe);
+        const componentCompleteness = options?.completeness?.filter(
+          (c) => c.component === component,
+        );
+        emitRecipe(lb, component, recipe, componentCompleteness);
       }
     }
     lb.push("  },");
@@ -98,7 +107,12 @@ function deriveRoles(_graph: TokenGraph): RoleMapping {
   return DEFAULT_ROLES;
 }
 
-function emitRecipe(lb: LineBuilder, name: string, recipe: ComponentRecipe): void {
+function emitRecipe(
+  lb: LineBuilder,
+  name: string,
+  recipe: ComponentRecipe,
+  componentCompleteness?: ReadonlyArray<CompletenessScore>,
+): void {
   lb.push(`    ${name}: {`);
 
   const slotEntries = Object.entries(recipe.slots);
@@ -126,6 +140,17 @@ function emitRecipe(lb: LineBuilder, name: string, recipe: ComponentRecipe): voi
         const slotMap = axisMap[variantKey];
         if (slotMap === undefined) continue;
         lb.push(`          ${variantKey}: {`);
+
+        // Emit completeness comment when this variant has missing utilities.
+        const score = componentCompleteness?.find(
+          (c) => c.axis === axis && c.variantKey === variantKey,
+        );
+        if (score !== undefined && score.missingUtilities.length > 0) {
+          lb.push(
+            `            // Incomplete in Figma: missing ${score.missingUtilities.join(", ")}`,
+          );
+        }
+
         for (const [slot, classes] of Object.entries(slotMap)) {
           lb.push(`            ${slot}: ${JSON.stringify(classes)},`);
         }
