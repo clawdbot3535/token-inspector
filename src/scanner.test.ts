@@ -7,6 +7,8 @@ import type {
   TokenType,
   SourceLayer,
   Theme,
+  ScanIssue,
+  CompletenessScore,
 } from "./token-graph.js";
 
 function makeNode(opts: {
@@ -59,7 +61,7 @@ describe("scanGraph — build-time issues", () => {
       ],
     );
     const report = scanGraph(graph, { components: ["button"] });
-    const buildTime = report.issues.filter((i) => i.category === "build-time");
+    const buildTime = report.issues.filter((i: ScanIssue) => i.category === "build-time");
     expect(buildTime).toHaveLength(1);
     expect(buildTime[0]?.severity).toBe("error");
     expect(buildTime[0]?.kind).toBe("unresolved-alias");
@@ -75,10 +77,10 @@ describe("scanGraph — data-quality", () => {
       makeNode({ id: "button-padding-y-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const dq = report.issues.filter((i) => i.category === "data-quality" && i.kind === "incomplete-size-variant");
+    const dq = report.issues.filter((i: ScanIssue) => i.category === "data-quality" && i.kind === "incomplete-size-variant");
     expect(dq.length).toBeGreaterThan(0);
-    const smIssue = dq.find((i) => i.variantKey === "sm");
-    const lgIssue = dq.find((i) => i.variantKey === "lg");
+    const smIssue = dq.find((i: ScanIssue) => i.variantKey === "sm");
+    const lgIssue = dq.find((i: ScanIssue) => i.variantKey === "lg");
     expect(smIssue?.message).toContain("padding-y");
     expect(lgIssue?.message).toContain("padding-y");
   });
@@ -89,7 +91,7 @@ describe("scanGraph — data-quality", () => {
       makeNode({ id: "button-padding-x-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const conflict = report.issues.find((i) => i.kind === "non-suffix-vs-size-conflict");
+    const conflict = report.issues.find((i: ScanIssue) => i.kind === "non-suffix-vs-size-conflict");
     expect(conflict).toBeDefined();
     expect(conflict?.severity).toBe("warning");
     expect(conflict?.tokenIds).toContain("button-padding-x");
@@ -104,7 +106,7 @@ describe("scanGraph — data-quality", () => {
       makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "12px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const asym = report.issues.find((i) => i.kind === "asymmetric-size-coverage");
+    const asym = report.issues.find((i: ScanIssue) => i.kind === "asymmetric-size-coverage");
     expect(asym).toBeDefined();
     expect(asym?.message).toContain("gap");
   });
@@ -116,7 +118,7 @@ describe("scanGraph — data-quality", () => {
       makeNode({ id: "button-padding-x-xs", layer: "component", type: "dimension", source: "global", base: "4px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const orphan = report.issues.find((i) => i.kind === "orphaned-size-key");
+    const orphan = report.issues.find((i: ScanIssue) => i.kind === "orphaned-size-key");
     expect(orphan).toBeDefined();
     expect(orphan?.variantKey).toBe("xs");
   });
@@ -135,7 +137,7 @@ describe("scanGraph — classification hints", () => {
       }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const hint = report.issues.find((i) => i.kind === "mode-invariant-semantic");
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "mode-invariant-semantic");
     expect(hint).toBeDefined();
     expect(hint?.severity).toBe("hint");
   });
@@ -151,7 +153,7 @@ describe("scanGraph — classification hints", () => {
       }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const hint = report.issues.find((i) => i.kind === "snap-to-tailwind");
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
     expect(hint).toBeDefined();
     expect(hint?.message).toMatch(/p-1\b|p-1\.5/);
   });
@@ -168,9 +170,9 @@ describe("scanGraph — completeness scoring", () => {
       makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "16px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const md = report.completeness.find((c) => c.component === "button" && c.variantKey === "md");
-    const sm = report.completeness.find((c) => c.component === "button" && c.variantKey === "sm");
-    const lg = report.completeness.find((c) => c.component === "button" && c.variantKey === "lg");
+    const md = report.completeness.find((c: CompletenessScore) => c.component === "button" && c.variantKey === "md");
+    const sm = report.completeness.find((c: CompletenessScore) => c.component === "button" && c.variantKey === "sm");
+    const lg = report.completeness.find((c: CompletenessScore) => c.component === "button" && c.variantKey === "lg");
     expect(md?.defined).toBe(3);
     expect(md?.total).toBe(3);
     expect(sm?.defined).toBe(2);
