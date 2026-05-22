@@ -1,56 +1,44 @@
 import { describe, it, expect } from "vitest";
-import { writeFileSync, unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { resolve } from "node:path";
-import { loadSlotMappingFile } from "./slot-mapping-loader.js";
+import { parseSlotMappingFile } from "./slot-mapping-loader.js";
 
-describe("loadSlotMappingFile", () => {
-  it("returns empty when the file does not exist", () => {
-    const result = loadSlotMappingFile(
-      resolve(tmpdir(), "nonexistent-slot-mapping.json"),
-    );
-    expect(result.overrides).toBeUndefined();
-    expect(result.defaultSizeByComponent).toBeUndefined();
+describe("parseSlotMappingFile", () => {
+  it("returns empty when given an empty/null/undefined input", () => {
+    expect(parseSlotMappingFile("")).toEqual({
+      overrides: undefined,
+      defaultSizeByComponent: undefined,
+    });
+    expect(parseSlotMappingFile(null)).toEqual({
+      overrides: undefined,
+      defaultSizeByComponent: undefined,
+    });
+    expect(parseSlotMappingFile(undefined)).toEqual({
+      overrides: undefined,
+      defaultSizeByComponent: undefined,
+    });
   });
 
   it("parses components.<name>.defaultSize into defaultSizeByComponent", () => {
-    const path = resolve(tmpdir(), `slot-mapping-test-${Date.now()}-a.json`);
-    writeFileSync(
-      path,
+    const result = parseSlotMappingFile(
       JSON.stringify({
         components: { button: { defaultSize: "lg" } },
       }),
     );
-    try {
-      const result = loadSlotMappingFile(path);
-      expect(result.defaultSizeByComponent).toEqual({ button: "lg" });
-      expect(result.overrides).toBeUndefined();
-    } finally {
-      unlinkSync(path);
-    }
+    expect(result.defaultSizeByComponent).toEqual({ button: "lg" });
+    expect(result.overrides).toBeUndefined();
   });
 
   it("parses overrides and passes them through as-is", () => {
-    const path = resolve(tmpdir(), `slot-mapping-test-${Date.now()}-b.json`);
-    writeFileSync(
-      path,
+    const result = parseSlotMappingFile(
       JSON.stringify({
         overrides: { "button-shadow": null },
       }),
     );
-    try {
-      const result = loadSlotMappingFile(path);
-      expect(result.overrides).toEqual({ "button-shadow": null });
-      expect(result.defaultSizeByComponent).toBeUndefined();
-    } finally {
-      unlinkSync(path);
-    }
+    expect(result.overrides).toEqual({ "button-shadow": null });
+    expect(result.defaultSizeByComponent).toBeUndefined();
   });
 
   it("parses both components and overrides together", () => {
-    const path = resolve(tmpdir(), `slot-mapping-test-${Date.now()}-c.json`);
-    writeFileSync(
-      path,
+    const result = parseSlotMappingFile(
       JSON.stringify({
         components: { button: { defaultSize: "md" } },
         overrides: {
@@ -63,27 +51,16 @@ describe("loadSlotMappingFile", () => {
         },
       }),
     );
-    try {
-      const result = loadSlotMappingFile(path);
-      expect(result.defaultSizeByComponent).toEqual({ button: "md" });
-      expect(result.overrides).toBeDefined();
-      expect(result.overrides?.["button-custom"]).toMatchObject({
-        slot: "base",
-        utilityType: "rounded",
-      });
-    } finally {
-      unlinkSync(path);
-    }
+    expect(result.defaultSizeByComponent).toEqual({ button: "md" });
+    expect(result.overrides).toBeDefined();
+    expect(result.overrides?.["button-custom"]).toMatchObject({
+      slot: "base",
+      utilityType: "rounded",
+    });
   });
 
   it("returns undefined defaultSizeByComponent when components map is empty", () => {
-    const path = resolve(tmpdir(), `slot-mapping-test-${Date.now()}-d.json`);
-    writeFileSync(path, JSON.stringify({ overrides: {} }));
-    try {
-      const result = loadSlotMappingFile(path);
-      expect(result.defaultSizeByComponent).toBeUndefined();
-    } finally {
-      unlinkSync(path);
-    }
+    const result = parseSlotMappingFile(JSON.stringify({ overrides: {} }));
+    expect(result.defaultSizeByComponent).toBeUndefined();
   });
 });

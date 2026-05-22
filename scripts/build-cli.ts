@@ -5,13 +5,13 @@
 // and output/nuxt/. The legacy build-tokens.mjs remains untouched and
 // continues to write output/* in parallel during the transition window.
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer } from "../src/renderers/app-config.ts";
-import { loadSlotMappingFile } from "../src/slot-mapping-loader.ts";
+import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import type { SourceFile, SourceLayer } from "../src/token-graph.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -20,7 +20,10 @@ const inDir = resolve(repoRoot, "components");
 const outRoot = resolve(repoRoot, "output");
 
 const slotMappingPath = resolve(repoRoot, "slot-mapping.json");
-const slotMapping = loadSlotMappingFile(slotMappingPath);
+const slotMappingJson = existsSync(slotMappingPath)
+  ? readFileSync(slotMappingPath, "utf8")
+  : "";
+const slotMapping = parseSlotMappingFile(slotMappingJson);
 if (slotMapping.overrides || slotMapping.defaultSizeByComponent) {
   console.log("loaded slot-mapping.json overrides + default sizes");
 }

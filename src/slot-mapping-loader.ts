@@ -1,8 +1,10 @@
-// Loads optional slot-mapping.json from project root. Splits the file
-// shape into the two structures the engine consumes: a SlotMappingOverride
-// keyed by token id, and a defaultSizeByComponent record.
+// Parses optional slot-mapping.json content into the two structures the
+// recipe engine consumes: a SlotMappingOverride keyed by token id, and a
+// defaultSizeByComponent record. Pure logic — no filesystem access here;
+// the CLI reads the file and passes the JSON string in. Keeps this module
+// importable from browser-side code (Inspector UI in PR 4b) without
+// requiring node types under tsconfig.app.json.
 
-import { readFileSync, existsSync } from "node:fs";
 import type { SlotMappingOverride } from "./slot-mapping.js";
 
 export interface SlotMappingFile {
@@ -15,13 +17,22 @@ export interface LoadedSlotMapping {
   defaultSizeByComponent: Record<string, string> | undefined;
 }
 
-export function loadSlotMappingFile(path: string): LoadedSlotMapping {
-  if (!existsSync(path)) {
-    return { overrides: undefined, defaultSizeByComponent: undefined };
-  }
+const EMPTY: LoadedSlotMapping = {
+  overrides: undefined,
+  defaultSizeByComponent: undefined,
+};
 
-  const raw = readFileSync(path, "utf8");
-  const parsed = JSON.parse(raw) as SlotMappingFile;
+/**
+ * Parse a slot-mapping.json string. Returns the empty shape when given
+ * an empty/null/undefined input so callers can do
+ * `parseSlotMappingFile(existsSync(p) ? readFileSync(p, "utf8") : "")`.
+ */
+export function parseSlotMappingFile(
+  json: string | null | undefined,
+): LoadedSlotMapping {
+  if (!json) return EMPTY;
+
+  const parsed = JSON.parse(json) as SlotMappingFile;
 
   const defaultSizeByComponent: Record<string, string> = {};
   for (const [name, config] of Object.entries(parsed.components ?? {})) {
