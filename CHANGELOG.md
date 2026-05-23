@@ -1,5 +1,79 @@
 # Changelog
 
+## [Unreleased]
+
+Button visual-variant axis end-to-end + scanner library-suggestions +
+preview state matrix. Shipped on `main` ahead of the next tagged release.
+
+### Added
+
+- **Visual variant axis** in slot-mapping: `solid` / `outline` / `ghost`
+  / `link` (plus `subtle` / `soft`) recognised at the 2nd id segment,
+  with state suffixes (`hover` / `active` / `disabled` / `focus`)
+  folded into Tailwind pseudo-class prefixes when a variant is present.
+- **Color utility types**: `bg-color`, `text-color`, `border-color`,
+  `ring-color`, `underline-color`. Recipe engine short-circuits the
+  shadow-node Tailwind-default matching for these and emits arbitrary
+  values directly.
+- **Semantic `var()` references** for color utilities: the recipe
+  engine walks one alias step to the first non-component ancestor and
+  emits `bg-[var(--color-action-bg)]` instead of baked hex. Dark-mode
+  overrides in `tokens.css` apply automatically; fallback to literal
+  hex when no alias exists.
+- **`variants.variant`** axis in `ComponentRecipe` + `app-config`
+  renderer. Generated `app.config.ts` now emits `variants.variant.{solid,
+  outline, ghost, link}` blocks per component.
+- **`asymmetric-variant-coverage` scanner detector**
+  (`src/scanner.ts`): runs on every component in the graph (not
+  scoped to the allow-list). Discriminates variants from utility
+  namespaces via `KNOWN_VARIANT_NAMES` and trailing-position state
+  detection so `chip.bg-error` (state) and `badge.error.bg`
+  (variant) are not conflated. Findings carry concrete
+  "add `<token-id>` in Figma" suggestions and are severity-tiered
+  (hint when 1 sibling has it, warning when 2+ do).
+- **Build-CLI scan summary**: `scripts/build-cli.ts` prints a grouped
+  `errors / warnings / hints (first 10)` digest after writing
+  outputs. Exit code is non-zero only when errors exist so CI stays
+  green on design-quality findings.
+- **LiveButton variant × state matrix**: per visual variant the
+  preview now renders a sizes row (sm/md/lg) AND a states row
+  (default/hover/active/disabled/focus). `projectToState` promotes
+  pseudo-class-prefixed classes to base for static per-state
+  rendering. `disabled` cells get standard `opacity: 0.6` +
+  `cursor: not-allowed` UI affordances.
+- **`extractArbitrary`** helper in LiveButton: translates dynamic
+  arbitrary-value classes (`px-[10px]`, `bg-[var(--x)]`) to inline
+  CSS because Tailwind v4 JIT only sees static class strings. Maps
+  border-color → adds 1px solid default; text-decoration-color →
+  adds underline default.
+- **`useInjectedTokensCss` composable**
+  (`src/app/composables/use-injected-tokens-css.ts`): mounts the
+  rendered `tokens.css` into `<head>` so `var(--*)` references in
+  the live preview resolve at runtime. Substitutes `@theme {` for
+  `:root {` in the injected copy because `@theme` is a Tailwind
+  build-time directive that browsers ignore.
+
+### Changed
+
+- `slot-mapping.ts` `parseSegments` now returns `{component, variant,
+  utility, size, state}` instead of `{component, utility, variant}`.
+  `SlotMappingEntry` gains an optional `statePrefix` field.
+- `VariantAxis` type adds `"variant"`. `UtilityType` adds the five
+  color types.
+- `scanner.ts` data-quality checks skip non-size axis tokens to avoid
+  size-completeness false positives on variant tokens.
+- `app.config.ts` renderer iterates `["size", "color", "variant",
+  "state"]` axes (added `"variant"`).
+
+### Fixed
+
+- Live preview was emitting baked-in hex values that failed
+  Tailwind v4 JIT (classes like `px-[10px]` never made it into the
+  bundle because they only exist as runtime strings).
+- Live preview was emitting `var(--*)` references that resolved to
+  nothing because the rendered `tokens.css` was never mounted into
+  the Inspector document.
+
 ## [0.3.0] — 2026-05-21
 
 The Tailwind-utility-first refactor. Two-PR effort spanning the
