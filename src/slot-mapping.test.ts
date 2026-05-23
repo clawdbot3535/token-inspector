@@ -47,6 +47,116 @@ describe("heuristicSlotMapping — button", () => {
   });
 });
 
+describe("heuristicSlotMapping — variant axis (solid/outline/ghost/link)", () => {
+  it("maps button-solid-bg to variants.variant.solid base bg-color", () => {
+    expect(heuristicSlotMapping("button-solid-bg")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps button-solid-bg-hover with hover pseudo-class prefix", () => {
+    expect(heuristicSlotMapping("button-solid-bg-hover")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+      statePrefix: "hover",
+    });
+  });
+
+  it("treats -default state as no pseudo-class prefix", () => {
+    expect(heuristicSlotMapping("button-solid-text-default")).toEqual({
+      slot: "base",
+      utilityType: "text-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps button-outline-border to border-color on the outline variant", () => {
+    expect(heuristicSlotMapping("button-outline-border")).toEqual({
+      slot: "base",
+      utilityType: "border-color",
+      variantAxis: "variant",
+      variantKey: "outline",
+    });
+  });
+
+  it("maps button-outline-border-disabled with disabled prefix", () => {
+    expect(heuristicSlotMapping("button-outline-border-disabled")).toEqual({
+      slot: "base",
+      utilityType: "border-color",
+      variantAxis: "variant",
+      variantKey: "outline",
+      statePrefix: "disabled",
+    });
+  });
+
+  it("maps button-ghost-text-active", () => {
+    expect(heuristicSlotMapping("button-ghost-text-active")).toEqual({
+      slot: "base",
+      utilityType: "text-color",
+      variantAxis: "variant",
+      variantKey: "ghost",
+      statePrefix: "active",
+    });
+  });
+
+  it("maps button-solid-ring-focus to ring-color with focus prefix", () => {
+    expect(heuristicSlotMapping("button-solid-ring-focus")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+      statePrefix: "focus",
+    });
+  });
+
+  it("maps button-link-underline-hover", () => {
+    expect(heuristicSlotMapping("button-link-underline-hover")).toEqual({
+      slot: "base",
+      utilityType: "underline-color",
+      variantAxis: "variant",
+      variantKey: "link",
+      statePrefix: "hover",
+    });
+  });
+
+  it("treats text as text-color when a variant axis is present", () => {
+    expect(heuristicSlotMapping("button-solid-text")).toEqual({
+      slot: "base",
+      utilityType: "text-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("preserves text-size mapping when no variant axis is present", () => {
+    expect(heuristicSlotMapping("button-text-sm")).toEqual({
+      slot: "base",
+      utilityType: "text-size",
+      variantAxis: "size",
+      variantKey: "sm",
+    });
+  });
+
+  it("preserves back-compat: state-only bucketing when no variant axis", () => {
+    expect(heuristicSlotMapping("button-rounded-focus")).toEqual({
+      slot: "base",
+      utilityType: "rounded",
+      variantAxis: "state",
+      variantKey: "focus",
+    });
+  });
+
+  it("does not over-consume: button-solid (no utility segments) returns null", () => {
+    expect(heuristicSlotMapping("button-solid")).toBeNull();
+  });
+});
+
 describe("getSlotMapping — with overrides", () => {
   it("returns heuristic when no override exists", () => {
     const result = getSlotMapping("button-padding-x-sm", {});

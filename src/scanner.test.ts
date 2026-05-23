@@ -182,6 +182,117 @@ describe("scanGraph — completeness scoring", () => {
   });
 });
 
+describe("scanGraph — asymmetric variant coverage", () => {
+  it("flags a button bg-active that is missing from one of four variants (warning)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "button-solid-bg-active", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "button-outline-bg", layer: "component", type: "color", source: "global", base: "#003" }),
+      makeNode({ id: "button-outline-bg-active", layer: "component", type: "color", source: "global", base: "#004" }),
+      makeNode({ id: "button-ghost-bg", layer: "component", type: "color", source: "global", base: "#005" }),
+      makeNode({ id: "button-ghost-bg-active", layer: "component", type: "color", source: "global", base: "#006" }),
+      makeNode({ id: "button-link-bg", layer: "component", type: "color", source: "global", base: "#007" }),
+      // link MISSING bg-active
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const asym = report.issues.filter((i) => i.kind === "asymmetric-variant-coverage");
+    const finding = asym.find((i) => i.message.includes("bg-active"));
+    expect(finding).toBeDefined();
+    expect(finding!.severity).toBe("warning");
+    expect(finding!.componentName).toBe("button");
+    expect(finding!.message).toContain("link");
+    expect(finding!.message).toContain("`button-link-bg-active`");
+  });
+
+  it("emits a hint (not warning) when only one variant defines a token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "button-outline-bg", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "button-outline-border", layer: "component", type: "color", source: "global", base: "#003" }),
+      // only outline has border
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const finding = report.issues
+      .filter((i) => i.kind === "asymmetric-variant-coverage")
+      .find((i) => i.message.includes("border"));
+    expect(finding).toBeDefined();
+    expect(finding!.severity).toBe("hint");
+    expect(finding!.message).toContain("intentional");
+  });
+
+  it("does not flag a fully symmetric variant set", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-outline-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "input-solid-bg", layer: "component", type: "color", source: "global", base: "#002" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const asym = report.issues.filter((i) => i.kind === "asymmetric-variant-coverage");
+    expect(asym).toEqual([]);
+  });
+
+  it("recognises semantic color-role variants (accent/error/success/...) on badge", () => {
+    const graph = makeGraph([
+      makeNode({ id: "badge-accent-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "badge-accent-text", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "badge-error-bg", layer: "component", type: "color", source: "global", base: "#003" }),
+      // error MISSING text
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const asym = report.issues.filter((i) => i.kind === "asymmetric-variant-coverage");
+    const finding = asym.find(
+      (i) => i.componentName === "badge" && i.message.includes("text"),
+    );
+    expect(finding).toBeDefined();
+    expect(finding!.message).toContain("`badge-error-text`");
+  });
+
+  it("treats trailing 'error' as a state suffix, not a variant — no false positives on chip", () => {
+    // chip-bg-error: bg is the utility namespace; error is a state modifier
+    // at the trailing position. Must not be misread as variant=bg, util=error.
+    const graph = makeGraph([
+      makeNode({ id: "chip-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "chip-bg-error", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "chip-border", layer: "component", type: "color", source: "global", base: "#003" }),
+      makeNode({ id: "chip-border-error", layer: "component", type: "color", source: "global", base: "#004" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const asym = report.issues.filter((i) => i.kind === "asymmetric-variant-coverage");
+    expect(asym).toEqual([]);
+  });
+
+  it("recognises asymmetry across multiple components in one pass", () => {
+    const graph = makeGraph([
+      // button: solid has hover, outline doesn't → warning candidate
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "button-solid-bg-hover", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "button-outline-bg", layer: "component", type: "color", source: "global", base: "#003" }),
+      // input: solid + outline both have bg, both have bg-disabled, symmetric — no findings
+      makeNode({ id: "input-solid-bg", layer: "component", type: "color", source: "global", base: "#011" }),
+      makeNode({ id: "input-outline-bg", layer: "component", type: "color", source: "global", base: "#012" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const byComponent = new Map<string, ScanIssue[]>();
+    for (const i of report.issues.filter((x) => x.kind === "asymmetric-variant-coverage")) {
+      const c = i.componentName ?? "?";
+      const arr = byComponent.get(c) ?? [];
+      arr.push(i);
+      byComponent.set(c, arr);
+    }
+    expect(byComponent.get("button")?.length).toBeGreaterThanOrEqual(1);
+    expect(byComponent.get("input")).toBeUndefined();
+  });
+
+  it("ignores components without a multi-variant axis", () => {
+    const graph = makeGraph([
+      makeNode({ id: "card-padding", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "card-radius", layer: "component", type: "dimension", source: "global", base: "8px" }),
+    ]);
+    const report = scanGraph(graph, { components: ["card"] });
+    const asym = report.issues.filter((i) => i.kind === "asymmetric-variant-coverage");
+    expect(asym).toEqual([]);
+  });
+});
+
 describe("scanGraph — output forecast", () => {
   it("reports unmapped component prefixes outside the allow-list", () => {
     const graph = makeGraph([

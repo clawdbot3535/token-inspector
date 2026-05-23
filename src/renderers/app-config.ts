@@ -127,11 +127,12 @@ function emitRecipe(
   const variantsAny =
     Object.keys(recipe.variants.size ?? {}).length > 0 ||
     Object.keys(recipe.variants.color ?? {}).length > 0 ||
+    Object.keys(recipe.variants.variant ?? {}).length > 0 ||
     Object.keys(recipe.variants.state ?? {}).length > 0;
 
   if (variantsAny) {
     lb.push("      variants: {");
-    for (const axis of ["size", "color", "state"] as const) {
+    for (const axis of ["size", "color", "variant", "state"] as const) {
       const axisMap = recipe.variants[axis];
       if (!axisMap || Object.keys(axisMap).length === 0) continue;
       lb.push(`        ${axis}: {`);

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { useResizablePane } from "./composables/use-resizable-pane.js";
+import { useInjectedTokensCss } from "./composables/use-injected-tokens-css.js";
 import ResizeHandle from "./components/ResizeHandle.vue";
 import { buildGraph } from "@core/build-graph.js";
 import { createAppState, useFilteredNodes, useRenderedOutput } from "./state.js";
@@ -84,6 +85,9 @@ const rightPane = useResizablePane({
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const rendered = useRenderedOutput(state);
+// Mount the rendered tokens.css into <head> so live previews can resolve
+// `var(--<token-id>)` references emitted by the recipe-engine.
+useInjectedTokensCss(state.graph);
 const { kindOf, summary, classifications } = useClassifications(state.graph);
 
 const selectedClassification = computed(() => {
@@ -116,7 +120,9 @@ const selectedVueTemplateClasses = computed<string | undefined>(() => {
   };
   const classification = classifyToken(shadowNode, graph);
 
-  return utilityFor(mapping.utilityType, classification) ?? undefined;
+  const base = utilityFor(mapping.utilityType, classification);
+  if (base == null) return undefined;
+  return mapping.statePrefix != null ? `${mapping.statePrefix}:${base}` : base;
 });
 
 const visibleNodes = computed(() => {

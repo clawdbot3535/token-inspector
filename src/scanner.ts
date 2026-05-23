@@ -6,6 +6,7 @@ import type {
   TokenNode,
   ScanIssue,
   ScanReport,
+  ScanSeverity,
   CompletenessScore,
   OutputForecast,
 } from "./token-graph.js";
@@ -57,10 +58,22 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     if (!allowSet.has(prefix)) continue;
     const mapping = getSlotMapping(node.id);
     if (mapping === null) continue;
+    // The scanner's data-quality checks below operate on the size axis
+    // only — they treat `variantKey` as a size key. Skip tokens on other
+    // axes (variant/state) to avoid false-positive completeness warnings;
+    // size-axis tokens and unbucketed tokens still flow through.
+    if (mapping.variantAxis !== null && mapping.variantAxis !== "size") {
+      continue;
+    }
     const value =
       node.cssValue.base ?? node.cssValue.light ?? node.cssValue.dark ?? "";
     const arr = componentTokens.get(prefix) ?? [];
-    arr.push({ node, utilityType: mapping.utilityType, variantKey: mapping.variantKey, value });
+    arr.push({
+      node,
+      utilityType: mapping.utilityType,
+      variantKey: mapping.variantKey,
+      value,
+    });
     componentTokens.set(prefix, arr);
   }
 
@@ -262,7 +275,15 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     }
   }
 
-  // ─── 5. Output forecast ───────────────────────────────────────────────────
+  // ─── 5. Variant-axis asymmetry detection ─────────────────────────────────
+  // Runs on every component prefix in the graph (NOT scoped to allow-list),
+  // because designers need feedback on shape consistency regardless of
+  // whether the component will be rendered into app.config.ts yet.
+  for (const issue of detectAsymmetricVariantCoverage(graph)) {
+    issues.push(issue);
+  }
+
+  // ─── 6. Output forecast ───────────────────────────────────────────────────
   const forecast = computeForecast(
     graph,
     allowSet,
@@ -277,6 +298,188 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     forecast,
     generatedAt: Date.now(),
   };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Variant-axis asymmetry detection
+//
+// Detects "designer forgot to mirror a value into another variant" shapes
+// across all components in the graph. A 2nd-segment is treated as a
+// variant when its name is in KNOWN_VARIANT_NAMES — that list covers
+// Nuxt UI v4 visual variants (solid/outline/ghost/link/subtle/soft)
+// plus semantic color roles commonly used as variants on info-style
+// components (accent/default/primary/secondary/success/error/warning/info/neutral).
+//
+// The same word can act as a variant in 2nd position or a state-modifier
+// in trailing position; position alone disambiguates. That lets us
+// recognise `badge-error-bg` (variant=error) and `chip-bg-error`
+// (state=error) without conflict.
+// ────────────────────────────────────────────────────────────────────────────
+
+const KNOWN_VARIANT_NAMES: ReadonlySet<string> = new Set([
+  // Nuxt UI v4 visual variants
+  "solid",
+  "outline",
+  "ghost",
+  "link",
+  "subtle",
+  "soft",
+  // Semantic color-role variants (badge, alert, status etc.)
+  "accent",
+  "default",
+  "primary",
+  "secondary",
+  "success",
+  "error",
+  "warning",
+  "info",
+  "neutral",
+]);
+
+const ASYM_STATE_KEYS: ReadonlySet<string> = new Set([
+  // Real interaction states
+  "default",
+  "hover",
+  "active",
+  "disabled",
+  "focus",
+  // Component-internal state modifiers (treated as states when trailing)
+  "checked",
+  "hovered",
+  // Semantic state modifiers — same words also appear in KNOWN_VARIANT_NAMES
+  // but at a different position; position disambiguates the role.
+  "error",
+  "success",
+  "warning",
+  "info",
+]);
+
+const ASYM_SIZE_KEYS: ReadonlySet<string> = new Set([
+  "xs",
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "2xl",
+]);
+
+interface ParsedComponentToken {
+  /** 2nd segment of the id — known variant key (never null when returned). */
+  variant: string;
+  /** Utility base joining 3rd…N segments minus any trailing state/size. */
+  utilityBase: string;
+  /** Trailing state suffix (hover/active/...) when present. */
+  state: string | null;
+}
+
+function parseComponentTokenId(
+  id: string,
+  prefix: string,
+): ParsedComponentToken | null {
+  if (!id.startsWith(`${prefix}-`)) return null;
+  const parts = id.split("-");
+  // Need at least: prefix + variant + utility
+  if (parts.length < 3) return null;
+  const variant = parts[1];
+  if (variant === undefined) return null;
+  // Reject 2nd-segments that aren't recognised variant names; this is
+  // the primary discriminator vs. utility namespaces (font, padding, …).
+  if (!KNOWN_VARIANT_NAMES.has(variant)) return null;
+
+  let end = parts.length;
+  let state: string | null = null;
+  const last = parts[parts.length - 1];
+  if (last !== undefined) {
+    if (ASYM_STATE_KEYS.has(last)) {
+      state = last;
+      end -= 1;
+    } else if (ASYM_SIZE_KEYS.has(last)) {
+      end -= 1;
+    }
+  }
+
+  const utilityBase = parts.slice(2, end).join("-");
+  if (utilityBase.length === 0) return null;
+  return { variant, utilityBase, state };
+}
+
+export function detectAsymmetricVariantCoverage(
+  graph: TokenGraph,
+): ScanIssue[] {
+  const issues: ScanIssue[] = [];
+
+  // Group component-layer tokens by their prefix.
+  const byPrefix = new Map<string, string[]>();
+  for (const node of graph.nodes.values()) {
+    if (node.layer !== "component") continue;
+    const prefix = node.id.split("-")[0];
+    if (prefix === undefined) continue;
+    const arr = byPrefix.get(prefix) ?? [];
+    arr.push(node.id);
+    byPrefix.set(prefix, arr);
+  }
+
+  for (const [prefix, ids] of byPrefix) {
+    // Parse every token; tokens whose 2nd-segment isn't a known variant
+    // (utility-namespace tokens, single-shape tokens) are filtered out
+    // inside parseComponentTokenId.
+    const variants = new Set<string>();
+    const parsedTokens: Array<{ id: string; parsed: ParsedComponentToken }> = [];
+    for (const id of ids) {
+      const parsed = parseComponentTokenId(id, prefix);
+      if (parsed === null) continue;
+      parsedTokens.push({ id, parsed });
+      variants.add(parsed.variant);
+    }
+
+    if (variants.size < 2) continue; // Not a multi-variant component.
+
+    // Matrix cell key: `${utility}|${state ?? ""}` → variants that have it.
+    const matrix = new Map<string, Set<string>>();
+    for (const { parsed } of parsedTokens) {
+      const cellKey = `${parsed.utilityBase}|${parsed.state ?? ""}`;
+      let set = matrix.get(cellKey);
+      if (!set) {
+        set = new Set();
+        matrix.set(cellKey, set);
+      }
+      set.add(parsed.variant);
+    }
+
+    const allVariants = [...variants].sort();
+    for (const [cellKey, present] of matrix) {
+      const missing = allVariants.filter((v) => !present.has(v));
+      if (missing.length === 0) continue;
+
+      const [utility, state] = cellKey.split("|");
+      const utilityDisplay = state ? `${utility}-${state}` : utility;
+
+      // Severity tiering: single-variant utility ("only outline has border")
+      // is likely intentional → hint. Two or more sibling variants have it
+      // → almost certainly a forgotten mirror → warning.
+      const haveCount = present.size;
+      const severity: ScanSeverity = haveCount >= 2 ? "warning" : "hint";
+
+      const haveStr = [...present].sort().join(", ");
+      const missingStr = missing.join(", ");
+      const intentionalNote =
+        haveCount === 1
+          ? ` Only one variant defines this — likely intentional (e.g. outline is the only variant with a border), but worth confirming.`
+          : ``;
+
+      issues.push({
+        id: `dq-asym-variant-${prefix}-${cellKey.replace("|", "-")}`,
+        category: "data-quality",
+        severity,
+        kind: "asymmetric-variant-coverage",
+        message: `${prefix}.${utilityDisplay} is defined on [${haveStr}] but missing on [${missingStr}].${intentionalNote} Add ${missing.map((v) => `\`${prefix}-${v}-${utilityDisplay}\``).join(", ")} in Figma if the gap is unintentional.`,
+        tokenIds: [],
+        componentName: prefix,
+      });
+    }
+  }
+
+  return issues;
 }
 
 /**

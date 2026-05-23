@@ -4,7 +4,7 @@
 //
 // Allow-list: pass `{ components: ['button'] }` to scope output.
 
-import type { TokenGraph } from "./token-graph.js";
+import type { TokenGraph, TokenId } from "./token-graph.js";
 import { classifyToken } from "./classify-token.js";
 import { resolveTokenToValue } from "./resolve-token.js";
 import {
@@ -16,11 +16,55 @@ import {
   type VariantAxis,
 } from "./slot-mapping.js";
 
+/**
+ * Decide what to emit inside the arbitrary-value brackets for a color
+ * utility. Walks one alias step from the starting component token; if
+ * it lands on a non-component node (semantic or primitive), emit a
+ * `var(--<id>)` reference so dark-mode overrides in tokens.css apply
+ * automatically. Falls back to the resolved literal hex when the token
+ * is a literal (no alias) or its chain only contains component nodes.
+ */
+type ColorReference =
+  | { kind: "var"; targetId: TokenId }
+  | { kind: "literal"; value: string }
+  | { kind: "unresolved" };
+
+function resolveColorReference(graph: TokenGraph, id: TokenId): ColorReference {
+  const visited = new Set<TokenId>();
+  let current: TokenId | undefined = id;
+  let walked = false;
+
+  while (current !== undefined) {
+    if (visited.has(current)) break; // cycle — fall through to literal
+    visited.add(current);
+    const node = graph.nodes.get(current);
+    if (!node) break;
+
+    // Stop at the first non-component ancestor we walked to.
+    // tokens.css exports primitive + semantic vars but NOT component vars,
+    // so a var(--<component-id>) wouldn't resolve in CSS.
+    if (walked && node.layer !== "component") {
+      return { kind: "var", targetId: current };
+    }
+
+    const alias = node.alias.base ?? node.alias.light ?? node.alias.dark;
+    if (alias === undefined) break;
+    walked = true;
+    current = alias.to;
+  }
+
+  // Fallback: literal value via the existing terminal resolver.
+  const resolved = resolveTokenToValue(id, graph);
+  if ("error" in resolved) return { kind: "unresolved" };
+  return { kind: "literal", value: resolved.value };
+}
+
 export interface ComponentRecipe {
   slots: Partial<Record<RecipeSlot, string>>;
   variants: {
     size?: Record<string, Partial<Record<RecipeSlot, string>>>;
     color?: Record<string, Partial<Record<RecipeSlot, string>>>;
+    variant?: Record<string, Partial<Record<RecipeSlot, string>>>;
     state?: Record<string, Partial<Record<RecipeSlot, string>>>;
   };
 }
@@ -68,6 +112,17 @@ export function buildComponentRecipes(
     set.add(mapping.variantKey);
   }
 
+  // Set of utility types that carry color values; the recipe-engine emits
+  // these directly as Tailwind arbitrary-value classes without going
+  // through the shadow-node tailwind-default matching.
+  const COLOR_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
+    "bg-color",
+    "text-color",
+    "border-color",
+    "ring-color",
+    "underline-color",
+  ]);
+
   for (const node of graph.nodes.values()) {
     if (node.layer !== "component") continue;
 
@@ -101,24 +156,57 @@ export function buildComponentRecipes(
       }
     }
 
-    const classification = classifyToken(
-      // Fabricate a tiny shadow node carrying the resolved primitive value so
-      // classifyToken does not skip it as component-layer.
-      // Override the id with a canonical primitive id so tailwindCategoryFor
-      // picks the right Tailwind category (radius, font-size, etc.) instead
-      // of falling through to the "spacing" default.
-      {
-        ...node,
-        id: shadowIdFor(effectiveMapping.utilityType),
-        layer: "primitive",
-        cssValue: { base: resolved.value },
-      },
-      graph,
-      { remBase: options.remBase },
-    );
+    // Color utilities never match a Tailwind default — short-circuit
+    // the shadow-node classification step and emit an arbitrary-value
+    // class. Prefer var(--semantic-id) over baked-in hex so dark-mode
+    // overrides in tokens.css cascade through automatically; fall back
+    // to the literal value when no aliased semantic ancestor exists.
+    let utility: string | null;
+    if (COLOR_UTILITY_TYPES.has(effectiveMapping.utilityType)) {
+      const colorRef = resolveColorReference(graph, node.id);
+      let inner: string;
+      switch (colorRef.kind) {
+        case "var":
+          inner = `var(--${colorRef.targetId})`;
+          break;
+        case "literal":
+          inner = colorRef.value;
+          break;
+        case "unresolved":
+          // Defensive — earlier resolveTokenToValue already returned a
+          // value, so this branch is practically unreachable. Fall back
+          // to the terminal value we already have.
+          inner = resolved.value;
+          break;
+      }
+      utility =
+        `${prefixForUtility(effectiveMapping.utilityType)}[${escapeArbitrary(inner)}]`;
+    } else {
+      const classification = classifyToken(
+        // Fabricate a tiny shadow node carrying the resolved primitive value so
+        // classifyToken does not skip it as component-layer.
+        // Override the id with a canonical primitive id so tailwindCategoryFor
+        // picks the right Tailwind category (radius, font-size, etc.) instead
+        // of falling through to the "spacing" default.
+        {
+          ...node,
+          id: shadowIdFor(effectiveMapping.utilityType),
+          layer: "primitive",
+          cssValue: { base: resolved.value },
+        },
+        graph,
+        { remBase: options.remBase },
+      );
 
-    const utility = utilityFor(effectiveMapping.utilityType, classification);
+      utility = utilityFor(effectiveMapping.utilityType, classification);
+    }
     if (!utility) continue;
+
+    // Apply pseudo-class state prefix when set (e.g. button-solid-bg-hover
+    // → "hover:bg-[#X]" inside variants.variant.solid.base).
+    if (effectiveMapping.statePrefix != null) {
+      utility = `${effectiveMapping.statePrefix}:${utility}`;
+    }
 
     const bucketKey = bucketKeyFor(componentName, effectiveMapping);
     const arr = utilityBuckets.get(bucketKey) ?? [];
@@ -170,6 +258,14 @@ export function shadowIdFor(utilityType: UtilityType): string {
       return "font-weight-temp"; // handled by TokenType, not id, but safe
     case "text-size":
       return "font-size-temp";
+    case "bg-color":
+    case "text-color":
+    case "border-color":
+    case "ring-color":
+    case "underline-color":
+      // Color utilities bypass shadow-node classification; this id is
+      // only here to satisfy the exhaustive switch and is never read.
+      return "color-temp";
   }
 }
 
@@ -244,6 +340,16 @@ export function prefixForUtility(utilityType: UtilityType): string {
       return "gap-";
     case "icon-size":
       return "size-";
+    case "bg-color":
+      return "bg-";
+    case "text-color":
+      return "text-";
+    case "border-color":
+      return "border-";
+    case "ring-color":
+      return "ring-";
+    case "underline-color":
+      return "underline-";
   }
 }
 
