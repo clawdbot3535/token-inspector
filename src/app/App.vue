@@ -92,6 +92,25 @@ const rendered = useRenderedOutput(state);
 useInjectedTokensCss(state.graph);
 const { kindOf, summary, classifications } = useClassifications(state.graph);
 
+// Sync state.theme onto the document root so Tailwind's `dark:` variants
+// and Nuxt UI's color-mode-aware components react to the toggle. Without
+// this the theme buttons only affected which value resolveCss returned
+// for the *displayed* tokens, never the page chrome itself.
+watch(
+  () => state.theme.value,
+  (theme) => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.toggle("light", theme === "light");
+  },
+  { immediate: true },
+);
+
+// Component the right-pane preview focuses on. Driven by user clicks on
+// the component-tree group rows; falls back to the only currently
+// supported component when nothing has been chosen.
+const selectedComponent = ref<string>("button");
+
 const selectedClassification = computed(() => {
   const id = state.selection.value;
   if (!id) return null;
@@ -126,6 +145,40 @@ const selectedVueTemplateClasses = computed<string | undefined>(() => {
   if (base == null) return undefined;
   return mapping.statePrefix != null ? `${mapping.statePrefix}:${base}` : base;
 });
+
+// Line numbers in the active code-preview text that contain the assigned
+// Tailwind utility for the currently selected (skip-kind) token. When set,
+// the CodePreview pulses those lines so the designer can spot the mapping
+// without manually scanning the recipe class string.
+const utilityHighlightLines = computed<Set<number>>(() => {
+  const set = new Set<number>();
+  const utility = selectedVueTemplateClasses.value;
+  const text = rendered.value?.text;
+  if (!utility || !text) return set;
+  // Escape regex specials in the utility so brackets and pseudo-class
+  // colons match literally.
+  const escaped = utility.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const lineRegex = new RegExp(escaped);
+  text.split("\n").forEach((line, idx) => {
+    if (lineRegex.test(line)) set.add(idx + 1);
+  });
+  return set;
+});
+
+// When the user clicks a skip-token, jump the right-pane to app.config.ts
+// because that's where the resolved utility actually lives. The watch is
+// silent on subsequent re-selections within the same kind to avoid
+// stealing the user's tab choice once they've manually navigated.
+watch(
+  () => state.selection.value,
+  (id) => {
+    if (id === null) return;
+    const node = state.graph.value?.nodes.get(id);
+    if (node?.layer === "component" && state.outputTab.value !== "app.config.ts") {
+      state.outputTab.value = "app.config.ts";
+    }
+  },
+);
 
 const visibleNodes = computed(() => {
   const filter = state.filters.value.classification;
@@ -273,6 +326,16 @@ const defaultIconForSelected = computed<string | undefined>(() => {
   const node = selectedNode.value;
   if (!node) return undefined;
   return matchMapping(figmaMapping.value, node.id)?.defaultIcon;
+});
+
+// Lucide icon name to render inside LiveButton for the focused component.
+// Falls back to "i-lucide-rocket" so the icon slot stays visible even when
+// the figma-mapping.json hasn't been wired up.
+const iconForSelectedComponent = computed<string>(() => {
+  const mapping = figmaMapping.value.components.find(
+    (c) => c.prefix === selectedComponent.value,
+  );
+  return mapping?.defaultIcon ?? "i-lucide-rocket";
 });
 
 async function handleFiles(files: FileList | null) {
@@ -482,6 +545,10 @@ function downloadAll() {
                 :kind-of="kindOf"
                 @select="(id: string) => (state.selection.value = id)"
                 @toggle="toggleExpanded"
+                @select-component="(name: string) => {
+                  selectedComponent = name;
+                  state.selection.value = null;
+                }"
               />
             </div>
             <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
@@ -522,8 +589,11 @@ function downloadAll() {
               />
 
               <LiveButton
-                v-if="selectedNode.id === 'button' || selectedNode.id.startsWith('button-')"
+                v-if="selectedNode.id.split('-')[0] === selectedComponent"
                 :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :icon-name="iconForSelectedComponent"
+                :highlight-utility="selectedVueTemplateClasses"
               />
 
               <FigmaPreview
@@ -555,6 +625,21 @@ function downloadAll() {
                 }}</pre>
               </details>
             </template>
+            <div v-else-if="state.graph.value" class="space-y-4">
+              <div>
+                <div class="font-mono text-xs text-muted">component</div>
+                <div class="font-mono text-base">{{ selectedComponent }}</div>
+                <div class="text-[11px] text-muted mt-1">
+                  Click a token on the left to inspect a single value, or
+                  click a different component group to switch the preview.
+                </div>
+              </div>
+              <LiveButton
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :icon-name="iconForSelectedComponent"
+              />
+            </div>
             <div v-else class="text-sm text-muted">
               Select a token from the left to inspect.
             </div>
@@ -594,6 +679,7 @@ function downloadAll() {
               :lines="rendered.lines"
               :selected-id="state.selection.value"
               :highlighted-ids="state.highlightedIds.value"
+              :extra-highlight-lines="utilityHighlightLines"
             />
           </aside>
         </template>

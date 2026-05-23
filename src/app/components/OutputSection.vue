@@ -134,9 +134,21 @@ function copyLabel(suffix: string, fallback = "Copy"): string {
           </span>
         </div>
       </template>
-      <p v-else class="text-xs text-zinc-500 italic">
-        No Tailwind utility mapping available (token does not match any slot heuristic).
-      </p>
+      <div
+        v-else
+        class="flex items-center gap-2 flex-wrap rounded-md ring-1 ring-warning/40 bg-warning/10 px-3 py-2"
+      >
+        <span class="text-xs text-zinc-500 font-mono">{{ tokenId ?? "this token" }}</span>
+        <span class="text-warning">⚠</span>
+        <span class="text-sm text-warning font-medium">
+          No Tailwind utility mapping
+        </span>
+        <span class="text-xs text-zinc-500 w-full">
+          Token does not match any slot heuristic — add a `slot-mapping.json`
+          override or rename the token (e.g. <code class="font-mono">{{ tokenId?.split("-")[0] ?? "component" }}-padding-x</code>)
+          to wire it up.
+        </span>
+      </div>
     </div>
   </section>
 </template>

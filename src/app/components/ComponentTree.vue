@@ -26,7 +26,18 @@ const props = withDefaults(defineProps<Props>(), { depth: 0 });
 const emit = defineEmits<{
   (e: "select", id: string): void;
   (e: "toggle", path: string): void;
+  /** Fired when a group label is clicked — App.vue uses this to focus
+   *  the middle-pane preview on the corresponding component. */
+  (e: "select-component", topLevelSegment: string): void;
 }>();
+
+function onGroupClick(path: string): void {
+  emit("toggle", path);
+  // Derive the top-level segment ("button" from "button/solid") so deeply
+  // nested clicks still map to the right preview component.
+  const topLevel = path.split("/")[0] ?? path;
+  emit("select-component", topLevel);
+}
 
 function indentPx(): string {
   // 8px per depth step keeps the tree scannable without losing screen width.
@@ -43,7 +54,7 @@ function indentPx(): string {
           type="button"
           class="w-full text-left flex items-center gap-1 px-2 py-0.5 hover:bg-elevated transition-colors text-zinc-500"
           :style="{ paddingLeft: `calc(0.5rem + ${indentPx()})` }"
-          @click="emit('toggle', node.path)"
+          @click="onGroupClick(node.path)"
         >
           <span
             class="inline-block w-3 text-[10px] tabular-nums select-none"
@@ -63,6 +74,7 @@ function indentPx(): string {
           :kind-of="kindOf"
           @select="(id: string) => emit('select', id)"
           @toggle="(p: string) => emit('toggle', p)"
+          @select-component="(name: string) => emit('select-component', name)"
         />
       </template>
 

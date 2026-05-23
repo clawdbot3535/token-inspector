@@ -7,6 +7,13 @@ const props = defineProps<{
   lines: LineMap;
   selectedId: string | null;
   highlightedIds?: ReadonlySet<string>;
+  /**
+   * Extra line numbers to highlight in addition to those derived from
+   * selectedId/highlightedIds. Used when the active selection maps to a
+   * synthetic anchor not present in the LineMap — e.g. a component-layer
+   * token's resolved utility class living inside a recipe class string.
+   */
+  extraHighlightLines?: ReadonlySet<number>;
 }>();
 
 const container = ref<HTMLDivElement | null>(null);
@@ -28,9 +35,14 @@ const highlightedLines = computed<Set<number>>(() => {
   return set;
 });
 
+const extraLines = computed<Set<number>>(() => {
+  return new Set(props.extraHighlightLines ?? []);
+});
+
 const focusLines = computed<Set<number>>(() => {
   const s = new Set<number>(selectionLines.value);
   for (const n of highlightedLines.value) s.add(n);
+  for (const n of extraLines.value) s.add(n);
   return s;
 });
 
@@ -63,6 +75,10 @@ watch(focusLines, async (set) => {
         'bg-primary/15 ring-1 ring-primary/40': selectionLines.has(i + 1),
         'bg-warning/15 ring-1 ring-warning/40':
           !selectionLines.has(i + 1) && highlightedLines.has(i + 1),
+        'bg-primary/10 ring-1 ring-primary/40 ring-dashed':
+          !selectionLines.has(i + 1) &&
+          !highlightedLines.has(i + 1) &&
+          extraLines.has(i + 1),
       }"
     >
       <span class="select-none text-muted/50 w-8 text-right shrink-0 mr-3">
