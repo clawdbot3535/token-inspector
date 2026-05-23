@@ -2,6 +2,7 @@
 import { computed, type CSSProperties } from "vue";
 import { buildComponentRecipes } from "@core/recipe-engine.js";
 import type { TokenGraph } from "@core/token-graph.js";
+import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 
 interface Props {
   graph: TokenGraph | null;
@@ -228,11 +229,7 @@ const hasVariantTokens = computed(() =>
   Object.keys(buttonRecipe.value?.variants.variant ?? {}).length > 0,
 );
 
-function copy(text: string): void {
-  if (typeof navigator !== "undefined" && navigator.clipboard) {
-    navigator.clipboard.writeText(text);
-  }
-}
+const { copy, wasJustCopied } = useCopyToClipboard();
 </script>
 
 <template>
@@ -254,11 +251,14 @@ function copy(text: string): void {
         </span>
         <button
           type="button"
-          class="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-          @click="copy(row.inspectClasses)"
+          class="text-xs px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          :class="{
+            'text-success border-success/60': wasJustCopied(`livebtn-${row.variant}`),
+          }"
+          @click="copy(row.inspectClasses, `livebtn-${row.variant}`)"
           :title="`Copy md classes for ${row.variant}`"
         >
-          Copy
+          {{ wasJustCopied(`livebtn-${row.variant}`) ? "Copied!" : "Copy" }}
         </button>
       </div>
 

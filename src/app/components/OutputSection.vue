@@ -1,22 +1,30 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Classification } from "@core/classify-token.js";
+import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 
 interface Props {
   classification: Classification;
   vueTemplateClasses?: string;
+  /** Stable id of the token this section describes — used for copy-feedback keys. */
+  tokenId?: string;
 }
 
 const props = defineProps<Props>();
 
-const heading = computed(() =>
-  props.classification.kind === "skip" ? "Vue Template Usage" : "Output",
-);
+const heading = computed(() => {
+  if (props.classification.kind === "skip") return "Assigned Tailwind class";
+  return "Output";
+});
 
-function copy(text: string): void {
-  if (typeof navigator !== "undefined" && navigator.clipboard) {
-    navigator.clipboard.writeText(text);
-  }
+const { copy, wasJustCopied } = useCopyToClipboard();
+
+function key(suffix: string): string {
+  return `${props.tokenId ?? "_"}-${suffix}`;
+}
+
+function copyLabel(suffix: string, fallback = "Copy"): string {
+  return wasJustCopied(key(suffix)) ? "Copied!" : fallback;
 }
 </script>
 
@@ -31,15 +39,18 @@ function copy(text: string): void {
         Tailwind has this — no custom property emitted.
       </p>
       <div class="flex items-center gap-2">
-        <code class="text-lg font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800">
+        <code
+          class="text-lg font-mono px-3 py-1.5 rounded ring-1 ring-primary/30 bg-primary/10 text-primary"
+        >
           {{ classification.utility }}
         </code>
         <button
           type="button"
-          class="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-          @click="copy(classification.utility)"
+          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          :class="{ 'text-success border-success/60': wasJustCopied(key('utility')) }"
+          @click="copy(classification.utility, key('utility'))"
         >
-          Copy
+          {{ copyLabel('utility') }}
         </button>
       </div>
       <p class="text-xs text-zinc-500 font-mono">
@@ -60,10 +71,11 @@ function copy(text: string): void {
       <div class="flex gap-2">
         <button
           type="button"
-          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          @click="copy(`var(${classification.cssName})`)"
+          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          :class="{ 'text-success border-success/60': wasJustCopied(key('var')) }"
+          @click="copy(`var(${classification.cssName})`, key('var'))"
         >
-          Copy var()
+          {{ copyLabel('var', 'Copy var()') }}
         </button>
       </div>
       <p v-if="classification.utilityHint" class="text-xs text-zinc-500">
@@ -84,29 +96,43 @@ function copy(text: string): void {
       <div class="flex gap-2">
         <button
           type="button"
-          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          @click="copy(`var(${classification.cssName})`)"
+          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          :class="{ 'text-success border-success/60': wasJustCopied(key('var')) }"
+          @click="copy(`var(${classification.cssName})`, key('var'))"
         >
-          Copy var()
+          {{ copyLabel('var', 'Copy var()') }}
         </button>
       </div>
     </div>
 
-    <div v-else-if="classification.kind === 'skip'" class="space-y-2">
-      <p class="text-xs text-zinc-500">
-        Component-layer token — resolved at design-system-author time.
-      </p>
+    <div v-else-if="classification.kind === 'skip'" class="space-y-3">
       <template v-if="vueTemplateClasses">
-        <code class="block text-sm font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 whitespace-pre-wrap break-words">
-          {{ vueTemplateClasses }}
-        </code>
-        <button
-          type="button"
-          class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          @click="copy(vueTemplateClasses)"
+        <!-- The visual highlight the user asked for: this token maps to
+             these Tailwind utilities. Big, colored, scannable. -->
+        <div
+          class="flex items-center gap-2 flex-wrap rounded-md ring-1 ring-primary/30 bg-primary/5 px-3 py-2"
         >
-          Copy class string
-        </button>
+          <span class="text-xs text-zinc-500 font-mono">{{ tokenId ?? "this token" }}</span>
+          <span class="text-zinc-400">→</span>
+          <code
+            class="text-base font-mono font-medium text-primary break-all"
+          >
+            {{ vueTemplateClasses }}
+          </code>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            :class="{ 'text-success border-success/60': wasJustCopied(key('classes')) }"
+            @click="copy(vueTemplateClasses, key('classes'))"
+          >
+            {{ copyLabel('classes', 'Copy class') }}
+          </button>
+          <span class="text-xs text-zinc-500">
+            Component-layer token — applied via the Nuxt UI recipe, not as a CSS variable.
+          </span>
+        </div>
       </template>
       <p v-else class="text-xs text-zinc-500 italic">
         No Tailwind utility mapping available (token does not match any slot heuristic).

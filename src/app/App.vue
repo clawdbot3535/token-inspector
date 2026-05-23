@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useResizablePane } from "./composables/use-resizable-pane.js";
 import { useInjectedTokensCss } from "./composables/use-injected-tokens-css.js";
 import ResizeHandle from "./components/ResizeHandle.vue";
@@ -14,6 +14,8 @@ import CodePreview from "./components/CodePreview.vue";
 import IssuesView from "./components/IssuesView.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
+import ComponentTree from "./components/ComponentTree.vue";
+import { buildTokenTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
 import FilterChips from "./components/FilterChips.vue";
 import SummaryPanel from "./components/SummaryPanel.vue";
@@ -130,6 +132,105 @@ const visibleNodes = computed(() => {
   if (filter === "all") return filteredNodes.value;
   return filteredNodes.value.filter((node) => kindOf(node.id) === filter);
 });
+
+// Hierarchical token tree for the left sidebar.
+const tokenTree = computed(() => buildTokenTree(visibleNodes.value));
+
+// Persisted expansion state — Set of group paths the user has opened.
+const EXPAND_STORAGE_KEY = "inspector.tree.expanded";
+const expandedPaths = ref<Set<string>>(loadExpanded());
+
+function loadExpanded(): Set<string> {
+  if (typeof localStorage === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(EXPAND_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed.filter((s) => typeof s === "string")) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistExpanded(set: ReadonlySet<string>): void {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(EXPAND_STORAGE_KEY, JSON.stringify([...set]));
+}
+
+function toggleExpanded(path: string): void {
+  const next = new Set(expandedPaths.value);
+  if (next.has(path)) next.delete(path);
+  else next.add(path);
+  expandedPaths.value = next;
+  persistExpanded(next);
+}
+
+/**
+ * Effective expansion set used for rendering. When a search query is
+ * active we force-open every group so matches stay visible without the
+ * user having to expand manually. Auto-expanded groups don't get
+ * persisted — they vanish again when the search clears.
+ */
+const effectiveExpandedPaths = computed<ReadonlySet<string>>(() => {
+  if (state.filters.value.search.trim().length === 0) return expandedPaths.value;
+  const all = new Set(expandedPaths.value);
+  // Walk every group node in the current tree and add its path.
+  function collect(nodes: ReturnType<typeof buildTokenTree>): void {
+    for (const n of nodes) {
+      if (n.kind === "group") {
+        all.add(n.path);
+        collect(n.children);
+      }
+    }
+  }
+  collect(tokenTree.value);
+  return all;
+});
+
+// When selection changes from elsewhere (issues click, used-by, …),
+// open every ancestor group so the selected leaf is in view.
+watch(
+  () => state.selection.value,
+  (id) => {
+    if (id === null) return;
+    const ancestors = ancestorPaths(tokenTree.value, id);
+    if (ancestors.length === 0) return;
+    const next = new Set(expandedPaths.value);
+    let changed = false;
+    for (const p of ancestors) {
+      if (!next.has(p)) {
+        next.add(p);
+        changed = true;
+      }
+    }
+    if (changed) {
+      expandedPaths.value = next;
+      persistExpanded(next);
+    }
+  },
+);
+
+function expandAll(): void {
+  const all = new Set<string>();
+  function collect(nodes: ReturnType<typeof buildTokenTree>): void {
+    for (const n of nodes) {
+      if (n.kind === "group") {
+        all.add(n.path);
+        collect(n.children);
+      }
+    }
+  }
+  collect(tokenTree.value);
+  expandedPaths.value = all;
+  persistExpanded(all);
+}
+
+function collapseAll(): void {
+  expandedPaths.value = new Set();
+  persistExpanded(new Set());
+}
+
+const treeLeafCount = computed(() => leafIds(tokenTree.value).length);
 
 const issueCount = computed(() => state.graph.value?.issues.length ?? 0);
 const nodeCount = computed(() => state.graph.value?.nodes.size ?? 0);
@@ -350,22 +451,38 @@ function downloadAll() {
                 @update:model-value="(v) => (state.filters.value = { ...state.filters.value, classification: v })"
               />
             </div>
-            <div class="flex-1 overflow-y-auto text-xs font-mono">
-              <button
-                v-for="node in visibleNodes"
-                :key="node.id"
-                class="w-full text-left px-3 py-1 hover:bg-elevated transition-colors flex items-center gap-2"
-                :class="{
-                  'bg-primary/10 text-primary': state.selection.value === node.id,
-                  'bg-warning/15 text-warning':
-                    state.selection.value !== node.id &&
-                    state.highlightedIds.value.has(node.id),
-                }"
-                @click="state.selection.value = node.id"
-              >
-                <span class="flex-1 truncate">{{ node.id }}</span>
-                <ClassificationBadge v-if="kindOf(node.id)" :kind="kindOf(node.id)!" />
-              </button>
+            <div
+              class="px-2 py-1 border-b border-default flex items-center justify-between text-[10px] text-zinc-500"
+            >
+              <span class="font-mono">{{ treeLeafCount }} tokens</span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="hover:text-zinc-900 dark:hover:text-zinc-100"
+                  @click="expandAll"
+                >
+                  Expand all
+                </button>
+                <span class="text-zinc-300 dark:text-zinc-700">·</span>
+                <button
+                  type="button"
+                  class="hover:text-zinc-900 dark:hover:text-zinc-100"
+                  @click="collapseAll"
+                >
+                  Collapse all
+                </button>
+              </div>
+            </div>
+            <div class="flex-1 overflow-y-auto py-1">
+              <ComponentTree
+                :nodes="tokenTree"
+                :selected-id="state.selection.value"
+                :highlighted-ids="state.highlightedIds.value"
+                :expanded-paths="effectiveExpandedPaths"
+                :kind-of="kindOf"
+                @select="(id: string) => (state.selection.value = id)"
+                @toggle="toggleExpanded"
+              />
             </div>
             <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
           </aside>
@@ -428,6 +545,7 @@ function downloadAll() {
                 v-if="selectedClassification"
                 :classification="selectedClassification"
                 :vue-template-classes="selectedVueTemplateClasses"
+                :token-id="selectedNode.id"
               />
 
               <details class="text-xs">
