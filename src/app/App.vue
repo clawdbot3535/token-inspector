@@ -106,10 +106,21 @@ watch(
   { immediate: true },
 );
 
-// Component the right-pane preview focuses on. Driven by user clicks on
+// Component the middle-pane preview focuses on. Driven by user clicks on
 // the component-tree group rows; falls back to the only currently
 // supported component when nothing has been chosen.
 const selectedComponent = ref<string>("button");
+
+// LiveButton renders <button> markup with button-specific defaults
+// (transition-colors, fallback blue chrome). Rendering it for badge / nav /
+// card etc. would produce a button-shaped preview for components that
+// aren't buttons — confusing. Gate the visual preview on the supported
+// set; other components still get the token tree, OutputSection, and
+// code-preview highlighting, just not the rendered chip.
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button"]);
+const previewSupported = computed(() =>
+  COMPONENTS_WITH_PREVIEW.has(selectedComponent.value),
+);
 
 const selectedClassification = computed(() => {
   const id = state.selection.value;
@@ -589,7 +600,10 @@ function downloadAll() {
               />
 
               <LiveButton
-                v-if="selectedNode.id.split('-')[0] === selectedComponent"
+                v-if="
+                  previewSupported &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
@@ -635,10 +649,30 @@ function downloadAll() {
                 </div>
               </div>
               <LiveButton
+                v-if="previewSupported"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
               />
+              <div
+                v-else
+                class="rounded-md ring-1 ring-warning/30 bg-warning/5 px-3 py-3 text-xs space-y-1"
+              >
+                <div class="text-warning font-medium">
+                  Live preview not yet available for
+                  <code class="font-mono">{{ selectedComponent }}</code>.
+                </div>
+                <div class="text-zinc-500">
+                  Only <code class="font-mono">button</code> has a rendered
+                  preview today — other components produce the correct
+                  <code class="font-mono">app.config.ts</code> recipe and
+                  highlight on click, but the visual chip is button-specific
+                  and would mis-represent
+                  <code class="font-mono">{{ selectedComponent }}</code>.
+                  Component-shaped previews follow the Figma PAT
+                  integration.
+                </div>
+              </div>
             </div>
             <div v-else class="text-sm text-muted">
               Select a token from the left to inspect.
