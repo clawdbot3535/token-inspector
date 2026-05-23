@@ -17,8 +17,8 @@ interface Props {
   expandedPaths: ReadonlySet<string>;
   /** Depth — used for indent. Top-level call passes 0. */
   depth?: number;
-  /** Classifier — returns the badge kind for a given token id (or undefined). */
-  kindOf: (id: string) => ClassificationKind | undefined;
+  /** Classifier — returns the badge kind for a given token id (or null/undefined). */
+  kindOf: (id: string) => ClassificationKind | null | undefined;
 }
 
 const props = withDefaults(defineProps<Props>(), { depth: 0 });
