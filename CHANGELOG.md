@@ -3,10 +3,68 @@
 ## [Unreleased]
 
 Button visual-variant axis end-to-end + scanner library-suggestions +
-preview state matrix. Shipped on `main` ahead of the next tagged release.
+preview state matrix + designer-round-2 inspector UI polish. Shipped on
+`main` ahead of the next tagged release.
 
 ### Added
 
+- **Hierarchical component tree** in the left sidebar
+  (`src/app/token-tree.ts` + `ComponentTree.vue`). Tokens group by their
+  Figma path (`button/solid/bg-hover`, `color/blue/500`, …) with
+  collapsible nodes and per-group descendant counts. Expansion state
+  persists to `localStorage`; ancestor groups auto-expand when a token
+  is selected from outside the tree (issues view, used-by, deep link);
+  an active search forces every group open without polluting the
+  persistent state. Header strip exposes Expand-all / Collapse-all
+  and the current visible-token count.
+- **Component-aware middle pane**: clicking a tree group sets the
+  `selectedComponent` and renders a `LiveButton` preview for that
+  component, even when no token is selected. Click `button` to preview
+  button; non-button components show a polite "preview only available
+  for button currently" hint until the Figma PAT integration lands.
+- **State-axis size switcher** above the state-axis row: pick which
+  size the state cells render at. Hoisted into the variant-header row
+  so the two axis columns stay symmetric.
+- **Variant × (size, state) preview matrix** per visual variant. The
+  size row varies sm/md/lg at the default state; the state row holds
+  the chosen size and varies default/hover/active/disabled/focus.
+  `projectToState` promotes pseudo-class-prefixed classes
+  (`hover:bg-[var(...)]` etc.) to base classes for static per-state
+  rendering; disabled cells get the standard `opacity: 0.6` +
+  `cursor: not-allowed` UX affordance.
+- **Leading-icon rendering** in `LiveButton`: when the recipe declares
+  a `leadingIcon` slot, every preview cell includes a Lucide icon.
+  Icon name comes from `figma-mapping.json` `defaultIcon` when present,
+  otherwise falls back to a generic placeholder. Trailing-icon support
+  is deliberately out of scope here — in the current Figma setup the
+  trailing-icon configuration lives on component variants (iconOnly /
+  noIcon / both) rather than on tokens, so a complete treatment waits
+  for the Figma PAT integration.
+- **Button labels** (`Button`, `Badge`, …) inside the preview cells
+  instead of repeating the size identifier. The size / state label
+  moves below the button.
+- **Highlighted assigned Tailwind class** in `OutputSection`. The
+  skip-branch now shows the resolved utility in a primary-coloured
+  pill with a `tokenId → class` arrow layout instead of burying it in
+  a small code box. The no-mapping case gets a parallel warning-tinted
+  pill (orange ring, ⚠) with a hint to add a `slot-mapping.json`
+  override.
+- **Copy-to-clipboard composable** (`useCopyToClipboard`): shared
+  `{copy, wasJustCopied}` with ~1.5s reactive success feedback. Every
+  copy button across `OutputSection` and `LiveButton` swaps its label
+  to "Copied!" and shows a success-coloured border for that window.
+- **Code-preview highlighting on skip-token click**: clicking a
+  component-layer token highlights the resolved Tailwind utility
+  inside every variant's code block (middle pane) AND in the
+  right-pane `CodePreview` (dashed primary ring), and auto-switches
+  the outputTab to `app.config.ts`. Whole-token match
+  (split-on-whitespace + `===`) so `gap-2` doesn't false-positive
+  inside `gap-20`.
+- **Dark mode toggle now actually flips the UI**: a watch on
+  `state.theme` syncs `document.documentElement.classList` so
+  Tailwind `dark:` variants and Nuxt UI components react. Before the
+  toggle only affected which value `resolveCss` returned for the
+  *displayed* tokens.
 - **Visual variant axis** in slot-mapping: `solid` / `outline` / `ghost`
   / `link` (plus `subtle` / `soft`) recognised at the 2nd id segment,
   with state suffixes (`hover` / `active` / `disabled` / `focus`)

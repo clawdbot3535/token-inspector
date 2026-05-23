@@ -87,20 +87,40 @@ A Husky pre-commit hook runs `typecheck` + `tests` on every commit.
 
 The UI shows:
 
-- **Token list** with classification badges (`tailwind`, `theme`,
-  `mode-var`, `skip`) and quick filters
-- **Summary panel** with per-classification counts (clickable as
-  quick-filters)
-- **Token detail** panel showing alias chains, used-by, and a per-token
-  "Output" section describing exactly how the token surfaces in
-  `tokens.css` or `app.config.ts`
+- **Hierarchical token tree** in the left sidebar — tokens group by
+  their Figma path (`button/solid/bg-hover`, `color/blue/500`, …) with
+  collapsible nodes and per-group counts. Expansion persists to
+  `localStorage`; ancestor groups auto-expand on external selection;
+  search forces every group open. Header strip exposes Expand-all /
+  Collapse-all and the visible-token count
+- **Classification badges** (`tailwind`, `theme`, `mode-var`, `skip`)
+  on every leaf, plus filter chips and a summary panel with
+  per-classification counts (clickable as quick filters)
+- **Token detail** panel showing alias chains, used-by, and an
+  **Output** section that highlights the assigned Tailwind class in a
+  primary pill (`tokenId → gap-2`) or a warning pill when no mapping
+  exists yet
+- **Click a component group** in the tree → the middle pane focuses
+  the preview on that component. Today only `button` has a rendered
+  preview; other components surface an info pill that explains the
+  scope until the Figma PAT integration lands
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
   styles per cell so every state is statically visible without
-  hovering. The rendered `tokens.css` is auto-injected into the
-  Inspector DOM so `var(--*)` references resolve at runtime
-- **Code preview** tabs for both output files with target-path hints
+  hovering. A size switcher in the variant header picks which size
+  the state cells render at; `leadingIcon`-slot tokens are visualised
+  with a Lucide icon. The rendered `tokens.css` is auto-injected into
+  the Inspector DOM so `var(--*)` references resolve at runtime
+- **Code preview** tabs for both output files with target-path hints,
+  line-level highlighting of selected tokens, and substring
+  highlighting of the assigned Tailwind class when a
+  component-layer token is selected — works both in the right-pane
+  rendered output AND in every per-variant code box
+- **Copy buttons everywhere** swap their label to "Copied!" with a
+  success-coloured border for ~1.5s after a write
+- **Dark-mode toggle** flips the entire UI (Tailwind `dark:` variants +
+  Nuxt UI components react via a `html.dark` class sync)
 - **Issues view** for broken aliases, type mismatches, unresolved refs,
   and `asymmetric-variant-coverage` findings with concrete
   "add `<token-id>` in Figma" suggestions per missing Figma token
@@ -148,7 +168,7 @@ workflow is: export from Figma → drop the whole zip → done.
 
 ## Tests
 
-186 tests across the typed pipeline. Run:
+194 tests across the typed pipeline. Run:
 
 ```bash
 npm test         # full suite
@@ -194,6 +214,7 @@ output, and a grouped scan report in the build CLI — see
 | **PR 4a** | ✅ done | Engine + scanner foundations on main (no release): `scanner.ts` aggregating data-quality issues + classification hints + completeness scoring + output forecast, smart non-suffix → default-size assignment in recipe engine (e.g. `button.gap` redirects from `slots.base` to `variants.size.md`), `slot-mapping.json` project override, app-config emits `// Incomplete in Figma: missing X, Y` comments per partial variant |
 | **PR 4c** | ✅ on main | Button visual variant axis end-to-end: `solid` / `outline` / `ghost` / `link` recognised in slot-mapping, color utilities (`bg-color`, `text-color`, `border-color`, `ring-color`, `underline-color`), state suffixes folded into Tailwind pseudo-class prefixes (`hover:`, `active:`, `disabled:`, `focus:`). Recipe engine emits `var(--<semantic-id>)` references for color utilities so dark-mode overrides cascade automatically. LiveButton preview grows a full variant × (size, state) matrix with auto-injected `tokens.css` for runtime var resolution |
 | **PR 4d** | ✅ on main | `asymmetric-variant-coverage` scanner detector running on every component in the graph. Uses `KNOWN_VARIANT_NAMES` + trailing-position state detection to discriminate variants from utility namespaces and to keep `chip.bg-error` separate from `badge.error.bg`. Findings include concrete "add `<token-id>` in Figma" suggestions, severity-tiered (hint when 1 sibling has it, warning when 2+ do). build-cli stdout prints a grouped scan summary (errors / warnings / hints) and exits non-zero only on errors |
+| **PR 4e** | ✅ on main | Designer-round-2 Inspector UI polish: hierarchical token tree with persistent expansion + auto-expand on selection / search; click-to-preview component-aware middle pane; assigned-Tailwind-class pill in `OutputSection` (primary) plus warning-tinted pill for no-mapping tokens; shared `useCopyToClipboard` with reactive "Copied!" feedback; substring + line-level highlighting of the resolved utility in every code-preview surface; working dark-mode toggle (`html.dark` class sync); `LiveButton` accepts `componentName` + `iconName` and renders a state-axis size switcher in the variant header. Live preview gated to `button` only — other components defer to the upcoming Figma PAT integration for component-shaped renderings |
 | **PR 4b → v0.4.0** | 📋 planned | Inspector ScanView (categorized accordions, completeness table, forecast line), permanent HeaderStatusStrip, LiveButton `n/m` partial badge, IssuesView absorbed into ScanView, full v0.4.0 release |
 | **PR 3** | 🧊 queued | Figma REST API import via Personal Access Token. Browser-side PAT handling, Figma-Variables → W3C DTCG converter, fetch UI. Needs its own brainstorming round |
 | **PR 5+** | 🧊 backlog | Component recipes beyond `button` (`badge`, `card`, `input`, …) once the slot-mapping pattern is validated against more Figma systems. `KNOWN_VARIANT_NAMES` already covers semantic color-role variants (accent/default/success/error/...) needed for `badge` |
