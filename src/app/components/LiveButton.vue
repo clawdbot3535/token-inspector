@@ -311,15 +311,37 @@ const { copy, wasJustCopied } = useCopyToClipboard();
       :key="row.variant"
       class="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3"
     >
-      <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
         <span
           class="text-xs font-mono uppercase tracking-wide text-zinc-500"
         >
           {{ row.variant }}
         </span>
+        <!-- Size switcher for the state-axis row. Hoisted here so the
+             selected size sits next to the variant label and the rest
+             of the grid stays flat. -->
+        <div
+          class="inline-flex rounded border border-zinc-300 dark:border-zinc-700 text-[10px] overflow-hidden"
+          :title="`State preview size — currently ${stateAxisSize}`"
+        >
+          <button
+            v-for="s in SIZES"
+            :key="s"
+            type="button"
+            class="px-1.5 py-0.5 transition-colors"
+            :class="
+              stateAxisSize === s
+                ? 'bg-primary text-inverted'
+                : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            "
+            @click="stateAxisSize = s"
+          >
+            {{ s }}
+          </button>
+        </div>
         <button
           type="button"
-          class="text-xs px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          class="ml-auto text-xs px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           :class="{
             'text-success border-success/60': wasJustCopied(`livebtn-${row.variant}`),
           }"
@@ -361,25 +383,13 @@ const { copy, wasJustCopied } = useCopyToClipboard();
           </div>
         </div>
 
-        <!-- State axis: hold size at the chosen value, vary state projection. -->
-        <div class="flex flex-col gap-1.5 pt-2">
-          <span class="text-[10px] uppercase tracking-wider text-zinc-400">state</span>
-          <div class="inline-flex rounded border border-zinc-300 dark:border-zinc-700 text-[10px] overflow-hidden">
-            <button
-              v-for="s in SIZES"
-              :key="s"
-              type="button"
-              class="px-1.5 py-0.5 transition-colors flex-1"
-              :class="
-                stateAxisSize === s
-                  ? 'bg-primary text-inverted'
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-              "
-              @click="stateAxisSize = s"
-            >
-              {{ s }}
-            </button>
-          </div>
+        <!-- State axis: hold size at the chosen value, vary state projection.
+             The size selector lives in the row header so this column is
+             just the axis label, matching the size axis above. -->
+        <div
+          class="text-[10px] uppercase tracking-wider text-zinc-400 pt-2"
+        >
+          state
         </div>
         <div class="flex flex-wrap gap-x-6 gap-y-3">
           <div
