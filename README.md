@@ -102,8 +102,8 @@ The UI shows:
   exists yet
 - **Click a component group** in the tree → the middle pane focuses
   the preview on that component. Today only `button` has a rendered
-  preview; other components surface an info pill that explains the
-  scope until the Figma PAT integration lands
+  preview; other components surface an info pill until their own live
+  preview lands (`LiveBadge`/`LiveInput`/…, v0.5.0+)
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
@@ -208,19 +208,24 @@ output, and a grouped scan report in the build CLI — see
 
 | Milestone | Status | What ships |
 |---|---|---|
-| **v0.1.0** | ✅ done | Initial inspector — drag-and-drop, alias chain, code preview, issues view |
-| **v0.2.0** | ✅ done | LiveButton preview pipeline, Figma embeds, version badge |
-| **v0.3.0** | ✅ done | Tailwind-utility-first output: classification engine, `tokens.css` with `@theme` + `.dark`, Nuxt UI v4 `button` recipe, dual-emit CLI, Inspector classification badges + filter chips + summary panel + per-token Output section, resizable sidebars |
-| **PR 4a** | ✅ done | Engine + scanner foundations on main (no release): `scanner.ts` aggregating data-quality issues + classification hints + completeness scoring + output forecast, smart non-suffix → default-size assignment in recipe engine (e.g. `button.gap` redirects from `slots.base` to `variants.size.md`), `slot-mapping.json` project override, app-config emits `// Incomplete in Figma: missing X, Y` comments per partial variant |
-| **PR 4c** | ✅ on main | Button visual variant axis end-to-end: `solid` / `outline` / `ghost` / `link` recognised in slot-mapping, color utilities (`bg-color`, `text-color`, `border-color`, `ring-color`, `underline-color`), state suffixes folded into Tailwind pseudo-class prefixes (`hover:`, `active:`, `disabled:`, `focus:`). Recipe engine emits `var(--<semantic-id>)` references for color utilities so dark-mode overrides cascade automatically. LiveButton preview grows a full variant × (size, state) matrix with auto-injected `tokens.css` for runtime var resolution |
-| **PR 4d** | ✅ on main | `asymmetric-variant-coverage` scanner detector running on every component in the graph. Uses `KNOWN_VARIANT_NAMES` + trailing-position state detection to discriminate variants from utility namespaces and to keep `chip.bg-error` separate from `badge.error.bg`. Findings include concrete "add `<token-id>` in Figma" suggestions, severity-tiered (hint when 1 sibling has it, warning when 2+ do). build-cli stdout prints a grouped scan summary (errors / warnings / hints) and exits non-zero only on errors |
-| **PR 4e** | ✅ on main | Designer-round-2 Inspector UI polish: hierarchical token tree with persistent expansion + auto-expand on selection / search; click-to-preview component-aware middle pane; assigned-Tailwind-class pill in `OutputSection` (primary) plus warning-tinted pill for no-mapping tokens; shared `useCopyToClipboard` with reactive "Copied!" feedback; substring + line-level highlighting of the resolved utility in every code-preview surface; working dark-mode toggle (`html.dark` class sync); `LiveButton` accepts `componentName` + `iconName` and renders a state-axis size switcher in the variant header. Live preview gated to `button` only — other components defer to the upcoming Figma PAT integration for component-shaped renderings |
-| **PR 4b → v0.4.0** | 📋 planned | Inspector ScanView (categorized accordions, completeness table, forecast line), permanent HeaderStatusStrip, LiveButton `n/m` partial badge, IssuesView absorbed into ScanView, full v0.4.0 release |
-| **PR 3** | 🧊 queued | Figma REST API import via Personal Access Token. Browser-side PAT handling, Figma-Variables → W3C DTCG converter, fetch UI. Needs its own brainstorming round |
-| **PR 5+** | 🧊 backlog | Component recipes beyond `button` (`badge`, `card`, `input`, …) once the slot-mapping pattern is validated against more Figma systems. `KNOWN_VARIANT_NAMES` already covers semantic color-role variants (accent/default/success/error/...) needed for `badge` |
-| **Later** | 🧊 backlog | Hue-proximity color role derivation, `@tailwindcss/browser` runtime compiler for richer LiveButton previews, Playwright CI integration, additional library-suggestion detectors (companion-token gaps, naming-convention drift) |
+| **v0.1.0** | ✅ released | Initial inspector — drag-and-drop, alias chain, code preview, issues view |
+| **v0.2.0** | ✅ released | LiveButton preview pipeline, Figma embeds, version badge |
+| **v0.3.0** | ✅ released | Tailwind-utility-first output: classification engine, `tokens.css` (`@theme` + `.dark`), Nuxt UI v4 `button` recipe, dual-emit CLI, classification badges + filter chips + summary panel + per-token Output section, resizable sidebars |
+| **on `main`, unreleased → v0.4.0** | ✅ done | Scanner foundations (`scanner.ts`: data-quality + classification-hints + completeness + output forecast, `slot-mapping.json` override, smart non-suffix recipe assignment, app-config completeness comments); button visual-variant axis (`solid`/`outline`/`ghost`/`link`, color utilities, state→pseudo-class prefixes, dark-mode `var()` cascade, variant×(size,state) preview matrix); `asymmetric-variant-coverage` detector + grouped CLI scan summary; designer-round-2 Inspector UI polish (hierarchical token tree, component-aware preview, Tailwind-class pills, copy-to-clipboard, dark-mode toggle) |
+| **v0.4.0** | 📋 next | **Scan View** (`ScanView.vue` — category accordions, component-readiness table, output forecast), permanent `HeaderStatusStrip`, `useScanReport`, LiveButton `n/m` completeness badge, `IssuesView` absorbed into ScanView; **first `badge` component recipe** (recipe output — proves the slot-mapping generalizes beyond `button`); tagged v0.4.0 release |
+| **v0.5.0+** | 🔭 planned | **Component recipes, one per release** — `input`, `card`, `dropdown`, `modal`, … recipe output first (the engine is component-agnostic; the tokens already exist in Figma), bespoke live previews (`LiveBadge`/`LiveInput`/…) following incrementally |
+| **Inspector read-side** | 🔭 planned | **"Load from URL"** — fetch the committed `*.tokens.json` from a raw GitHub URL instead of the manual drag (the read side of the git workflow; own brainstorm round) |
+| **Backlog** | 🧊 | Hue-proximity color-role derivation, `@tailwindcss/browser` runtime compiler for richer previews, Playwright CI, more library-suggestion detectors (companion-token gaps, naming drift), grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
 Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
+
+## Token source
+
+Tokens come from the **[`figma-token-export`](https://github.com/clawdbot3535/token-export)**
+Figma plugin (separate repo): it reads local Figma variables via the free Plugin API (no
+Enterprise) and commits the W3C-DTCG `*.tokens.json` files to a GitHub repo, versioned. The
+inspector ingests those files (drag-drop / zip today; URL fetch planned — see the roadmap). This
+replaces the abandoned Figma REST API + Personal Access Token approach, which is Enterprise-gated.
 
 ## License
 
