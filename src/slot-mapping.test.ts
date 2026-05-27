@@ -222,3 +222,11 @@ describe("extra state keys", () => {
     });
   });
 });
+
+describe("sub-element slot extension point (B seam, empty in v0.4.0)", () => {
+  it("does not yet recognize sub-element prefixes (item-* stays base/null)", () => {
+    // nav-item-bg currently parses utility "item-bg" → no rule → null.
+    // When v0.5.0 fills SLOT_PREFIXES, this expectation changes.
+    expect(heuristicSlotMapping("nav-item-bg")).toBeNull();
+  });
+});

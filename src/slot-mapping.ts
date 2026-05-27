@@ -55,6 +55,12 @@ export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | nul
 
 import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS } from "./component-vocab.js";
 
+// Approach-B extension point: maps a sub-element segment (immediately after
+// the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
+// per component (e.g. "item" → "item", "thumb" → "thumb"). Leaving it empty
+// keeps every token routing to the "base" slot, unchanged.
+const SLOT_PREFIXES: ReadonlyMap<string, RecipeSlot> = new Map();
+
 interface ParsedSegments {
   component: string;
   utility: string;
@@ -66,6 +72,8 @@ interface ParsedSegments {
   size: string | null;
   /** The state key (hover/active/...) when present as last segment. */
   state: string | null;
+  /** The recipe slot from SLOT_PREFIXES when a sub-element segment is matched. */
+  slotPrefix: RecipeSlot | null;
 }
 
 function parseSegments(tokenId: string): ParsedSegments | null {
@@ -90,6 +98,15 @@ function parseSegments(tokenId: string): ParsedSegments | null {
     else if (COLOR_ROLE_KEYS.has(second)) { colorRole = second; start = 2; }
   }
 
+  // Approach-B seam: after variant/color-role detection, check if the next
+  // segment is a known sub-element slot prefix (empty map in v0.4.0).
+  let slotPrefix: RecipeSlot | null = null;
+  const slotSeg = parts[start];
+  if (slotSeg !== undefined && SLOT_PREFIXES.has(slotSeg)) {
+    slotPrefix = SLOT_PREFIXES.get(slotSeg)!;
+    start += 1;
+  }
+
   // Last segment may be a size or state suffix. Only consume it when
   // there is at least one utility segment remaining between start and end.
   const last = parts[parts.length - 1];
@@ -110,6 +127,7 @@ function parseSegments(tokenId: string): ParsedSegments | null {
     colorRole,
     size,
     state,
+    slotPrefix,
   };
 }
 
@@ -249,6 +267,7 @@ const HEURISTIC_RULES: ReadonlyArray<{
 export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
   const parsed = parseSegments(tokenId);
   if (!parsed) return null;
+  const slot: RecipeSlot = parsed.slotPrefix ?? "base";
   const ctx: BuildContext = {
     variant: parsed.variant,
     colorRole: parsed.colorRole,
@@ -261,12 +280,15 @@ export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
   // text-size) when a variant/color axis is present. The `text` matcher
   // in HEURISTIC_RULES uses the text-size rule, so we intercept first.
   if ((parsed.variant !== null || parsed.colorRole !== null) && parsed.utility === "text") {
-    return buildEntry("base", "text-color", ctx);
+    return buildEntry(slot, "text-color", ctx);
   }
 
   for (const rule of HEURISTIC_RULES) {
     if (rule.match(parsed.utility)) {
-      return rule.build(ctx);
+      // Route the slot through parsed.slotPrefix so v0.5.0 can fill
+      // SLOT_PREFIXES and sub-element tokens get their correct recipe slot.
+      const entry = rule.build(ctx);
+      return slot === "base" ? entry : { ...entry, slot };
     }
   }
   return null;
