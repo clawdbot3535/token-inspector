@@ -188,3 +188,24 @@ describe("getSlotMapping — with overrides", () => {
     );
   });
 });
+
+describe("color-role variant axis (prefix position)", () => {
+  it("maps badge-default-bg to bg-color on the color axis", () => {
+    expect(heuristicSlotMapping("badge-default-bg")).toEqual({
+      slot: "base", utilityType: "bg-color", variantAxis: "color", variantKey: "default",
+    });
+  });
+  it("maps badge-accent-text to text-color on the color axis", () => {
+    expect(heuristicSlotMapping("badge-accent-text")).toEqual({
+      slot: "base", utilityType: "text-color", variantAxis: "color", variantKey: "accent",
+    });
+  });
+  it("maps badge-error-border to border-color on the color axis", () => {
+    expect(heuristicSlotMapping("badge-error-border")).toEqual({
+      slot: "base", utilityType: "border-color", variantAxis: "color", variantKey: "error",
+    });
+  });
+  it("leaves a trailing color-role (chip-bg-error) unmapped — Figma-fix, not heuristic", () => {
+    expect(heuristicSlotMapping("chip-bg-error")).toBeNull();
+  });
+});
