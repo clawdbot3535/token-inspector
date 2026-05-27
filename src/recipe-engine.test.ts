@@ -566,3 +566,24 @@ describe("buildComponentRecipes — arbitrary-value utility types (Task 6)", () 
     );
   });
 });
+
+describe("robustness — messy/inconsistent tokens degrade gracefully", () => {
+  it("does not throw and omits unmapped tokens (trailing color-role, unknown utility, sub-element)", () => {
+    const graph = makeGraph([
+      // trailing color-role → unmapped (Figma-fix territory)
+      makeNode({ id: "chip-bg-error", layer: "component", type: "color", source: "global", base: "#f00" }),
+      // sub-element → unmapped in v0.4.0
+      makeNode({ id: "nav-item-bg", layer: "component", type: "color", source: "global", base: "#0f0" }),
+      // unknown utility → unmapped
+      makeNode({ id: "card-frobnicate", layer: "component", type: "number", source: "global", base: "3" }),
+      // maps → p-[8px]
+      makeNode({ id: "card-padding", layer: "component", type: "dimension", source: "global", base: "8px" }),
+    ]);
+    let recipes: ReturnType<typeof buildComponentRecipes>;
+    expect(() => {
+      recipes = buildComponentRecipes(graph, { components: ["chip", "nav", "card"] });
+    }).not.toThrow();
+    expect(recipes!.card?.slots.base).toContain("p-[8px]");
+    expect(JSON.stringify(recipes!)).not.toContain("frobnicate");
+  });
+});

@@ -42,7 +42,10 @@ interface RoleMapping {
   readonly error: string;
 }
 
-const COMPONENT_ALLOW_LIST = ["button"] as const;
+const COMPONENT_ALLOW_LIST = [
+  "button", "badge", "input", "textarea", "card", "modal", "kbd", "chip",
+  "checkbox", "radio", "switch", "nav", "dropdown", "table", "progress",
+] as const;
 
 const DEFAULT_ROLES: RoleMapping = {
   primary: "blue",
