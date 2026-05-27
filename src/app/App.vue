@@ -687,8 +687,7 @@ function downloadAll() {
                   highlight on click, but the visual chip is button-specific
                   and would mis-represent
                   <code class="font-mono">{{ selectedComponent }}</code>.
-                  Component-shaped previews follow the Figma PAT
-                  integration.
+                  Component-shaped previews arrive in v0.5.0+.
                 </div>
               </div>
             </div>

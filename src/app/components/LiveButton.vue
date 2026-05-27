@@ -298,8 +298,8 @@ const buttonLabel = computed<string>(() => {
 // how icon sizing varies across the size axis. Trailing-icon support is
 // intentionally out of scope here: in the current Figma setup the
 // trailing-icon configuration lives on component variants (iconOnly /
-// noIcon / both) rather than on tokens, so it would need the upcoming
-// Figma PAT integration to read the variant properties directly.
+// noIcon / both) rather than on tokens, so a complete treatment is
+// deferred to v0.5.0+ component previews.
 const hasLeadingIcon = computed<boolean>(() => {
   const r = buttonRecipe.value;
   if (!r) return false;

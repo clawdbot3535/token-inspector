@@ -21,7 +21,7 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
   `selectedComponent` and renders a `LiveButton` preview for that
   component, even when no token is selected. Click `button` to preview
   button; non-button components show a polite "preview only available
-  for button currently" hint until the Figma PAT integration lands.
+  for button currently" hint until its own live preview lands (v0.5.0+).
 - **State-axis size switcher** above the state-axis row: pick which
   size the state cells render at. Hoisted into the variant-header row
   so the two axis columns stay symmetric.
@@ -39,7 +39,7 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
   is deliberately out of scope here — in the current Figma setup the
   trailing-icon configuration lives on component variants (iconOnly /
   noIcon / both) rather than on tokens, so a complete treatment waits
-  for the Figma PAT integration.
+  deferred to v0.5.0+ component previews.
 - **Button labels** (`Button`, `Badge`, …) inside the preview cells
   instead of repeating the size identifier. The size / state label
   moves below the button.
