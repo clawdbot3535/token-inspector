@@ -8,12 +8,12 @@ single in-memory token graph, surfaces it through a searchable inspector
 
 - A lean `tokens.css` with a Tailwind v4 `@theme` block plus `.dark` overrides
   for mode-variant semantic tokens.
-- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus a
-  `button` component recipe (slots, size variants, and visual variants
-  `solid` / `outline` / `ghost` / `link` with pseudo-class state prefixes)
-  derived from your Figma component tokens. Color utilities resolve to
-  `var(--<semantic-id>)` references so dark-mode overrides cascade
-  automatically.
+- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus component
+  recipes for the standard set (`button`, `badge`, `input`, `card`, … — 15
+  components): slots, size / color-role / visual variants (`solid` / `outline`
+  / `ghost` / `link`) with pseudo-class state prefixes, derived from your Figma
+  component tokens. Color utilities resolve to `var(--<semantic-id>)` references
+  so dark-mode overrides cascade automatically.
 
 100% client-side. No backend, no upload, nothing leaves the browser tab.
 

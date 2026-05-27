@@ -45,9 +45,10 @@ a component-readiness table, and an output forecast.
 - **`component-vocab.ts`** — shared constants file for component names,
   variant names, utility types, and state names consumed by slot-mapping,
   recipe-engine, and scanner.
-- **Graceful degradation on inconsistent tokens**: when a token id matches
-  the allow-list but its value chain can't be resolved, the recipe engine
-  emits a `// TODO` comment in `app.config.ts` rather than crashing.
+- **Graceful degradation on inconsistent tokens**: when a token matches the
+  allow-list but its utility isn't recognized or its value chain can't be
+  resolved, the recipe engine omits it (no crash); the gap surfaces in the
+  Scan view's readiness table rather than breaking the build.
 - **Hierarchical component tree** in the left sidebar
   (`src/app/token-tree.ts` + `ComponentTree.vue`). Tokens group by their
   Figma path (`button/solid/bg-hover`, `color/blue/500`, …) with
