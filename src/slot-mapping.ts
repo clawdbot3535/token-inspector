@@ -163,11 +163,13 @@ function buildEntry(
   }
   if (ctx.state !== null) {
     // Back-compat: tokens like `button-rounded-focus` still bucket by state.
+    // normalizeState maps "hovered" → "hover" so bare ...-hovered tokens
+    // bucket under the canonical "hover" key.
     return {
       slot,
       utilityType,
       variantAxis: "state",
-      variantKey: ctx.state,
+      variantKey: normalizeState(ctx.state),
     };
   }
   return {

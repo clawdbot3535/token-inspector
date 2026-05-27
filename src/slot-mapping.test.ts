@@ -209,3 +209,16 @@ describe("color-role variant axis (prefix position)", () => {
     expect(heuristicSlotMapping("chip-bg-error")).toBeNull();
   });
 });
+
+describe("extra state keys", () => {
+  it("recognizes checked as a state, bucketing by state when no variant", () => {
+    expect(heuristicSlotMapping("checkbox-bg-checked")).toEqual({
+      slot: "base", utilityType: "bg-color", variantAxis: "state", variantKey: "checked",
+    });
+  });
+  it("normalizes hovered to a hover state prefix under a variant", () => {
+    expect(heuristicSlotMapping("button-solid-bg-hovered")).toEqual({
+      slot: "base", utilityType: "bg-color", variantAxis: "variant", variantKey: "solid", statePrefix: "hover",
+    });
+  });
+});
