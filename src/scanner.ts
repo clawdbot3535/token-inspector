@@ -13,6 +13,7 @@ import type {
 import { classifyToken } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
 import { matchSpacing } from "./tailwind-defaults.js";
+import { KNOWN_VARIANT_NAMES } from "./component-vocab.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
 const SIZE_ORDER: ReadonlyArray<string> = ["xs", "sm", "md", "lg", "xl", "2xl"];
@@ -315,26 +316,6 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
 // recognise `badge-error-bg` (variant=error) and `chip-bg-error`
 // (state=error) without conflict.
 // ────────────────────────────────────────────────────────────────────────────
-
-const KNOWN_VARIANT_NAMES: ReadonlySet<string> = new Set([
-  // Nuxt UI v4 visual variants
-  "solid",
-  "outline",
-  "ghost",
-  "link",
-  "subtle",
-  "soft",
-  // Semantic color-role variants (badge, alert, status etc.)
-  "accent",
-  "default",
-  "primary",
-  "secondary",
-  "success",
-  "error",
-  "warning",
-  "info",
-  "neutral",
-]);
 
 const ASYM_STATE_KEYS: ReadonlySet<string> = new Set([
   // Real interaction states
