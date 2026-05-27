@@ -4,7 +4,11 @@
 //     utilityType: 'padding-x' | 'padding-y' | 'rounded' | 'font-weight'
 //                  | 'text-size' | 'gap' | 'icon-size'
 //                  | 'bg-color' | 'text-color' | 'border-color'
-//                  | 'ring-color' | 'underline-color',
+//                  | 'ring-color' | 'underline-color'
+//                  | 'height' | 'width' | 'line-height'
+//                  | 'letter-spacing' | 'placeholder-color'
+//                  | 'ring-offset' | 'font-family' | 'padding'
+//                  | 'overlay-bg',
 //     variantAxis: 'size' | 'color' | 'variant' | 'state' | null,
 //     variantKey:  string | null,
 //     statePrefix: string | null }

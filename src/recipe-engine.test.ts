@@ -504,6 +504,14 @@ describe("buildComponentRecipes — arbitrary-value utility types (Task 6)", () 
     expect(recipes.button?.slots.base).toContain("font-[Inter]");
   });
 
+  it("font-family value containing spaces escapes to underscores (font-[Google_Sans_Flex])", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-font-family", layer: "component", type: "fontFamily", source: "global", base: "Google Sans Flex" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("font-[Google_Sans_Flex]");
+  });
+
   it("padding token emits p-[12px] in slots.base when no size variants", () => {
     const graph = makeGraph([
       makeNode({ id: "button-padding", layer: "component", type: "dimension", source: "global", base: "12px" }),
