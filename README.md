@@ -121,9 +121,25 @@ The UI shows:
   success-coloured border for ~1.5s after a write
 - **Dark-mode toggle** flips the entire UI (Tailwind `dark:` variants +
   Nuxt UI components react via a `html.dark` class sync)
-- **Issues view** for broken aliases, type mismatches, unresolved refs,
-  and `asymmetric-variant-coverage` findings with concrete
-  "add `<token-id>` in Figma" suggestions per missing Figma token
+- **Token Scan view** — a dedicated scan panel reached via the header
+  status strip or the view switcher. Covers:
+  - **Issue accordions** grouped by category: broken aliases, type
+    mismatches, unresolved references, and
+    `asymmetric-variant-coverage` findings with "add `<token-id>` in
+    Figma" suggestions per gap
+  - **Component-readiness table** showing each component in the
+    standard set with its slot coverage count and completeness
+    percentage — at a glance you can see which components are fully
+    mapped and which are partial
+  - **Output forecast** — a summary of how many tokens will emit
+    `@theme` CSS vars vs match a Tailwind default (no output) vs
+    land in the `app.config.ts` recipe layer
+  The recipe output now covers the full standard component set:
+  `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
+  `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
+  `progress`. Sub-element-heavy components (`nav`, `dropdown`,
+  `table`, `progress`, and the form-control internals) are partially
+  mapped today; complete slot coverage is planned for v0.5.0+.
 - **Resizable sidebars** — drag the boundaries to resize the panes;
   width persists in `localStorage`
 
@@ -168,7 +184,7 @@ workflow is: export from Figma → drop the whole zip → done.
 
 ## Tests
 
-194 tests across the typed pipeline. Run:
+233 tests across the typed pipeline. Run:
 
 ```bash
 npm test         # full suite
@@ -196,13 +212,14 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-v0.3.0 ships the Tailwind-utility-first pipeline. Currently the Nuxt UI
-v4 recipe emission covers the `button` component only, with the visual
-variant axis (`solid` / `outline` / `ghost` / `link`) and a full state
-matrix in the LiveButton preview. Unreleased work on `main` adds
-semantic `var()` references, `asymmetric-variant-coverage` scanner
-output, and a grouped scan report in the build CLI — see
-`CHANGELOG.md` for details.
+v0.4.0 expands the Nuxt UI v4 recipe output to the full 15-component
+standard set (`button`, `badge`, `input`, `textarea`, `card`, `modal`,
+`kbd`, `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`,
+`table`, `progress`) and ships the Token Scan view with a
+component-readiness table and output forecast. Sub-element-heavy
+components are partially mapped; full slot coverage and per-component
+live previews (`LiveBadge` / `LiveInput` / …) are planned for v0.5.0+.
+See `CHANGELOG.md` for the full entry.
 
 ## Roadmap
 

@@ -1,13 +1,53 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] — 2026-05-27
 
-Button visual-variant axis end-to-end + scanner library-suggestions +
-preview state matrix + designer-round-2 inspector UI polish. Shipped on
-`main` ahead of the next tagged release.
+Multi-component recipe output + Token Scan view. The allow-list expands
+from `button` only to the full 15-component standard set. A new permanent
+Scan view replaces the standalone Issues view with category accordions,
+a component-readiness table, and an output forecast.
 
 ### Added
 
+- **Token Scan view** (`ScanView.vue`): replaces the standalone Issues view
+  with categorised issue accordions (broken aliases, type mismatches,
+  unresolved refs, asymmetric-variant-coverage findings), a
+  **component-readiness table** showing per-component slot coverage and
+  completeness percentage, and an **output forecast** summarising how many
+  tokens will emit CSS vars vs Tailwind utilities vs recipe entries.
+- **Permanent `HeaderStatusStrip`**: always-visible strip below the app
+  header showing the active token-count, scan-finding counts (errors /
+  warnings / hints), and a link to the Scan view. Replaces the previous
+  ephemeral status overlay.
+- **`useScanReport` composable**: derives the scan report (issue list,
+  per-component readiness, forecast) reactively from the token graph;
+  shared between `HeaderStatusStrip` and `ScanView`.
+- **Multi-component recipe output** — the recipe allow-list now covers
+  the full 15-component standard set:
+  `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
+  `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
+  `progress`.
+- **Color-role variant axis** in slot-mapping: color roles
+  (`default` / `accent` / `primary` / `secondary` / `success` /
+  `error` / `warning` / `info` / `neutral`) are recognised as a
+  variant dimension alongside the visual-variant axis, with configurable
+  prefix position in the token id.
+- **9 new utility types**: `height`, `width`, `line-height`,
+  `letter-spacing`, `placeholder-color`, `ring-offset`, `font-family`,
+  `padding`, `overlay-bg` — all rendered as Tailwind arbitrary values
+  (`h-[var(--x)]`, `font-[var(--x)]`, etc.).
+- **`checked` / `hovered` state recognition**: slot-mapping parses
+  `checked` and `hovered` suffixes into the state dimension alongside the
+  existing `hover` / `active` / `disabled` / `focus`.
+- **LiveButton `n/m` completeness badge**: each size cell in the preview
+  matrix now shows how many of the expected slots are populated (e.g.
+  `4/6`) so designers can spot gaps at a glance.
+- **`component-vocab.ts`** — shared constants file for component names,
+  variant names, utility types, and state names consumed by slot-mapping,
+  recipe-engine, and scanner.
+- **Graceful degradation on inconsistent tokens**: when a token id matches
+  the allow-list but its value chain can't be resolved, the recipe engine
+  emits a `// TODO` comment in `app.config.ts` rather than crashing.
 - **Hierarchical component tree** in the left sidebar
   (`src/app/token-tree.ts` + `ComponentTree.vue`). Tokens group by their
   Figma path (`button/solid/bg-hover`, `color/blue/500`, …) with
@@ -113,15 +153,27 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
 
 ### Changed
 
+- **`issues` view mode renamed to `scan`**: `IssuesView` is absorbed
+  into the new `ScanView`; all route/state references updated.
+- Recipe engine mapping hardened for the full 15-component standard
+  set — slot-path inference validated against real token shapes for
+  each component.
 - `slot-mapping.ts` `parseSegments` now returns `{component, variant,
   utility, size, state}` instead of `{component, utility, variant}`.
   `SlotMappingEntry` gains an optional `statePrefix` field.
 - `VariantAxis` type adds `"variant"`. `UtilityType` adds the five
-  color types.
+  color types and the 9 new dimension types.
 - `scanner.ts` data-quality checks skip non-size axis tokens to avoid
   size-completeness false positives on variant tokens.
 - `app.config.ts` renderer iterates `["size", "color", "variant",
   "state"]` axes (added `"variant"`).
+
+### Removed
+
+- **Standalone `IssuesView`** component — functionality absorbed into
+  `ScanView` with richer categorisation and the readiness table.
+- **Dead Figma-PAT-integration references** (config fields, comments,
+  and type stubs left over from the abandoned REST-API approach).
 
 ### Fixed
 
@@ -131,6 +183,16 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
 - Live preview was emitting `var(--*)` references that resolved to
   nothing because the rendered `tokens.css` was never mounted into
   the Inspector document.
+
+### Known / v0.5.0 backlog
+
+Sub-element recipe slots for `nav`, `dropdown`, `table`, and `progress`
+(`item-*`, `th` / `td` / `row`, `track` / `fill`) and the internal slots
+for form controls (`checkbox`, `radio`, `switch`) — `thumb`, `dot`,
+`check` — are not yet mapped. These components currently emit partial
+recipes; full slot coverage is targeted for v0.5.0+. Per-component live
+previews (`LiveBadge`, `LiveInput`, `LiveCard`, …) are also deferred to
+v0.5.0+; today only `button` has a rendered preview.
 
 ## [0.3.0] — 2026-05-21
 
