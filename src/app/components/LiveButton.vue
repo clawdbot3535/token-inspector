@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, type CSSProperties } from "vue";
 import { buildComponentRecipes } from "@core/recipe-engine.js";
-import type { TokenGraph } from "@core/token-graph.js";
+import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 
 interface Props {
@@ -17,13 +17,26 @@ interface Props {
    * the value lands inside each variant's class string.
    */
   highlightUtility?: string;
+  /**
+   * Completeness scores from the scan report. When present, each size cell
+   * gets a small n/m badge so designers can see how many slots are mapped.
+   */
+  completeness?: ReadonlyArray<CompletenessScore>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   componentName: "button",
   iconName: "i-lucide-rocket",
   highlightUtility: undefined,
+  completeness: undefined,
 });
+
+/** Look up the completeness score for the given size key on this component. */
+function cellCompleteness(sizeKey: string): CompletenessScore | undefined {
+  return props.completeness?.find(
+    (c) => c.component === props.componentName && c.variantKey === sizeKey,
+  );
+}
 
 /**
  * Tokenise a class string on whitespace and flag tokens that equal the
@@ -380,6 +393,17 @@ const { copy, wasJustCopied } = useCopyToClipboard();
               {{ buttonLabel }}
             </button>
             <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
+            <span
+              v-if="cellCompleteness(cell.label)"
+              class="text-[9px] font-mono"
+              :class="
+                cellCompleteness(cell.label)!.defined === cellCompleteness(cell.label)!.total
+                  ? 'text-emerald-500'
+                  : 'text-amber-500'
+              "
+            >
+              {{ cellCompleteness(cell.label)!.defined }}/{{ cellCompleteness(cell.label)!.total }}
+            </span>
           </div>
         </div>
 

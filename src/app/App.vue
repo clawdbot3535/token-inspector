@@ -626,6 +626,7 @@ function downloadAll() {
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
                 :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
               />
 
               <FigmaPreview
@@ -671,6 +672,7 @@ function downloadAll() {
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
+                :completeness="scanReport.completeness"
               />
               <div
                 v-else
