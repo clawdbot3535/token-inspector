@@ -33,7 +33,16 @@ export type UtilityType =
   | "text-color"
   | "border-color"
   | "ring-color"
-  | "underline-color";
+  | "underline-color"
+  | "height"
+  | "width"
+  | "line-height"
+  | "letter-spacing"
+  | "placeholder-color"
+  | "ring-offset"
+  | "font-family"
+  | "padding"
+  | "overlay-bg";
 export type VariantAxis = "size" | "color" | "variant" | "state";
 
 export interface SlotMappingEntry {
@@ -258,6 +267,43 @@ const HEURISTIC_RULES: ReadonlyArray<{
   {
     match: (u) => u === "underline",
     build: (ctx) => buildEntry("base", "underline-color", ctx),
+  },
+  // ── New utility types (v0.4.0) ────────────────────────────────────────
+  {
+    match: (u) => u === "height",
+    build: (ctx) => buildEntry("base", "height", ctx),
+  },
+  {
+    match: (u) => u === "width",
+    build: (ctx) => buildEntry("base", "width", ctx),
+  },
+  {
+    match: (u) => u === "line-height" || u === "leading",
+    build: (ctx) => buildEntry("base", "line-height", ctx),
+  },
+  {
+    match: (u) => u === "letter-spacing" || u === "tracking",
+    build: (ctx) => buildEntry("base", "letter-spacing", ctx),
+  },
+  {
+    match: (u) => u === "placeholder",
+    build: (ctx) => buildEntry("base", "placeholder-color", ctx),
+  },
+  {
+    match: (u) => u === "ring-offset",
+    build: (ctx) => buildEntry("base", "ring-offset", ctx),
+  },
+  {
+    match: (u) => u === "font-family",
+    build: (ctx) => buildEntry("base", "font-family", ctx),
+  },
+  {
+    match: (u) => u === "padding",
+    build: (ctx) => buildEntry("base", "padding", ctx),
+  },
+  {
+    match: (u) => u === "overlay-bg" || u === "overlay",
+    build: (ctx) => buildEntry("base", "overlay-bg", ctx),
   },
 ];
 

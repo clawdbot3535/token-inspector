@@ -230,3 +230,114 @@ describe("sub-element slot extension point (B seam, empty in v0.4.0)", () => {
     expect(heuristicSlotMapping("nav-item-bg")).toBeNull();
   });
 });
+
+describe("heuristicSlotMapping — new utility types (Task 4)", () => {
+  it("maps button-height-sm to base/height/size/sm", () => {
+    expect(heuristicSlotMapping("button-height-sm")).toEqual({
+      slot: "base",
+      utilityType: "height",
+      variantAxis: "size",
+      variantKey: "sm",
+    });
+  });
+
+  it("maps button-width to base/width with no variant", () => {
+    expect(heuristicSlotMapping("button-width")).toEqual({
+      slot: "base",
+      utilityType: "width",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps button-line-height-md to base/line-height/size/md", () => {
+    expect(heuristicSlotMapping("button-line-height-md")).toEqual({
+      slot: "base",
+      utilityType: "line-height",
+      variantAxis: "size",
+      variantKey: "md",
+    });
+  });
+
+  it("maps button-leading-sm to base/line-height/size/sm (alias)", () => {
+    expect(heuristicSlotMapping("button-leading-sm")).toEqual({
+      slot: "base",
+      utilityType: "line-height",
+      variantAxis: "size",
+      variantKey: "sm",
+    });
+  });
+
+  it("maps button-letter-spacing-md to base/letter-spacing/size/md", () => {
+    expect(heuristicSlotMapping("button-letter-spacing-md")).toEqual({
+      slot: "base",
+      utilityType: "letter-spacing",
+      variantAxis: "size",
+      variantKey: "md",
+    });
+  });
+
+  it("maps button-tracking-sm to base/letter-spacing/size/sm (alias)", () => {
+    expect(heuristicSlotMapping("button-tracking-sm")).toEqual({
+      slot: "base",
+      utilityType: "letter-spacing",
+      variantAxis: "size",
+      variantKey: "sm",
+    });
+  });
+
+  it("maps button-solid-placeholder to base/placeholder-color/variant/solid", () => {
+    expect(heuristicSlotMapping("button-solid-placeholder")).toEqual({
+      slot: "base",
+      utilityType: "placeholder-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps button-solid-ring-offset-focus to base/ring-offset/variant/solid with focus prefix", () => {
+    expect(heuristicSlotMapping("button-solid-ring-offset-focus")).toEqual({
+      slot: "base",
+      utilityType: "ring-offset",
+      variantAxis: "variant",
+      variantKey: "solid",
+      statePrefix: "focus",
+    });
+  });
+
+  it("maps button-font-family to base/font-family with no variant", () => {
+    expect(heuristicSlotMapping("button-font-family")).toEqual({
+      slot: "base",
+      utilityType: "font-family",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps button-padding-sm to base/padding/size/sm", () => {
+    expect(heuristicSlotMapping("button-padding-sm")).toEqual({
+      slot: "base",
+      utilityType: "padding",
+      variantAxis: "size",
+      variantKey: "sm",
+    });
+  });
+
+  it("maps button-solid-overlay-bg to base/overlay-bg/variant/solid", () => {
+    expect(heuristicSlotMapping("button-solid-overlay-bg")).toEqual({
+      slot: "base",
+      utilityType: "overlay-bg",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps button-solid-overlay to base/overlay-bg/variant/solid (alias)", () => {
+    expect(heuristicSlotMapping("button-solid-overlay")).toEqual({
+      slot: "base",
+      utilityType: "overlay-bg",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+});
