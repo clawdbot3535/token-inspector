@@ -44,9 +44,7 @@ function cellCompleteness(sizeKey: string): CompletenessScore | undefined {
  * primary-coloured chip so a clicked Figma token visually maps to its
  * landing place in every variant's recipe.
  */
-function highlightSegments(
-  classString: string,
-): Array<{ token: string; highlight: boolean }> {
+function highlightSegments(classString: string): HighlightSegment[] {
   const target = props.highlightUtility;
   return classString
     .split(/\s+/)
@@ -80,6 +78,13 @@ interface PreviewCell {
   buttonClasses: string;
   /** Inline style hosting arbitrary values that Tailwind JIT can't see. */
   style: CSSProperties;
+  /** Completeness score for this cell's size key, when a scan report is present. */
+  completeness?: CompletenessScore;
+}
+
+interface HighlightSegment {
+  token: string;
+  highlight: boolean;
 }
 
 interface VariantRow {
@@ -88,6 +93,8 @@ interface VariantRow {
   stateCells: PreviewCell[];
   /** Full merged class string for `md` — shown in the code preview row. */
   inspectClasses: string;
+  /** Pre-tokenised inspect classes with highlight flags for the code block. */
+  segments: HighlightSegment[];
 }
 
 // Tailwind utility prefix → CSS property mapping. Used by the preview
@@ -246,7 +253,7 @@ const variantRows = computed<VariantRow[]>(() => {
         .trim();
       const projected = projectToState(merged, "default");
       const { classes: buttonClasses, style } = extractArbitrary(projected);
-      return { label: size, buttonClasses, style };
+      return { label: size, buttonClasses, style, completeness: cellCompleteness(size) };
     });
 
     // ── States row: hold size at user-chosen value, vary state projection. ──
@@ -273,6 +280,7 @@ const variantRows = computed<VariantRow[]>(() => {
       sizeCells,
       stateCells,
       inspectClasses: merged,
+      segments: highlightSegments(merged),
     };
   });
 });
@@ -394,15 +402,15 @@ const { copy, wasJustCopied } = useCopyToClipboard();
             </button>
             <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
             <span
-              v-if="cellCompleteness(cell.label)"
+              v-if="cell.completeness"
               class="text-[9px] font-mono"
               :class="
-                cellCompleteness(cell.label)!.defined === cellCompleteness(cell.label)!.total
+                cell.completeness.defined === cell.completeness.total
                   ? 'text-emerald-500'
                   : 'text-amber-500'
               "
             >
-              {{ cellCompleteness(cell.label)!.defined }}/{{ cellCompleteness(cell.label)!.total }}
+              {{ cell.completeness.defined }}/{{ cell.completeness.total }}
             </span>
           </div>
         </div>
@@ -443,13 +451,13 @@ const { copy, wasJustCopied } = useCopyToClipboard();
         class="block text-xs font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 break-all"
       >
         <template
-          v-for="(seg, segIdx) in highlightSegments(row.inspectClasses)"
+          v-for="(seg, segIdx) in row.segments"
           :key="segIdx"
         ><span
             v-if="seg.highlight"
             class="bg-primary/20 ring-1 ring-primary/40 rounded px-0.5"
           >{{ seg.token }}</span><span v-else>{{ seg.token }}</span><span
-            v-if="segIdx < highlightSegments(row.inspectClasses).length - 1"
+            v-if="segIdx < row.segments.length - 1"
           >&nbsp;</span></template>
       </code>
     </div>

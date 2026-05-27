@@ -466,7 +466,7 @@ function downloadAll() {
       </header>
 
       <!-- Body -->
-      <main class="flex-1 flex overflow-hidden">
+      <main class="flex-1 flex flex-col overflow-hidden">
         <!-- Empty state -->
         <div
           v-if="!state.graph.value"
@@ -498,17 +498,15 @@ function downloadAll() {
 
         <!-- Inspector shell -->
         <template v-else>
-          <!-- Scan status strip — always visible when a graph is loaded -->
-          <div class="absolute inset-x-0 z-10" style="top: 48px;">
-            <HeaderStatusStrip
-              :report="scanReport"
-              :scan-view-active="state.view.value === 'scan'"
-              @open-scan="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
-            />
-          </div>
-          <!-- Spacer to push content below the strip -->
-          <div class="w-full" style="height: 28px; flex-shrink: 0;"></div>
+          <!-- Scan status strip — in-flow block above the content row -->
+          <HeaderStatusStrip
+            :report="scanReport"
+            :scan-view-active="state.view.value === 'scan'"
+            @open-scan="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
+          />
 
+          <!-- Content row: sidebar · main · output -->
+          <div class="flex-1 flex overflow-hidden">
           <!-- Sidebar: token browser -->
           <aside
             class="relative shrink-0 border-r border-default flex flex-col"
@@ -736,6 +734,7 @@ function downloadAll() {
               :extra-highlight-lines="utilityHighlightLines"
             />
           </aside>
+          </div>
         </template>
       </main>
     </div>
