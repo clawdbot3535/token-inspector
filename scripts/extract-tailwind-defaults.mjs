@@ -102,16 +102,19 @@ function buildSpacingFromMultiplier() {
   const multiplier = parseFloat(remMatch ? remMatch[1] : pxMatch[1]);
 
   const out = {};
-  for (let step = 0; step <= 96; step++) {
+  // Tailwind v4 supports the historical half-steps 0.5/1.5/2.5/3.5 in addition
+  // to the integer scale 0–96 (p-0.5 = 2px, p-1.5 = 6px, p-2.5 = 10px,
+  // p-3.5 = 14px at the default 0.25rem multiplier).
+  const steps = [0.5, 1.5, 2.5, 3.5];
+  for (let i = 0; i <= 96; i++) steps.push(i);
+  steps.sort((a, b) => a - b);
+  for (const step of steps) {
     const raw = step * multiplier;
-    // Format: avoid unnecessary decimals (0 -> "0rem", 1 -> "0.25rem", 4 -> "1rem")
     let formatted;
     if (step === 0) {
       formatted = "0rem";
     } else {
-      // Round to avoid floating-point noise (e.g. 0.30000000000000004)
       const rounded = Math.round(raw * 10000) / 10000;
-      // Trim trailing zeros but keep at least one decimal if needed
       formatted = `${rounded}${unit}`;
     }
     out[formatted] = String(step);
@@ -121,7 +124,9 @@ function buildSpacingFromMultiplier() {
 
 const tables = {
   SPACING: buildSpacingFromMultiplier(),
-  RADIUS: group("radius"),
+  // Tailwind v4's rounded-none is hard-coded (no `--radius-none` in theme.css),
+  // so the extractor misses it. Add it explicitly so 0px radius matches.
+  RADIUS: { "0rem": "none", ...group("radius") },
   FONT_SIZE: group("text"),
   FONT_WEIGHT: group("font-weight"),
   TRACKING: group("tracking"),

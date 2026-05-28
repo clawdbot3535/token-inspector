@@ -18,11 +18,13 @@ const DEFAULT_REM_BASE = 16;
 /**
  * Normalize a CSS length string to the rem form used as the lookup key.
  * Returns null for non-length values (auto, %, calc(), …).
- * `0` is canonicalized — `"0px"`, `"0rem"`, and `"0"` all return `"0"`.
+ * `0` is canonicalized — `"0px"`, `"0rem"`, and `"0"` all return `"0rem"`,
+ * which is the form the generated lookup tables key zero by (e.g. SPACING
+ * has `"0rem": "0"` so `matchSpacing("0px")` correctly returns `"0"`).
  */
 export function normalizeToRem(value: string, remBase = DEFAULT_REM_BASE): string | null {
   const trimmed = value.trim();
-  if (trimmed === "0" || /^0(px|rem)$/.test(trimmed)) return "0";
+  if (trimmed === "0" || /^0(px|rem)$/.test(trimmed)) return "0rem";
 
   const pxMatch = trimmed.match(/^(-?\d+(?:\.\d+)?)px$/);
   if (pxMatch?.[1] !== undefined) {

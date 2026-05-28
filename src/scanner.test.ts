@@ -218,14 +218,16 @@ describe("scanGraph — classification hints", () => {
   });
 
   it("still suggests p-* for spacing tokens (existing behaviour preserved)", () => {
-    // spacing-1-5 at 6px is 2px from p-1 (4px) — should still snap to p-*
+    // Use a value that is genuinely NOT a Tailwind spacing default. 6px is
+    // now p-1.5 (after the half-steps fix), 4px is p-1, 8px is p-2 — so 7px is
+    // between defaults and triggers the snap suggestion routed to p-*.
     const graph = makeGraph([
       makeNode({
-        id: "spacing-1-5",
+        id: "spacing-custom",
         layer: "primitive",
         type: "dimension",
         source: "dimension",
-        base: "6px",
+        base: "7px",
       }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });

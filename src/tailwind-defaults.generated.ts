@@ -3,9 +3,13 @@
 // Tailwind version: 4.2.4
 
 export const SPACING: Readonly<Record<string, string>> = Object.freeze({
+  "0.125rem": "0.5",
   "0.25rem": "1",
+  "0.375rem": "1.5",
   "0.5rem": "2",
+  "0.625rem": "2.5",
   "0.75rem": "3",
+  "0.875rem": "3.5",
   "0rem": "0",
   "1.25rem": "5",
   "1.5rem": "6",
@@ -107,6 +111,7 @@ export const RADIUS: Readonly<Record<string, string>> = Object.freeze({
   "0.375rem": "md",
   "0.5rem": "lg",
   "0.75rem": "xl",
+  "0rem": "none",
   "1.5rem": "3xl",
   "1rem": "2xl",
   "2rem": "4xl",
