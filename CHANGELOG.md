@@ -183,6 +183,11 @@ a component-readiness table, and an output forecast.
   `rounded-*` (not `p-*`), border-width suggests `border-*`. Previously the
   detector compared every primitive numeric against the spacing scale
   regardless of its category.
+- Tailwind-defaults lookup tables now cover **Tailwind v4's fractional spacing
+  half-steps** (`p-0.5` = 2px, `p-1.5` = 6px, `p-2.5` = 10px, `p-3.5` = 14px)
+  and **`rounded-none`** (0px), and `normalizeToRem` canonicalises zero to
+  `"0rem"` (the form the tables key zero by). Designer tokens using these
+  legitimate Tailwind defaults are no longer flagged as "consider snapping".
 - Live preview was emitting baked-in hex values that failed
   Tailwind v4 JIT (classes like `px-[10px]` never made it into the
   bundle because they only exist as runtime strings).
