@@ -178,6 +178,11 @@ a component-readiness table, and an output forecast.
 
 ### Fixed
 
+- `snap-to-tailwind` classification hint is now **category-aware**: a 14px
+  font-size suggests `text-sm` (not `p-3`), a radius token suggests
+  `rounded-*` (not `p-*`), border-width suggests `border-*`. Previously the
+  detector compared every primitive numeric against the spacing scale
+  regardless of its category.
 - Live preview was emitting baked-in hex values that failed
   Tailwind v4 JIT (classes like `px-[10px]` never made it into the
   bundle because they only exist as runtime strings).
@@ -194,6 +199,17 @@ for form controls (`checkbox`, `radio`, `switch`) — `thumb`, `dot`,
 recipes; full slot coverage is targeted for v0.5.0+. Per-component live
 previews (`LiveBadge`, `LiveInput`, `LiveCard`, …) are also deferred to
 v0.5.0+; today only `button` has a rendered preview.
+
+**Fonts pipeline:** primitive `fontFamily` tokens carry values today but
+are not yet promoted to `@theme { --font-* }` declarations, so component
+`font-family` tokens render as Tailwind arbitrary classes (`font-[Inter]`)
+instead of named utilities (`font-display`). A `@theme`-emission + named-class
+mapping pass (analogous to the existing colour `var(--color-…)` aliasing) is
+targeted for v0.5.0+.
+
+**Icons** are intentionally outside the token graph — they are Figma
+component instances + Nuxt UI component props (`<UButton icon="i-lucide-rocket" />`),
+not theme variables.
 
 ## [0.3.0] — 2026-05-21
 

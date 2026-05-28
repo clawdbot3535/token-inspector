@@ -33,6 +33,25 @@ default (no output) or extends Tailwind's `@theme` as a static value:
 This keeps `tokens.css` lean (~70% smaller than the legacy output) and
 moves component customization to Nuxt UI's recipe layer where it belongs.
 
+**Mode-invariant surface tokens** (e.g. `color/surface/overlay-dark`) are a
+recognised pattern: a component rendered on a known background (a dark hero
+image, a fixed overlay) must look identical in both light and dark mode. These
+tokens fall into the "mode-invariant" rows above — they emit as single-value
+`@theme` extensions and are used in recipes **without** a `dark:` variant, so
+they stay invariant by construction. Nuxt UI v4 / Tailwind have no first-class
+concept for this; the absence of `dark:` is the convention.
+
+**Out of token scope:**
+
+- **Fonts** — primitive `fontFamily` tokens (e.g. `font-family/display = Inter`)
+  are recognised; component `font-family` tokens currently emit as Tailwind
+  arbitrary classes (`font-[Inter]`). A proper `@theme { --font-display: … }`
+  pipeline that turns them into named `font-display` utilities is v0.5.0+ work.
+- **Icons** are not design tokens. They live as Figma component instances
+  (instance-swap) and as Nuxt UI component props
+  (`<UButton icon="i-lucide-rocket" />`); the inspector's `figma-mapping.json`
+  only carries a `defaultIcon` for the live preview.
+
 ## What gets written
 
 ```
