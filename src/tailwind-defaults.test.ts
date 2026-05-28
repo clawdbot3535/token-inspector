@@ -14,7 +14,7 @@ describe("normalizeToRem", () => {
   it("converts px to rem at default 16px base", () => {
     expect(normalizeToRem("4px")).toBe("0.25rem");
     expect(normalizeToRem("16px")).toBe("1rem");
-    expect(normalizeToRem("0px")).toBe("0");
+    expect(normalizeToRem("0px")).toBe("0rem");
   });
 
   it("respects custom rem base", () => {
@@ -23,11 +23,11 @@ describe("normalizeToRem", () => {
 
   it("passes rem values through unchanged", () => {
     expect(normalizeToRem("0.5rem")).toBe("0.5rem");
-    expect(normalizeToRem("0rem")).toBe("0");
+    expect(normalizeToRem("0rem")).toBe("0rem");
   });
 
-  it("treats unitless 0 as the canonical zero", () => {
-    expect(normalizeToRem("0")).toBe("0");
+  it("treats unitless 0 as the canonical zero (0rem — matches table keys)", () => {
+    expect(normalizeToRem("0")).toBe("0rem");
   });
 
   it("returns null for non-length values", () => {
@@ -49,6 +49,19 @@ describe("matchSpacing", () => {
   it("returns null for custom values", () => {
     expect(matchSpacing("5px")).toBeNull();
     expect(matchSpacing("18px")).toBeNull();
+  });
+
+  it("matches Tailwind's fractional half-steps (p-0.5/1.5/2.5/3.5)", () => {
+    expect(matchSpacing("2px")).toBe("0.5");
+    expect(matchSpacing("6px")).toBe("1.5");
+    expect(matchSpacing("10px")).toBe("2.5");
+    expect(matchSpacing("14px")).toBe("3.5");
+  });
+
+  it("matches the zero value (p-0) regardless of unit form", () => {
+    expect(matchSpacing("0px")).toBe("0");
+    expect(matchSpacing("0rem")).toBe("0");
+    expect(matchSpacing("0")).toBe("0");
   });
 });
 

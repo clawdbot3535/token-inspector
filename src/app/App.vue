@@ -11,7 +11,8 @@ import TokenPreview from "./components/TokenPreview.vue";
 import AliasChain from "./components/AliasChain.vue";
 import UsedByList from "./components/UsedBy.vue";
 import CodePreview from "./components/CodePreview.vue";
-import IssuesView from "./components/IssuesView.vue";
+import ScanView from "./components/ScanView.vue";
+import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import ComponentTree from "./components/ComponentTree.vue";
@@ -27,6 +28,7 @@ import { getSlotMapping } from "@core/slot-mapping.js";
 import { shadowIdFor, prefixForUtility, utilityFor } from "@core/recipe-engine.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
+import { useScanReport } from "./composables/use-scan-report.js";
 import {
   loadFigmaMapping,
   parseFigmaFileUrl,
@@ -87,6 +89,7 @@ const rightPane = useResizablePane({
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const rendered = useRenderedOutput(state);
+const scanReport = useScanReport(state.graph);
 // Mount the rendered tokens.css into <head> so live previews can resolve
 // `var(--<token-id>)` references emitted by the recipe-engine.
 useInjectedTokensCss(state.graph);
@@ -410,7 +413,7 @@ function downloadAll() {
             <button
               v-if="issueCount > 0"
               class="text-warning hover:underline"
-              @click="state.view.value = state.view.value === 'issues' ? 'inspector' : 'issues'"
+              @click="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
             >
               · {{ issueCount }} issue{{ issueCount === 1 ? "" : "s" }}
             </button>
@@ -463,7 +466,7 @@ function downloadAll() {
       </header>
 
       <!-- Body -->
-      <main class="flex-1 flex overflow-hidden">
+      <main class="flex-1 flex flex-col overflow-hidden">
         <!-- Empty state -->
         <div
           v-if="!state.graph.value"
@@ -495,6 +498,15 @@ function downloadAll() {
 
         <!-- Inspector shell -->
         <template v-else>
+          <!-- Scan status strip — in-flow block above the content row -->
+          <HeaderStatusStrip
+            :report="scanReport"
+            :scan-view-active="state.view.value === 'scan'"
+            @open-scan="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
+          />
+
+          <!-- Content row: sidebar · main · output -->
+          <div class="flex-1 flex overflow-hidden">
           <!-- Sidebar: token browser -->
           <aside
             class="relative shrink-0 border-r border-default flex flex-col"
@@ -565,14 +577,18 @@ function downloadAll() {
             <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
           </aside>
 
-          <!-- Main: issues view OR node detail -->
+          <!-- Main: scan view OR node detail -->
           <section
-            v-if="state.view.value === 'issues' && state.graph.value"
+            v-if="state.view.value === 'scan'"
             class="flex-1 overflow-y-auto"
           >
-            <IssuesView
-              :graph="state.graph.value"
-              @select="(id: string) => { state.selection.value = id; state.view.value = 'inspector'; }"
+            <ScanView
+              :report="scanReport"
+              @select-tokens="(ids: readonly string[]) => {
+                state.highlightedIds.value = new Set(ids);
+                if (ids.length === 1 && ids[0] !== undefined) state.selection.value = ids[0];
+                state.view.value = 'inspector';
+              }"
             />
           </section>
           <section v-else class="flex-1 overflow-y-auto p-4 text-sm space-y-4">
@@ -608,6 +624,7 @@ function downloadAll() {
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
                 :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
               />
 
               <FigmaPreview
@@ -653,6 +670,7 @@ function downloadAll() {
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
+                :completeness="scanReport.completeness"
               />
               <div
                 v-else
@@ -669,8 +687,7 @@ function downloadAll() {
                   highlight on click, but the visual chip is button-specific
                   and would mis-represent
                   <code class="font-mono">{{ selectedComponent }}</code>.
-                  Component-shaped previews follow the Figma PAT
-                  integration.
+                  Component-shaped previews arrive in v0.5.0+.
                 </div>
               </div>
             </div>
@@ -716,6 +733,7 @@ function downloadAll() {
               :extra-highlight-lines="utilityHighlightLines"
             />
           </aside>
+          </div>
         </template>
       </main>
     </div>

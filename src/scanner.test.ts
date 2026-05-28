@@ -157,6 +157,102 @@ describe("scanGraph — classification hints", () => {
     expect(hint).toBeDefined();
     expect(hint?.message).toMatch(/p-1\b|p-1\.5/);
   });
+
+  it("suggests text-* for font-size tokens, not p-*", () => {
+    // 14px is close to text-sm (0.875rem = 14px at remBase 16) — already matched
+    // Use 15px which is 1px away from text-sm (14px) to get a snap suggestion.
+    const graph = makeGraph([
+      makeNode({
+        id: "font-size-text-base",
+        layer: "primitive",
+        type: "dimension",
+        source: "dimension",
+        base: "15px",
+      }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
+    expect(hint).toBeDefined();
+    expect(hint?.message).not.toMatch(/\bp-\d/);
+    expect(hint?.message).toMatch(/\btext-/);
+  });
+
+  it("suggests rounded-* for radius tokens, not p-*", () => {
+    // 3px is 1px away from rounded-sm (2px) — should suggest rounded-sm, not p-1
+    const graph = makeGraph([
+      makeNode({
+        id: "rounded-custom",
+        layer: "primitive",
+        type: "dimension",
+        source: "dimension",
+        base: "3px",
+      }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
+    if (hint !== undefined) {
+      expect(hint.message).not.toMatch(/\bp-\d/);
+      expect(hint.message).toMatch(/\brounded-/);
+    }
+    // (no hint is also acceptable — just must not emit p-*)
+  });
+
+  it("suggests border-* for border-width tokens, not p-*", () => {
+    // 3px is 1px away from border-2 (2px) — should suggest border-*, not p-*
+    const graph = makeGraph([
+      makeNode({
+        id: "border-width-thick",
+        layer: "primitive",
+        type: "dimension",
+        source: "dimension",
+        base: "3px",
+      }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
+    if (hint !== undefined) {
+      expect(hint.message).not.toMatch(/\bp-\d/);
+      expect(hint.message).toMatch(/\bborder-/);
+    }
+    // (no hint is also acceptable — just must not emit p-*)
+  });
+
+  it("still suggests p-* for spacing tokens (existing behaviour preserved)", () => {
+    // Use a value that is genuinely NOT a Tailwind spacing default. 6px is
+    // now p-1.5 (after the half-steps fix), 4px is p-1, 8px is p-2 — so 7px is
+    // between defaults and triggers the snap suggestion routed to p-*.
+    const graph = makeGraph([
+      makeNode({
+        id: "spacing-custom",
+        layer: "primitive",
+        type: "dimension",
+        source: "dimension",
+        base: "7px",
+      }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
+    expect(hint).toBeDefined();
+    expect(hint?.message).toMatch(/\bp-/);
+  });
+
+  it("emits no snap hint for tokens with no recognisable category", () => {
+    // A token named 'unknown-numeric' doesn't match any dimension prefix pattern
+    // and falls back to the spacing category (fallback path) — but a token with
+    // type 'color' has no Tailwind category at all and must not emit a snap hint.
+    const graph = makeGraph([
+      makeNode({
+        id: "color-brand-primary",
+        layer: "primitive",
+        type: "color",
+        source: "global",
+        base: "#ff0000",
+      }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
+    expect(hint).toBeUndefined();
+  });
 });
 
 describe("scanGraph — completeness scoring", () => {

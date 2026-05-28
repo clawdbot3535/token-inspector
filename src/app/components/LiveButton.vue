@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, type CSSProperties } from "vue";
 import { buildComponentRecipes } from "@core/recipe-engine.js";
-import type { TokenGraph } from "@core/token-graph.js";
+import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 
 interface Props {
@@ -17,13 +17,26 @@ interface Props {
    * the value lands inside each variant's class string.
    */
   highlightUtility?: string;
+  /**
+   * Completeness scores from the scan report. When present, each size cell
+   * gets a small n/m badge so designers can see how many slots are mapped.
+   */
+  completeness?: ReadonlyArray<CompletenessScore>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   componentName: "button",
   iconName: "i-lucide-rocket",
   highlightUtility: undefined,
+  completeness: undefined,
 });
+
+/** Look up the completeness score for the given size key on this component. */
+function cellCompleteness(sizeKey: string): CompletenessScore | undefined {
+  return props.completeness?.find(
+    (c) => c.component === props.componentName && c.variantKey === sizeKey,
+  );
+}
 
 /**
  * Tokenise a class string on whitespace and flag tokens that equal the
@@ -31,9 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
  * primary-coloured chip so a clicked Figma token visually maps to its
  * landing place in every variant's recipe.
  */
-function highlightSegments(
-  classString: string,
-): Array<{ token: string; highlight: boolean }> {
+function highlightSegments(classString: string): HighlightSegment[] {
   const target = props.highlightUtility;
   return classString
     .split(/\s+/)
@@ -67,6 +78,13 @@ interface PreviewCell {
   buttonClasses: string;
   /** Inline style hosting arbitrary values that Tailwind JIT can't see. */
   style: CSSProperties;
+  /** Completeness score for this cell's size key, when a scan report is present. */
+  completeness?: CompletenessScore;
+}
+
+interface HighlightSegment {
+  token: string;
+  highlight: boolean;
 }
 
 interface VariantRow {
@@ -75,6 +93,8 @@ interface VariantRow {
   stateCells: PreviewCell[];
   /** Full merged class string for `md` — shown in the code preview row. */
   inspectClasses: string;
+  /** Pre-tokenised inspect classes with highlight flags for the code block. */
+  segments: HighlightSegment[];
 }
 
 // Tailwind utility prefix → CSS property mapping. Used by the preview
@@ -233,7 +253,7 @@ const variantRows = computed<VariantRow[]>(() => {
         .trim();
       const projected = projectToState(merged, "default");
       const { classes: buttonClasses, style } = extractArbitrary(projected);
-      return { label: size, buttonClasses, style };
+      return { label: size, buttonClasses, style, completeness: cellCompleteness(size) };
     });
 
     // ── States row: hold size at user-chosen value, vary state projection. ──
@@ -260,6 +280,7 @@ const variantRows = computed<VariantRow[]>(() => {
       sizeCells,
       stateCells,
       inspectClasses: merged,
+      segments: highlightSegments(merged),
     };
   });
 });
@@ -277,8 +298,8 @@ const buttonLabel = computed<string>(() => {
 // how icon sizing varies across the size axis. Trailing-icon support is
 // intentionally out of scope here: in the current Figma setup the
 // trailing-icon configuration lives on component variants (iconOnly /
-// noIcon / both) rather than on tokens, so it would need the upcoming
-// Figma PAT integration to read the variant properties directly.
+// noIcon / both) rather than on tokens, so a complete treatment is
+// deferred to v0.5.0+ component previews.
 const hasLeadingIcon = computed<boolean>(() => {
   const r = buttonRecipe.value;
   if (!r) return false;
@@ -380,6 +401,17 @@ const { copy, wasJustCopied } = useCopyToClipboard();
               {{ buttonLabel }}
             </button>
             <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
+            <span
+              v-if="cell.completeness"
+              class="text-[9px] font-mono"
+              :class="
+                cell.completeness.defined === cell.completeness.total
+                  ? 'text-emerald-500'
+                  : 'text-amber-500'
+              "
+            >
+              {{ cell.completeness.defined }}/{{ cell.completeness.total }}
+            </span>
           </div>
         </div>
 
@@ -419,13 +451,13 @@ const { copy, wasJustCopied } = useCopyToClipboard();
         class="block text-xs font-mono px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 break-all"
       >
         <template
-          v-for="(seg, segIdx) in highlightSegments(row.inspectClasses)"
+          v-for="(seg, segIdx) in row.segments"
           :key="segIdx"
         ><span
             v-if="seg.highlight"
             class="bg-primary/20 ring-1 ring-primary/40 rounded px-0.5"
           >{{ seg.token }}</span><span v-else>{{ seg.token }}</span><span
-            v-if="segIdx < highlightSegments(row.inspectClasses).length - 1"
+            v-if="segIdx < row.segments.length - 1"
           >&nbsp;</span></template>
       </code>
     </div>

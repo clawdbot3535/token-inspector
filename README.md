@@ -8,12 +8,12 @@ single in-memory token graph, surfaces it through a searchable inspector
 
 - A lean `tokens.css` with a Tailwind v4 `@theme` block plus `.dark` overrides
   for mode-variant semantic tokens.
-- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus a
-  `button` component recipe (slots, size variants, and visual variants
-  `solid` / `outline` / `ghost` / `link` with pseudo-class state prefixes)
-  derived from your Figma component tokens. Color utilities resolve to
-  `var(--<semantic-id>)` references so dark-mode overrides cascade
-  automatically.
+- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus component
+  recipes for the standard set (`button`, `badge`, `input`, `card`, … — 15
+  components): slots, size / color-role / visual variants (`solid` / `outline`
+  / `ghost` / `link`) with pseudo-class state prefixes, derived from your Figma
+  component tokens. Color utilities resolve to `var(--<semantic-id>)` references
+  so dark-mode overrides cascade automatically.
 
 100% client-side. No backend, no upload, nothing leaves the browser tab.
 
@@ -32,6 +32,34 @@ default (no output) or extends Tailwind's `@theme` as a static value:
 
 This keeps `tokens.css` lean (~70% smaller than the legacy output) and
 moves component customization to Nuxt UI's recipe layer where it belongs.
+
+**Mode-invariant surface tokens** (e.g. `color/surface/overlay-dark`) are a
+recognised pattern: a component rendered on a known background (a dark hero
+image, a fixed overlay) must look identical in both light and dark mode. These
+tokens fall into the "mode-invariant" rows above — they emit as single-value
+`@theme` extensions and are used in recipes **without** a `dark:` variant, so
+they stay invariant by construction. Nuxt UI v4 / Tailwind have no first-class
+concept for this; the absence of `dark:` is the convention.
+
+**Out of token scope:**
+
+- **Fonts** — primitive `fontFamily` tokens (e.g. `font-family/display = Inter`)
+  are recognised; component `font-family` tokens currently emit as Tailwind
+  arbitrary classes (`font-[Inter]`). A proper `@theme { --font-display: … }`
+  pipeline that turns them into named `font-display` utilities is v0.5.0+ work.
+- **Icons** are not design tokens. They live as Figma component instances
+  (instance-swap) and as Nuxt UI component props
+  (`<UButton icon="i-lucide-rocket" />`); the inspector's `figma-mapping.json`
+  only carries a `defaultIcon` for the live preview.
+
+**Standard vs custom components (`custom/<name>/…`):** the allow-list is the
+set of *supported targets* (the 15 Nuxt UI v4 components), not "always
+emitted" — a component without tokens is silently skipped. Components whose
+Figma semantics diverge from Nuxt UI (e.g. a classic chip while Nuxt's
+`UChip` is an indicator dot; or a custom `sidebar` with no Nuxt pendant) take
+the path prefix `custom/<name>/…` in Figma. They show as honest WIP today;
+v0.5.0+ promotes them into a dedicated `customRecipes` section in
+`app.config.ts` (outside `ui.*`).
 
 ## What gets written
 
@@ -121,9 +149,25 @@ The UI shows:
   success-coloured border for ~1.5s after a write
 - **Dark-mode toggle** flips the entire UI (Tailwind `dark:` variants +
   Nuxt UI components react via a `html.dark` class sync)
-- **Issues view** for broken aliases, type mismatches, unresolved refs,
-  and `asymmetric-variant-coverage` findings with concrete
-  "add `<token-id>` in Figma" suggestions per missing Figma token
+- **Token Scan view** — a dedicated scan panel reached via the header
+  status strip or the view switcher. Covers:
+  - **Issue accordions** grouped by category: broken aliases, type
+    mismatches, unresolved references, and
+    `asymmetric-variant-coverage` findings with "add `<token-id>` in
+    Figma" suggestions per gap
+  - **Component-readiness table** showing each component in the
+    standard set with its slot coverage count and completeness
+    percentage — at a glance you can see which components are fully
+    mapped and which are partial
+  - **Output forecast** — a summary of how many tokens will emit
+    `@theme` CSS vars vs match a Tailwind default (no output) vs
+    land in the `app.config.ts` recipe layer
+  The recipe output now covers the full standard component set:
+  `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
+  `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
+  `progress`. Sub-element-heavy components (`nav`, `dropdown`,
+  `table`, `progress`, and the form-control internals) are partially
+  mapped today; complete slot coverage is planned for v0.5.0+.
 - **Resizable sidebars** — drag the boundaries to resize the panes;
   width persists in `localStorage`
 
@@ -168,7 +212,7 @@ workflow is: export from Figma → drop the whole zip → done.
 
 ## Tests
 
-194 tests across the typed pipeline. Run:
+233 tests across the typed pipeline. Run:
 
 ```bash
 npm test         # full suite
@@ -196,13 +240,14 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-v0.3.0 ships the Tailwind-utility-first pipeline. Currently the Nuxt UI
-v4 recipe emission covers the `button` component only, with the visual
-variant axis (`solid` / `outline` / `ghost` / `link`) and a full state
-matrix in the LiveButton preview. Unreleased work on `main` adds
-semantic `var()` references, `asymmetric-variant-coverage` scanner
-output, and a grouped scan report in the build CLI — see
-`CHANGELOG.md` for details.
+v0.4.0 expands the Nuxt UI v4 recipe output to the full 15-component
+standard set (`button`, `badge`, `input`, `textarea`, `card`, `modal`,
+`kbd`, `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`,
+`table`, `progress`) and ships the Token Scan view with a
+component-readiness table and output forecast. Sub-element-heavy
+components are partially mapped; full slot coverage and per-component
+live previews (`LiveBadge` / `LiveInput` / …) are planned for v0.5.0+.
+See `CHANGELOG.md` for the full entry.
 
 ## Roadmap
 

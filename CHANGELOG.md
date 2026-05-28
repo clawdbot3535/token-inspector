@@ -1,13 +1,54 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0] — 2026-05-27
 
-Button visual-variant axis end-to-end + scanner library-suggestions +
-preview state matrix + designer-round-2 inspector UI polish. Shipped on
-`main` ahead of the next tagged release.
+Multi-component recipe output + Token Scan view. The allow-list expands
+from `button` only to the full 15-component standard set. A new permanent
+Scan view replaces the standalone Issues view with category accordions,
+a component-readiness table, and an output forecast.
 
 ### Added
 
+- **Token Scan view** (`ScanView.vue`): replaces the standalone Issues view
+  with categorised issue accordions (broken aliases, type mismatches,
+  unresolved refs, asymmetric-variant-coverage findings), a
+  **component-readiness table** showing per-component slot coverage and
+  completeness percentage, and an **output forecast** summarising how many
+  tokens will emit CSS vars vs Tailwind utilities vs recipe entries.
+- **Permanent `HeaderStatusStrip`**: always-visible strip below the app
+  header showing the active token-count, scan-finding counts (errors /
+  warnings / hints), and a link to the Scan view. Replaces the previous
+  ephemeral status overlay.
+- **`useScanReport` composable**: derives the scan report (issue list,
+  per-component readiness, forecast) reactively from the token graph;
+  shared between `HeaderStatusStrip` and `ScanView`.
+- **Multi-component recipe output** — the recipe allow-list now covers
+  the full 15-component standard set:
+  `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
+  `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
+  `progress`.
+- **Color-role variant axis** in slot-mapping: color roles
+  (`default` / `accent` / `primary` / `secondary` / `success` /
+  `error` / `warning` / `info` / `neutral`) are recognised as a
+  variant dimension alongside the visual-variant axis, with configurable
+  prefix position in the token id.
+- **9 new utility types**: `height`, `width`, `line-height`,
+  `letter-spacing`, `placeholder-color`, `ring-offset`, `font-family`,
+  `padding`, `overlay-bg` — all rendered as Tailwind arbitrary values
+  (`h-[var(--x)]`, `font-[var(--x)]`, etc.).
+- **`checked` / `hovered` state recognition**: slot-mapping parses
+  `checked` and `hovered` suffixes into the state dimension alongside the
+  existing `hover` / `active` / `disabled` / `focus`.
+- **LiveButton `n/m` completeness badge**: each size cell in the preview
+  matrix now shows how many of the expected slots are populated (e.g.
+  `4/6`) so designers can spot gaps at a glance.
+- **`component-vocab.ts`** — shared constants file for component names,
+  variant names, utility types, and state names consumed by slot-mapping,
+  recipe-engine, and scanner.
+- **Graceful degradation on inconsistent tokens**: when a token matches the
+  allow-list but its utility isn't recognized or its value chain can't be
+  resolved, the recipe engine omits it (no crash); the gap surfaces in the
+  Scan view's readiness table rather than breaking the build.
 - **Hierarchical component tree** in the left sidebar
   (`src/app/token-tree.ts` + `ComponentTree.vue`). Tokens group by their
   Figma path (`button/solid/bg-hover`, `color/blue/500`, …) with
@@ -21,7 +62,7 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
   `selectedComponent` and renders a `LiveButton` preview for that
   component, even when no token is selected. Click `button` to preview
   button; non-button components show a polite "preview only available
-  for button currently" hint until the Figma PAT integration lands.
+  for button currently" hint until its own live preview lands (v0.5.0+).
 - **State-axis size switcher** above the state-axis row: pick which
   size the state cells render at. Hoisted into the variant-header row
   so the two axis columns stay symmetric.
@@ -39,7 +80,7 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
   is deliberately out of scope here — in the current Figma setup the
   trailing-icon configuration lives on component variants (iconOnly /
   noIcon / both) rather than on tokens, so a complete treatment waits
-  for the Figma PAT integration.
+  deferred to v0.5.0+ component previews.
 - **Button labels** (`Button`, `Badge`, …) inside the preview cells
   instead of repeating the size identifier. The size / state label
   moves below the button.
@@ -113,24 +154,78 @@ preview state matrix + designer-round-2 inspector UI polish. Shipped on
 
 ### Changed
 
+- **`issues` view mode renamed to `scan`**: `IssuesView` is absorbed
+  into the new `ScanView`; all route/state references updated.
+- Recipe engine mapping hardened for the full 15-component standard
+  set — slot-path inference validated against real token shapes for
+  each component.
 - `slot-mapping.ts` `parseSegments` now returns `{component, variant,
   utility, size, state}` instead of `{component, utility, variant}`.
   `SlotMappingEntry` gains an optional `statePrefix` field.
 - `VariantAxis` type adds `"variant"`. `UtilityType` adds the five
-  color types.
+  color types and the 9 new dimension types.
 - `scanner.ts` data-quality checks skip non-size axis tokens to avoid
   size-completeness false positives on variant tokens.
 - `app.config.ts` renderer iterates `["size", "color", "variant",
   "state"]` axes (added `"variant"`).
 
+### Removed
+
+- **Standalone `IssuesView`** component — functionality absorbed into
+  `ScanView` with richer categorisation and the readiness table.
+- **Dead Figma-PAT-integration references** (config fields, comments,
+  and type stubs left over from the abandoned REST-API approach).
+
 ### Fixed
 
+- `snap-to-tailwind` classification hint is now **category-aware**: a 14px
+  font-size suggests `text-sm` (not `p-3`), a radius token suggests
+  `rounded-*` (not `p-*`), border-width suggests `border-*`. Previously the
+  detector compared every primitive numeric against the spacing scale
+  regardless of its category.
+- Tailwind-defaults lookup tables now cover **Tailwind v4's fractional spacing
+  half-steps** (`p-0.5` = 2px, `p-1.5` = 6px, `p-2.5` = 10px, `p-3.5` = 14px)
+  and **`rounded-none`** (0px), and `normalizeToRem` canonicalises zero to
+  `"0rem"` (the form the tables key zero by). Designer tokens using these
+  legitimate Tailwind defaults are no longer flagged as "consider snapping".
 - Live preview was emitting baked-in hex values that failed
   Tailwind v4 JIT (classes like `px-[10px]` never made it into the
   bundle because they only exist as runtime strings).
 - Live preview was emitting `var(--*)` references that resolved to
   nothing because the rendered `tokens.css` was never mounted into
   the Inspector document.
+
+### Known / v0.5.0 backlog
+
+Sub-element recipe slots for `nav`, `dropdown`, `table`, and `progress`
+(`item-*`, `th` / `td` / `row`, `track` / `fill`) and the internal slots
+for form controls (`checkbox`, `radio`, `switch`) — `thumb`, `dot`,
+`check` — are not yet mapped. These components currently emit partial
+recipes; full slot coverage is targeted for v0.5.0+. Per-component live
+previews (`LiveBadge`, `LiveInput`, `LiveCard`, …) are also deferred to
+v0.5.0+; today only `button` has a rendered preview.
+
+**Fonts pipeline:** primitive `fontFamily` tokens carry values today but
+are not yet promoted to `@theme { --font-* }` declarations, so component
+`font-family` tokens render as Tailwind arbitrary classes (`font-[Inter]`)
+instead of named utilities (`font-display`). A `@theme`-emission + named-class
+mapping pass (analogous to the existing colour `var(--color-…)` aliasing) is
+targeted for v0.5.0+.
+
+**Icons** are intentionally outside the token graph — they are Figma
+component instances + Nuxt UI component props (`<UButton icon="i-lucide-rocket" />`),
+not theme variables.
+
+**Custom-component convention (`custom/<name>/…`):** Figma components that
+diverge from Nuxt UI v4's standard set (e.g. a classic chip while Nuxt's
+`UChip` is an indicator dot; or a custom `sidebar` with no Nuxt pendant) get
+the path prefix `custom/<name>/…` in Figma. Today these tokens surface as
+"No Tailwind utility mapping" hints in the inspector (honest WIP signal); the
+allow-list stays focused on the 15 Nuxt-standard components and emits them only
+when token data is present. v0.5.0+ adds engine-side recognition of the
+`custom-` prefix and a dedicated `customRecipes` section in `app.config.ts`
+(outside `ui.*`), so divergent and Nuxt-standard components can coexist
+cleanly.
 
 ## [0.3.0] — 2026-05-21
 

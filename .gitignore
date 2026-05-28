@@ -26,3 +26,6 @@ coverage/
 *.tsbuildinfo
 .gstack/
 *.zip
+
+# understand-anything tool cache
+.understand-anything/

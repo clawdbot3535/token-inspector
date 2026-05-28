@@ -4,7 +4,11 @@
 //     utilityType: 'padding-x' | 'padding-y' | 'rounded' | 'font-weight'
 //                  | 'text-size' | 'gap' | 'icon-size'
 //                  | 'bg-color' | 'text-color' | 'border-color'
-//                  | 'ring-color' | 'underline-color',
+//                  | 'ring-color' | 'underline-color'
+//                  | 'height' | 'width' | 'line-height'
+//                  | 'letter-spacing' | 'placeholder-color'
+//                  | 'ring-offset' | 'font-family' | 'padding'
+//                  | 'overlay-bg',
 //     variantAxis: 'size' | 'color' | 'variant' | 'state' | null,
 //     variantKey:  string | null,
 //     statePrefix: string | null }
@@ -33,7 +37,16 @@ export type UtilityType =
   | "text-color"
   | "border-color"
   | "ring-color"
-  | "underline-color";
+  | "underline-color"
+  | "height"
+  | "width"
+  | "line-height"
+  | "letter-spacing"
+  | "placeholder-color"
+  | "ring-offset"
+  | "font-family"
+  | "padding"
+  | "overlay-bg";
 export type VariantAxis = "size" | "color" | "variant" | "state";
 
 export interface SlotMappingEntry {
@@ -53,21 +66,27 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-const SIZE_KEYS = new Set(["xs", "sm", "md", "lg", "xl", "2xl"]);
-const STATE_KEYS = new Set(["default", "hover", "active", "disabled", "focus"]);
-// Nuxt UI v4 button-style variant axis. Distinct from `color` axis
-// (primary/secondary/...) — variant controls the visual style.
-const VARIANT_KEYS = new Set(["solid", "outline", "ghost", "link", "subtle", "soft"]);
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS } from "./component-vocab.js";
+
+// Approach-B extension point: maps a sub-element segment (immediately after
+// the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
+// per component (e.g. "item" → "item", "thumb" → "thumb"). Leaving it empty
+// keeps every token routing to the "base" slot, unchanged.
+const SLOT_PREFIXES: ReadonlyMap<string, RecipeSlot> = new Map();
 
 interface ParsedSegments {
   component: string;
   utility: string;
   /** The Nuxt UI variant key (solid/outline/...) when present as 2nd segment. */
   variant: string | null;
+  /** The color-role variant (default/accent/error/...) when present as 2nd segment. */
+  colorRole: string | null;
   /** The size key (xs/sm/...) when present as last segment. */
   size: string | null;
   /** The state key (hover/active/...) when present as last segment. */
   state: string | null;
+  /** The recipe slot from SLOT_PREFIXES when a sub-element segment is matched. */
+  slotPrefix: RecipeSlot | null;
 }
 
 function parseSegments(tokenId: string): ParsedSegments | null {
@@ -79,16 +98,26 @@ function parseSegments(tokenId: string): ParsedSegments | null {
   let start = 1;
   let end = parts.length;
   let variant: string | null = null;
+  let colorRole: string | null = null;
   let size: string | null = null;
   let state: string | null = null;
 
-  // 2nd segment may be a Nuxt UI variant key. Only consume it when there
-  // are more segments after it — otherwise a token literally called
-  // e.g. "button-solid" would lose its utility name.
+  // 2nd segment may be a Nuxt UI variant key or a color-role key. Only
+  // consume it when there are more segments after it — otherwise a token
+  // literally called e.g. "button-solid" would lose its utility name.
   const second = parts[1];
-  if (parts.length >= 3 && second !== undefined && VARIANT_KEYS.has(second)) {
-    variant = second;
-    start = 2;
+  if (parts.length >= 3 && second !== undefined) {
+    if (BUTTON_VARIANT_KEYS.has(second)) { variant = second; start = 2; }
+    else if (COLOR_ROLE_KEYS.has(second)) { colorRole = second; start = 2; }
+  }
+
+  // Approach-B seam: after variant/color-role detection, check if the next
+  // segment is a known sub-element slot prefix (empty map in v0.4.0).
+  let slotPrefix: RecipeSlot | null = null;
+  const slotSeg = parts[start];
+  if (slotSeg !== undefined && SLOT_PREFIXES.has(slotSeg)) {
+    slotPrefix = SLOT_PREFIXES.get(slotSeg)!;
+    start += 1;
   }
 
   // Last segment may be a size or state suffix. Only consume it when
@@ -108,16 +137,21 @@ function parseSegments(tokenId: string): ParsedSegments | null {
     component,
     utility: parts.slice(start, end).join("-"),
     variant,
+    colorRole,
     size,
     state,
+    slotPrefix,
   };
 }
 
 interface BuildContext {
   variant: string | null;
+  colorRole: string | null;
   size: string | null;
   state: string | null;
 }
+
+function normalizeState(s: string): string { return s === "hovered" ? "hover" : s; }
 
 function buildEntry(
   slot: RecipeSlot,
@@ -136,8 +170,18 @@ function buildEntry(
       variantKey: ctx.variant,
     };
     if (ctx.state !== null && ctx.state !== "default") {
-      entry.statePrefix = ctx.state;
+      entry.statePrefix = normalizeState(ctx.state);
     }
+    return entry;
+  }
+  if (ctx.colorRole !== null) {
+    const entry: SlotMappingEntry = {
+      slot,
+      utilityType,
+      variantAxis: "color",
+      variantKey: ctx.colorRole,
+    };
+    if (ctx.state !== null && ctx.state !== "default") entry.statePrefix = normalizeState(ctx.state);
     return entry;
   }
   if (ctx.size !== null) {
@@ -150,11 +194,13 @@ function buildEntry(
   }
   if (ctx.state !== null) {
     // Back-compat: tokens like `button-rounded-focus` still bucket by state.
+    // normalizeState maps "hovered" → "hover" so bare ...-hovered tokens
+    // bucket under the canonical "hover" key.
     return {
       slot,
       utilityType,
       variantAxis: "state",
-      variantKey: ctx.state,
+      variantKey: normalizeState(ctx.state),
     };
   }
   return {
@@ -226,6 +272,43 @@ const HEURISTIC_RULES: ReadonlyArray<{
     match: (u) => u === "underline",
     build: (ctx) => buildEntry("base", "underline-color", ctx),
   },
+  // ── New utility types (v0.4.0) ────────────────────────────────────────
+  {
+    match: (u) => u === "height",
+    build: (ctx) => buildEntry("base", "height", ctx),
+  },
+  {
+    match: (u) => u === "width",
+    build: (ctx) => buildEntry("base", "width", ctx),
+  },
+  {
+    match: (u) => u === "line-height" || u === "leading",
+    build: (ctx) => buildEntry("base", "line-height", ctx),
+  },
+  {
+    match: (u) => u === "letter-spacing" || u === "tracking",
+    build: (ctx) => buildEntry("base", "letter-spacing", ctx),
+  },
+  {
+    match: (u) => u === "placeholder",
+    build: (ctx) => buildEntry("base", "placeholder-color", ctx),
+  },
+  {
+    match: (u) => u === "ring-offset",
+    build: (ctx) => buildEntry("base", "ring-offset", ctx),
+  },
+  {
+    match: (u) => u === "font-family",
+    build: (ctx) => buildEntry("base", "font-family", ctx),
+  },
+  {
+    match: (u) => u === "padding",
+    build: (ctx) => buildEntry("base", "padding", ctx),
+  },
+  {
+    match: (u) => u === "overlay-bg" || u === "overlay",
+    build: (ctx) => buildEntry("base", "overlay-bg", ctx),
+  },
 ];
 
 /**
@@ -234,23 +317,28 @@ const HEURISTIC_RULES: ReadonlyArray<{
 export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
   const parsed = parseSegments(tokenId);
   if (!parsed) return null;
+  const slot: RecipeSlot = parsed.slotPrefix ?? "base";
   const ctx: BuildContext = {
     variant: parsed.variant,
+    colorRole: parsed.colorRole,
     size: parsed.size,
     state: parsed.state,
   };
 
-  // Special disambiguation: `button-<variant>-text[-state]` should map
-  // to text-color (not text-size) when a variant axis is present. The
-  // `text` matcher in HEURISTIC_RULES uses the text-size rule, so we
-  // intercept first.
-  if (parsed.variant !== null && parsed.utility === "text") {
-    return buildEntry("base", "text-color", ctx);
+  // Special disambiguation: `button-<variant>-text[-state]` or
+  // `badge-<colorRole>-text[-state]` should map to text-color (not
+  // text-size) when a variant/color axis is present. The `text` matcher
+  // in HEURISTIC_RULES uses the text-size rule, so we intercept first.
+  if ((parsed.variant !== null || parsed.colorRole !== null) && parsed.utility === "text") {
+    return buildEntry(slot, "text-color", ctx);
   }
 
   for (const rule of HEURISTIC_RULES) {
     if (rule.match(parsed.utility)) {
-      return rule.build(ctx);
+      // Route the slot through parsed.slotPrefix so v0.5.0 can fill
+      // SLOT_PREFIXES and sub-element tokens get their correct recipe slot.
+      const entry = rule.build(ctx);
+      return slot === "base" ? entry : { ...entry, slot };
     }
   }
   return null;

@@ -121,6 +121,21 @@ export function buildComponentRecipes(
     "border-color",
     "ring-color",
     "underline-color",
+    "placeholder-color",
+    "overlay-bg",
+  ]);
+
+  // Set of utility types that always emit arbitrary-value classes from the
+  // resolved primitive value, bypassing Tailwind-default scale matching.
+  // Values like "40px", "1.5", "Inter" have no Tailwind scale entry.
+  const ARBITRARY_VALUE_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
+    "height",
+    "width",
+    "line-height",
+    "letter-spacing",
+    "ring-offset",
+    "font-family",
+    "padding",
   ]);
 
   for (const node of graph.nodes.values()) {
@@ -181,6 +196,10 @@ export function buildComponentRecipes(
       }
       utility =
         `${prefixForUtility(effectiveMapping.utilityType)}[${escapeArbitrary(inner)}]`;
+    } else if (ARBITRARY_VALUE_TYPES.has(effectiveMapping.utilityType)) {
+      // Arbitrary-value types (height, width, line-height, etc.) always emit
+      // directly from the resolved primitive value — no Tailwind scale exists.
+      utility = `${prefixForUtility(effectiveMapping.utilityType)}[${escapeArbitrary(resolved.value)}]`;
     } else {
       const classification = classifyToken(
         // Fabricate a tiny shadow node carrying the resolved primitive value so
@@ -266,6 +285,19 @@ export function shadowIdFor(utilityType: UtilityType): string {
       // Color utilities bypass shadow-node classification; this id is
       // only here to satisfy the exhaustive switch and is never read.
       return "color-temp";
+    case "height":
+    case "width":
+    case "line-height":
+    case "letter-spacing":
+    case "ring-offset":
+    case "font-family":
+    case "padding":
+      // Arbitrary-value types — bypass classification entirely; id never read.
+      return "arbitrary-temp";
+    case "placeholder-color":
+    case "overlay-bg":
+      // Color-path arbitrary types; id never read.
+      return "color-temp";
   }
 }
 
@@ -350,6 +382,24 @@ export function prefixForUtility(utilityType: UtilityType): string {
       return "ring-";
     case "underline-color":
       return "underline-";
+    case "height":
+      return "h-";
+    case "width":
+      return "w-";
+    case "line-height":
+      return "leading-";
+    case "letter-spacing":
+      return "tracking-";
+    case "placeholder-color":
+      return "placeholder:text-";
+    case "ring-offset":
+      return "ring-offset-";
+    case "font-family":
+      return "font-";
+    case "padding":
+      return "p-";
+    case "overlay-bg":
+      return "bg-";
   }
 }
 

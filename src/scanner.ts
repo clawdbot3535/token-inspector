@@ -10,9 +10,15 @@ import type {
   CompletenessScore,
   OutputForecast,
 } from "./token-graph.js";
-import { classifyToken } from "./classify-token.js";
+import {
+  classifyToken,
+  tailwindCategoryFor,
+  matchForCategory,
+  utilityPrefix,
+} from "./classify-token.js";
+import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { matchSpacing } from "./tailwind-defaults.js";
+import { KNOWN_VARIANT_NAMES } from "./component-vocab.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
 const SIZE_ORDER: ReadonlyArray<string> = ["xs", "sm", "md", "lg", "xl", "2xl"];
@@ -258,10 +264,12 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     ) {
       const value = node.cssValue.base;
       if (value === undefined) continue;
-      // Skip if it already matches a Tailwind default.
-      const alreadyMatched = matchSpacing(value, options.remBase);
+      const category = tailwindCategoryFor(node);
+      if (category === null) continue;
+      // Skip if it already matches a Tailwind default in this category.
+      const alreadyMatched = matchForCategory(category, value, options.remBase);
       if (alreadyMatched !== null) continue;
-      const suggestion = suggestNearestTailwind(value, options.remBase);
+      const suggestion = suggestNearestTailwind(value, category, options.remBase);
       if (suggestion !== null) {
         issues.push({
           id: `ch-snap-${node.id}`,
@@ -315,26 +323,6 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
 // recognise `badge-error-bg` (variant=error) and `chip-bg-error`
 // (state=error) without conflict.
 // ────────────────────────────────────────────────────────────────────────────
-
-const KNOWN_VARIANT_NAMES: ReadonlySet<string> = new Set([
-  // Nuxt UI v4 visual variants
-  "solid",
-  "outline",
-  "ghost",
-  "link",
-  "subtle",
-  "soft",
-  // Semantic color-role variants (badge, alert, status etc.)
-  "accent",
-  "default",
-  "primary",
-  "secondary",
-  "success",
-  "error",
-  "warning",
-  "info",
-  "neutral",
-]);
 
 const ASYM_STATE_KEYS: ReadonlySet<string> = new Set([
   // Real interaction states
@@ -483,11 +471,12 @@ export function detectAsymmetricVariantCoverage(
 }
 
 /**
- * If `value` is a px dimension that doesn't match a Tailwind spacing default
- * but is within 2px of one, return the nearest candidate.
+ * If `value` is a px dimension that doesn't match a Tailwind default in the
+ * given category but is within 2px of one, return the nearest candidate.
  */
 function suggestNearestTailwind(
   value: string,
+  category: TailwindCategory,
   remBase?: number,
 ): { utility: string; value: string } | null {
   const pxMatch = value.match(/^(\d+(?:\.\d+)?)px$/);
@@ -497,9 +486,9 @@ function suggestNearestTailwind(
   for (const delta of [-1, 1, -2, 2]) {
     const candidate = px + delta;
     if (candidate <= 0) continue;
-    const hit = matchSpacing(`${candidate}px`, remBase);
+    const hit = matchForCategory(category, `${candidate}px`, remBase);
     if (hit !== null) {
-      return { utility: `p-${hit}`, value: `${candidate}px` };
+      return { utility: `${utilityPrefix(category)}${hit}`, value: `${candidate}px` };
     }
   }
   return null;

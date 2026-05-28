@@ -13,7 +13,7 @@ import type {
 import type { RenderedText } from "@core/token-graph.js";
 import { defaultRenderers } from "@core/renderers/index.js";
 
-export type ViewMode = "inspector" | "issues";
+export type ViewMode = "inspector" | "scan";
 export type OutputTab = "tokens.css" | "app.config.ts";
 export type ClassificationFilter =
   | "all"

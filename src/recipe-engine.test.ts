@@ -454,3 +454,136 @@ describe("buildComponentRecipes — smart non-suffix assignment", () => {
     expect(recipes.button?.variants.size?.md?.base).toBeUndefined();
   });
 });
+
+describe("buildComponentRecipes — arbitrary-value utility types (Task 6)", () => {
+  it("height token emits h-[40px] in slots.base", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-height", layer: "component", type: "dimension", source: "global", base: "40px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("h-[40px]");
+  });
+
+  it("height token with size suffix emits h-[32px] in variants.size.sm", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-height-sm", layer: "component", type: "dimension", source: "global", base: "32px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.size?.sm?.base).toContain("h-[32px]");
+  });
+
+  it("width token emits w-[120px] in slots.base", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-width", layer: "component", type: "dimension", source: "global", base: "120px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("w-[120px]");
+  });
+
+  it("line-height token emits leading-[1.5] in variants.size.md", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-line-height-md", layer: "component", type: "dimension", source: "global", base: "1.5" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.size?.md?.base).toContain("leading-[1.5]");
+  });
+
+  it("letter-spacing token emits tracking-[0.5px] in variants.size.sm", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-letter-spacing-sm", layer: "component", type: "dimension", source: "global", base: "0.5px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.size?.sm?.base).toContain("tracking-[0.5px]");
+  });
+
+  it("font-family token emits font-[Inter] in slots.base", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-font-family", layer: "component", type: "fontFamily", source: "global", base: "Inter" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("font-[Inter]");
+  });
+
+  it("font-family value containing spaces escapes to underscores (font-[Google_Sans_Flex])", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-font-family", layer: "component", type: "fontFamily", source: "global", base: "Google Sans Flex" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("font-[Google_Sans_Flex]");
+  });
+
+  it("padding token emits p-[12px] in slots.base when no size variants", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding", layer: "component", type: "dimension", source: "global", base: "12px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("p-[12px]");
+  });
+
+  it("ring-offset token emits ring-offset-[2px] in slots.base", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-ring-offset", layer: "component", type: "dimension", source: "global", base: "2px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("ring-offset-[2px]");
+  });
+
+  it("placeholder-color token emits placeholder:text-[#AABBCC] from literal", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-placeholder", layer: "component", type: "color", source: "global", base: "#AABBCC" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toContain("placeholder:text-[#AABBCC]");
+  });
+
+  it("placeholder-color aliasing a semantic id emits placeholder:text-[var(--<id>)]", () => {
+    const graph = makeGraph([
+      makeNode({ id: "color-placeholder", layer: "semantic", type: "color", source: "light", base: "#9CA3AF" }),
+      makeNode({ id: "button-solid-placeholder", layer: "component", type: "color", source: "global", aliasTo: "color-placeholder" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toContain(
+      "placeholder:text-[var(--color-placeholder)]",
+    );
+  });
+
+  it("overlay-bg token emits bg-[#00000033] in variants.variant.solid.base from literal", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-overlay-bg", layer: "component", type: "color", source: "global", base: "#00000033" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toContain("bg-[#00000033]");
+  });
+
+  it("overlay-bg aliasing a semantic id emits bg-[var(--<id>)]", () => {
+    const graph = makeGraph([
+      makeNode({ id: "color-overlay", layer: "semantic", type: "color", source: "light", base: "#00000033" }),
+      makeNode({ id: "button-solid-overlay-bg", layer: "component", type: "color", source: "global", aliasTo: "color-overlay" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toContain(
+      "bg-[var(--color-overlay)]",
+    );
+  });
+});
+
+describe("robustness — messy/inconsistent tokens degrade gracefully", () => {
+  it("does not throw and omits unmapped tokens (trailing color-role, unknown utility, sub-element)", () => {
+    const graph = makeGraph([
+      // trailing color-role → unmapped (Figma-fix territory)
+      makeNode({ id: "chip-bg-error", layer: "component", type: "color", source: "global", base: "#f00" }),
+      // sub-element → unmapped in v0.4.0
+      makeNode({ id: "nav-item-bg", layer: "component", type: "color", source: "global", base: "#0f0" }),
+      // unknown utility → unmapped
+      makeNode({ id: "card-frobnicate", layer: "component", type: "number", source: "global", base: "3" }),
+      // maps → p-[8px]
+      makeNode({ id: "card-padding", layer: "component", type: "dimension", source: "global", base: "8px" }),
+    ]);
+    let recipes: ReturnType<typeof buildComponentRecipes>;
+    expect(() => {
+      recipes = buildComponentRecipes(graph, { components: ["chip", "nav", "card"] });
+    }).not.toThrow();
+    expect(recipes!.card?.slots.base).toContain("p-[8px]");
+    expect(JSON.stringify(recipes!)).not.toContain("frobnicate");
+  });
+});
