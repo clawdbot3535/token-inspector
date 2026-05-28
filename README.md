@@ -52,6 +52,15 @@ concept for this; the absence of `dark:` is the convention.
   (`<UButton icon="i-lucide-rocket" />`); the inspector's `figma-mapping.json`
   only carries a `defaultIcon` for the live preview.
 
+**Standard vs custom components (`custom/<name>/…`):** the allow-list is the
+set of *supported targets* (the 15 Nuxt UI v4 components), not "always
+emitted" — a component without tokens is silently skipped. Components whose
+Figma semantics diverge from Nuxt UI (e.g. a classic chip while Nuxt's
+`UChip` is an indicator dot; or a custom `sidebar` with no Nuxt pendant) take
+the path prefix `custom/<name>/…` in Figma. They show as honest WIP today;
+v0.5.0+ promotes them into a dedicated `customRecipes` section in
+`app.config.ts` (outside `ui.*`).
+
 ## What gets written
 
 ```

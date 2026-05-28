@@ -211,6 +211,17 @@ targeted for v0.5.0+.
 component instances + Nuxt UI component props (`<UButton icon="i-lucide-rocket" />`),
 not theme variables.
 
+**Custom-component convention (`custom/<name>/…`):** Figma components that
+diverge from Nuxt UI v4's standard set (e.g. a classic chip while Nuxt's
+`UChip` is an indicator dot; or a custom `sidebar` with no Nuxt pendant) get
+the path prefix `custom/<name>/…` in Figma. Today these tokens surface as
+"No Tailwind utility mapping" hints in the inspector (honest WIP signal); the
+allow-list stays focused on the 15 Nuxt-standard components and emits them only
+when token data is present. v0.5.0+ adds engine-side recognition of the
+`custom-` prefix and a dedicated `customRecipes` section in `app.config.ts`
+(outside `ui.*`), so divergent and Nuxt-standard components can coexist
+cleanly.
+
 ## [0.3.0] — 2026-05-21
 
 The Tailwind-utility-first refactor. Two-PR effort spanning the
