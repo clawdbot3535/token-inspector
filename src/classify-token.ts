@@ -157,7 +157,7 @@ function isModeInvariantSemantic(node: TokenNode): boolean {
   return node.cssValue.light === node.cssValue.dark;
 }
 
-function tailwindCategoryFor(node: TokenNode): TailwindCategory | null {
+export function tailwindCategoryFor(node: TokenNode): TailwindCategory | null {
   // Map TokenType + id-prefix to Tailwind category.
   switch (node.type) {
     case "dimension":
@@ -183,7 +183,7 @@ function tailwindCategoryFor(node: TokenNode): TailwindCategory | null {
   }
 }
 
-function matchForCategory(
+export function matchForCategory(
   category: TailwindCategory,
   value: string,
   remBase?: number,
@@ -206,7 +206,7 @@ function matchForCategory(
   }
 }
 
-function utilityPrefix(category: TailwindCategory): string {
+export function utilityPrefix(category: TailwindCategory): string {
   switch (category) {
     case "spacing":
       return "p-"; // Inspector display only — actual usage may be p- / m- / gap-.
