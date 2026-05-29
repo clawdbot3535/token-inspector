@@ -3,6 +3,7 @@ import { computed, ref, type CSSProperties } from "vue";
 import { buildComponentRecipes } from "@core/recipe-engine.js";
 import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
+import { extractArbitrary } from "../extract-arbitrary.js";
 
 interface Props {
   graph: TokenGraph | null;
@@ -95,95 +96,6 @@ interface VariantRow {
   inspectClasses: string;
   /** Pre-tokenised inspect classes with highlight flags for the code block. */
   segments: HighlightSegment[];
-}
-
-// Tailwind utility prefix → CSS property mapping. Used by the preview
-// to translate arbitrary-value classes like `px-[10px]` into inline
-// styles, because Tailwind v4 JIT only sees classes that appear as
-// static strings in the source — the recipe-engine emits these classes
-// dynamically at runtime so they're never generated.
-const ARBITRARY_TO_CSS: Readonly<Record<string, ReadonlyArray<keyof CSSProperties>>> = {
-  px: ["paddingLeft", "paddingRight"],
-  py: ["paddingTop", "paddingBottom"],
-  pl: ["paddingLeft"],
-  pr: ["paddingRight"],
-  pt: ["paddingTop"],
-  pb: ["paddingBottom"],
-  gap: ["gap"],
-  size: ["width", "height"],
-  rounded: ["borderRadius"],
-  font: ["fontWeight"],
-  leading: ["lineHeight"],
-  tracking: ["letterSpacing"],
-  bg: ["backgroundColor"],
-  border: ["borderColor"],
-  underline: ["textDecorationColor"],
-  ring: ["boxShadow"],
-};
-
-// `text-[…]` is ambiguous: text-[#fff] is color, text-[14px] is font-size.
-function textProperty(value: string): keyof CSSProperties {
-  return /^(#|rgb|hsl|var\()/i.test(value) ? "color" : "fontSize";
-}
-
-interface Extracted {
-  classes: string;
-  style: CSSProperties;
-}
-
-function extractArbitrary(classString: string): Extracted {
-  const style: Record<string, string> = {};
-  const classes: string[] = [];
-  for (const cls of classString.split(/\s+/).filter(Boolean)) {
-    if (cls.includes(":")) {
-      classes.push(cls);
-      continue;
-    }
-    const m = cls.match(/^([a-z-]+)-\[(.+)\]$/);
-    if (m === null) {
-      classes.push(cls);
-      continue;
-    }
-    const prefix = m[1]!;
-    const rawValue = m[2]!;
-    // Tailwind v4 reads `_` inside [...] as a literal space.
-    const value = rawValue.replace(/_/g, " ");
-
-    let properties: ReadonlyArray<keyof CSSProperties> | undefined;
-    if (prefix === "text") {
-      properties = [textProperty(value)];
-    } else if (prefix === "ring") {
-      style.boxShadow = `0 0 0 2px ${value}`;
-      continue;
-    } else {
-      properties = ARBITRARY_TO_CSS[prefix];
-    }
-    if (properties === undefined) {
-      classes.push(cls);
-      continue;
-    }
-    for (const prop of properties) {
-      style[prop as string] = value;
-    }
-  }
-
-  // Tailwind preflight zeroes border-width on every element, so a bare
-  // `border-color` is invisible. Compensate when the recipe set a border
-  // color but did not specify a width / style.
-  if (style.borderColor !== undefined) {
-    if (style.borderWidth === undefined) style.borderWidth = "1px";
-    if (style.borderStyle === undefined) style.borderStyle = "solid";
-  }
-  // A `<button>` has no default text-decoration, so `text-decoration-color`
-  // on its own paints nothing. Surface the underline when the recipe sets
-  // an underline color.
-  if (style.textDecorationColor !== undefined) {
-    if (style.textDecorationLine === undefined) {
-      style.textDecorationLine = "underline";
-    }
-  }
-
-  return { classes: classes.join(" "), style: style as CSSProperties };
 }
 
 /**
