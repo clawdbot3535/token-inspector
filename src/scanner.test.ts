@@ -111,16 +111,36 @@ describe("scanGraph — data-quality", () => {
     expect(asym?.message).toContain("gap");
   });
 
-  it("flags orphaned size key when a size suffix appears on exactly one token", () => {
+  it("flags orphaned size key when a size appears on fewer utilities than its siblings", () => {
+    // padding-x covers sm/md/lg; gap covers sm/md/lg/xl → xl appears on only
+    // one utility while sm/md/lg appear on two, so xl is the orphan.
     const graph = makeGraph([
+      makeNode({ id: "button-padding-x-sm", layer: "component", type: "dimension", source: "global", base: "4px" }),
       makeNode({ id: "button-padding-x-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
       makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "12px" }),
-      makeNode({ id: "button-padding-x-xs", layer: "component", type: "dimension", source: "global", base: "4px" }),
+      makeNode({ id: "button-gap-sm", layer: "component", type: "dimension", source: "global", base: "2px" }),
+      makeNode({ id: "button-gap-md", layer: "component", type: "dimension", source: "global", base: "4px" }),
+      makeNode({ id: "button-gap-lg", layer: "component", type: "dimension", source: "global", base: "6px" }),
+      makeNode({ id: "button-gap-xl", layer: "component", type: "dimension", source: "global", base: "8px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
     const orphan = report.issues.find((i: ScanIssue) => i.kind === "orphaned-size-key");
     expect(orphan).toBeDefined();
-    expect(orphan?.variantKey).toBe("xs");
+    expect(orphan?.variantKey).toBe("xl");
+  });
+
+  // Regression: with a single size-bearing utility there is no cross-utility
+  // comparison, so no size is an orphan. The old `maxSizeCount === 1` arm
+  // flagged every size here (a false positive on any single-utility component).
+  it("does NOT flag orphaned size keys for a single size-bearing utility", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-x-xs", layer: "component", type: "dimension", source: "global", base: "4px" }),
+      makeNode({ id: "button-padding-x-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "button-padding-x-lg", layer: "component", type: "dimension", source: "global", base: "12px" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const orphan = report.issues.find((i: ScanIssue) => i.kind === "orphaned-size-key");
+    expect(orphan).toBeUndefined();
   });
 });
 

@@ -85,7 +85,13 @@ export async function loadSources(files: readonly File[]): Promise<LoadResult> {
   for (const file of expanded) {
     if (isFigmaMappingFile(file.name)) {
       const data = await readJson(file);
-      if (data && typeof data === "object" && Array.isArray((data as FigmaMappingFile).components)) {
+      const components = (data as FigmaMappingFile | null)?.components;
+      if (
+        data &&
+        typeof data === "object" &&
+        Array.isArray(components) &&
+        components.every((c) => c !== null && typeof c === "object")
+      ) {
         figmaMapping = data as FigmaMappingFile;
       } else {
         warnings.push(`Invalid figma-mapping.json (skipped)`);
@@ -102,8 +108,10 @@ export async function loadSources(files: readonly File[]): Promise<LoadResult> {
       continue;
     }
     const data = await readJson(file);
-    if (!data || typeof data !== "object") {
-      warnings.push(`Not an object in ${file.name}`);
+    // DTCG sources must be a JSON object; an array root (or scalar) would
+    // otherwise walk into numeric-keyed garbage nodes (e.g. "0-color-blue").
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      warnings.push(`Not a token object (skipped): ${file.name}`);
       continue;
     }
     sources.push({ name: layer, data: data as Record<string, unknown> });

@@ -10,8 +10,8 @@ import type {
   TokenId,
   TokenType,
 } from "@core/token-graph.js";
-import type { RenderedText } from "@core/token-graph.js";
-import { defaultRenderers } from "@core/renderers/index.js";
+import type { RenderedText, CompletenessScore } from "@core/token-graph.js";
+import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "scan";
 export type OutputTab = "tokens.css" | "app.config.ts";
@@ -56,12 +56,25 @@ export function createAppState(): AppState {
   };
 }
 
-/** Derived: the rendered text + line map for the currently active output tab. */
-export function useRenderedOutput(state: AppState) {
+/**
+ * Derived: the rendered text + line map for the currently active output tab.
+ * `completeness` (from the scan report) is threaded into the app.config.ts
+ * render so the on-screen preview AND the download carry the same
+ * `// Incomplete in Figma` comments the CLI emits — otherwise the Inspector
+ * output silently diverges from the CLI for the same input.
+ */
+export function useRenderedOutput(
+  state: AppState,
+  completeness?: Ref<ReadonlyArray<CompletenessScore> | undefined>,
+) {
   return computed<RenderedText | null>(() => {
-    if (!state.graph.value) return null;
+    const g = state.graph.value;
+    if (!g) return null;
+    if (state.outputTab.value === appConfigRenderer.id) {
+      return appConfigRenderer.render(g, { completeness: completeness?.value });
+    }
     const renderer = defaultRenderers.find((r) => r.id === state.outputTab.value);
-    return renderer ? renderer.render(state.graph.value) : null;
+    return renderer ? renderer.render(g) : null;
   });
 }
 

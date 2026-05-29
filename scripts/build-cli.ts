@@ -10,7 +10,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
-import { appConfigRenderer } from "../src/renderers/app-config.ts";
+import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
 import type {
@@ -59,7 +59,11 @@ function writeOut(relativePath: string, content: string): void {
 const sources = SOURCE_FILES.map((s) => load(s.name, s.file));
 const graph = buildGraph(sources);
 
-const scanReport = scanGraph(graph, { components: ["button"] });
+// Scan every component the app.config renderer emits, not just button —
+// otherwise completeness data and data-quality findings for the other 14
+// components are silently dropped from the CLI summary and the
+// `// Incomplete in Figma` comments in app.config.ts.
+const scanReport = scanGraph(graph, { components: COMPONENT_ALLOW_LIST });
 
 const cssRendered = tokensCssRenderer.render(graph);
 const appConfigRendered = appConfigRenderer.render(graph, {

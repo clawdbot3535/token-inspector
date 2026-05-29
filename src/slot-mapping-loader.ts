@@ -32,7 +32,15 @@ export function parseSlotMappingFile(
 ): LoadedSlotMapping {
   if (!json) return EMPTY;
 
-  const parsed = JSON.parse(json) as SlotMappingFile;
+  let parsed: SlotMappingFile;
+  try {
+    parsed = JSON.parse(json) as SlotMappingFile;
+  } catch (cause) {
+    // Fail loud but actionable: a malformed optional config should report
+    // itself, not surface as an opaque SyntaxError stack from deep in the CLI.
+    const msg = cause instanceof Error ? cause.message : String(cause);
+    throw new Error(`Invalid slot-mapping.json: ${msg}`);
+  }
 
   const defaultSizeByComponent: Record<string, string> = {};
   for (const [name, config] of Object.entries(parsed.components ?? {})) {

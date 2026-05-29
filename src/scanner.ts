@@ -200,40 +200,42 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       }
     }
 
-    // Orphaned size keys (a size suffix used by fewer utilities than the maximum).
-    // All sizes with count < maxSizeCount are flagged; when all are equal (single
-    // utility), the one with the "smallest" standard position comes first so the
-    // most-unusual variant is surfaced at the top of the issue list.
-    const sizeUseCount = new Map<string, number>();
-    for (const sizeSet of utilityHasSizeVariants.values()) {
-      for (const s of sizeSet) {
-        sizeUseCount.set(s, (sizeUseCount.get(s) ?? 0) + 1);
+    // Orphaned size keys: a size used by fewer utilities than the maximum.
+    // Only meaningful when ≥2 utility types carry size variants — with a single
+    // size-bearing utility there is no cross-utility comparison, so every size
+    // would otherwise be flagged (count always equals maxSizeCount). Guarding on
+    // `> 1` removes that false positive (e.g. a button whose only size-aware
+    // utility is padding-x with sm/md/lg).
+    if (utilityHasSizeVariants.size > 1) {
+      const sizeUseCount = new Map<string, number>();
+      for (const sizeSet of utilityHasSizeVariants.values()) {
+        for (const s of sizeSet) {
+          sizeUseCount.set(s, (sizeUseCount.get(s) ?? 0) + 1);
+        }
       }
-    }
-    const maxSizeCount = sizeUseCount.size > 0
-      ? Math.max(...sizeUseCount.values())
-      : 0;
-    // Sort orphan candidates: fringe sizes (xs, sm) before common ones (md, lg).
-    const orphanCandidates = Array.from(sizeUseCount.entries())
-      .filter(([, count]) => count < maxSizeCount || maxSizeCount === 1)
-      .sort(([a], [b]) => {
-        const ai = SIZE_ORDER.indexOf(a);
-        const bi = SIZE_ORDER.indexOf(b);
-        const aIdx = ai === -1 ? SIZE_ORDER.length : ai;
-        const bIdx = bi === -1 ? SIZE_ORDER.length : bi;
-        return aIdx - bIdx;
-      });
-    for (const [size] of orphanCandidates) {
-      issues.push({
-        id: `dq-orphan-${componentName}-${size}`,
-        category: "data-quality",
-        severity: "hint",
-        kind: "orphaned-size-key",
-        message: `${componentName}: size '${size}' appears on only one utility — possibly typo or unfinished pass.`,
-        tokenIds: [],
-        componentName,
-        variantKey: size,
-      });
+      const maxSizeCount = Math.max(...sizeUseCount.values());
+      // Sort orphan candidates: fringe sizes (xs, sm) before common ones (md, lg).
+      const orphanCandidates = Array.from(sizeUseCount.entries())
+        .filter(([, count]) => count < maxSizeCount)
+        .sort(([a], [b]) => {
+          const ai = SIZE_ORDER.indexOf(a);
+          const bi = SIZE_ORDER.indexOf(b);
+          const aIdx = ai === -1 ? SIZE_ORDER.length : ai;
+          const bIdx = bi === -1 ? SIZE_ORDER.length : bi;
+          return aIdx - bIdx;
+        });
+      for (const [size] of orphanCandidates) {
+        issues.push({
+          id: `dq-orphan-${componentName}-${size}`,
+          category: "data-quality",
+          severity: "hint",
+          kind: "orphaned-size-key",
+          message: `${componentName}: size '${size}' appears on fewer utilities than its siblings — possibly typo or unfinished pass.`,
+          tokenIds: [],
+          componentName,
+          variantKey: size,
+        });
+      }
     }
   }
 

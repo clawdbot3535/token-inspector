@@ -17,6 +17,7 @@ import {
   SPACING,
   RADIUS,
   FONT_SIZE,
+  FONT_WEIGHT,
 } from "@core/tailwind-defaults.generated.js";
 
 // Tailwind utility prefix → CSS property mapping for arbitrary-value classes.
@@ -35,7 +36,6 @@ const ARBITRARY_TO_CSS: Readonly<Record<string, ReadonlyArray<keyof CSSPropertie
   gap: ["gap"],
   size: ["width", "height"],
   rounded: ["borderRadius"],
-  font: ["fontWeight"],
   leading: ["lineHeight"],
   tracking: ["letterSpacing"],
   bg: ["backgroundColor"],
@@ -56,6 +56,7 @@ function invert(table: Readonly<Record<string, string>>): Record<string, string>
 const SPACING_BY_SUFFIX = invert(SPACING);
 const RADIUS_BY_SUFFIX = invert(RADIUS);
 const FONT_SIZE_BY_SUFFIX = invert(FONT_SIZE);
+const FONT_WEIGHT_BY_SUFFIX = invert(FONT_WEIGHT);
 
 interface ScaleFamily {
   table: Readonly<Record<string, string>>;
@@ -78,11 +79,21 @@ const SCALE_TO_CSS: Readonly<Record<string, ScaleFamily>> = {
   size: { table: SPACING_BY_SUFFIX, props: ["width", "height"] },
   rounded: { table: RADIUS_BY_SUFFIX, props: ["borderRadius"] },
   text: { table: FONT_SIZE_BY_SUFFIX, props: ["fontSize"] },
+  // font-light / font-bold / font-thin … — six of the nine weights never
+  // appear statically in source, so the JIT skips them; resolve to fontWeight.
+  font: { table: FONT_WEIGHT_BY_SUFFIX, props: ["fontWeight"] },
 };
 
 // `text-[…]` is ambiguous: text-[#fff] is color, text-[14px] is font-size.
 function textProperty(value: string): keyof CSSProperties {
   return /^(#|rgb|hsl|var\()/i.test(value) ? "color" : "fontSize";
+}
+
+// `font-[…]` is ambiguous: the recipe engine emits both font-weight
+// (font-[400], numeric) and font-family (font-[Inter] / font-[Google_Sans_Flex])
+// through the same `font-` prefix. Disambiguate by value shape.
+function fontProperty(value: string): keyof CSSProperties {
+  return /^\d+$/.test(value.trim()) ? "fontWeight" : "fontFamily";
 }
 
 export interface Extracted {
@@ -131,6 +142,8 @@ export function extractArbitrary(classString: string): Extracted {
     let properties: ReadonlyArray<keyof CSSProperties> | undefined;
     if (prefix === "text") {
       properties = [textProperty(value)];
+    } else if (prefix === "font") {
+      properties = [fontProperty(value)];
     } else if (prefix === "ring") {
       style.boxShadow = `0 0 0 2px ${value}`;
       continue;

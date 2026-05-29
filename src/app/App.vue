@@ -26,7 +26,7 @@ import { resolveTokenToValue } from "@core/resolve-token.js";
 import { classifyToken } from "@core/classify-token.js";
 import { getSlotMapping } from "@core/slot-mapping.js";
 import { shadowIdFor, prefixForUtility, utilityFor } from "@core/recipe-engine.js";
-import { defaultRenderers } from "@core/renderers/index.js";
+import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
 import {
@@ -88,8 +88,13 @@ const rightPane = useResizablePane({
 
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
-const rendered = useRenderedOutput(state);
 const scanReport = useScanReport(state.graph);
+// Thread the scan completeness into the rendered app.config.ts so the
+// on-screen preview matches the CLI output (and the download below).
+const rendered = useRenderedOutput(
+  state,
+  computed(() => scanReport.value.completeness),
+);
 // Mount the rendered tokens.css into <head> so live previews can resolve
 // `var(--<token-id>)` references emitted by the recipe-engine.
 useInjectedTokensCss(state.graph);
@@ -388,7 +393,14 @@ function downloadAll() {
   if (!g) return;
   const entries = defaultRenderers.map((r) => ({
     name: r.id,
-    data: r.render(g).text,
+    // app.config.ts must carry the same completeness comments the CLI emits;
+    // the generic registry render(g) drops them. tokens.css ignores options.
+    data:
+      r.id === appConfigRenderer.id
+        ? appConfigRenderer.render(g, {
+            completeness: scanReport.value.completeness,
+          }).text
+        : r.render(g).text,
   }));
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }

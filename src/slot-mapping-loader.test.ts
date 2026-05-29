@@ -63,4 +63,13 @@ describe("parseSlotMappingFile", () => {
     const result = parseSlotMappingFile(JSON.stringify({ overrides: {} }));
     expect(result.defaultSizeByComponent).toBeUndefined();
   });
+
+  // Regression: a malformed slot-mapping.json previously threw a raw
+  // SyntaxError deep in the CLI. It should fail with a clear, actionable
+  // message naming the file.
+  it("throws a clear error on malformed JSON instead of a raw SyntaxError", () => {
+    expect(() => parseSlotMappingFile("{ not: valid json,, }")).toThrow(
+      /Invalid slot-mapping\.json/,
+    );
+  });
 });
