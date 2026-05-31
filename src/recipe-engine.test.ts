@@ -270,7 +270,7 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     ]);
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     expect(recipes.button?.slots.base).toContain("focus:rounded-md");
-    expect(recipes.button?.variants.state).toBeUndefined();
+    expect(Object.keys(recipes.button?.variants ?? {})).not.toContain("state");
   });
 
   it("keeps a state-prefixed token out of the non-suffix default-size redirect", () => {
@@ -284,7 +284,7 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     ]);
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     expect(recipes.button?.slots.base).toContain("focus:py-3"); // 12px → py-3
-    expect(recipes.button?.variants.state).toBeUndefined();
+    expect(Object.keys(recipes.button?.variants ?? {})).not.toContain("state");
   });
 });
 

@@ -9,7 +9,9 @@
 //                  | 'letter-spacing' | 'placeholder-color'
 //                  | 'ring-offset' | 'font-family' | 'padding'
 //                  | 'overlay-bg',
-//     variantAxis: 'size' | 'color' | 'variant' | 'state' | null,
+//     variantAxis: 'size' | 'color' | 'variant' | null,
+//       (a trailing interaction state becomes `statePrefix`, not an axis —
+//        Nuxt UI v4 has no `state` prop)
 //     variantKey:  string | null,
 //     statePrefix: string | null }
 //
@@ -47,7 +49,7 @@ export type UtilityType =
   | "font-family"
   | "padding"
   | "overlay-bg";
-export type VariantAxis = "size" | "color" | "variant" | "state";
+export type VariantAxis = "size" | "color" | "variant";
 
 export interface SlotMappingEntry {
   slot: RecipeSlot;

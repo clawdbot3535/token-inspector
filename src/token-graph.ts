@@ -178,7 +178,7 @@ export interface ScanIssue {
 
 export interface CompletenessScore {
   component: string;
-  axis: "size" | "color" | "state";
+  axis: "size" | "color";
   variantKey: string;
   defined: number;
   total: number;

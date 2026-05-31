@@ -66,7 +66,6 @@ export interface ComponentRecipe {
     size?: Record<string, Partial<Record<RecipeSlot, string>>>;
     color?: Record<string, Partial<Record<RecipeSlot, string>>>;
     variant?: Record<string, Partial<Record<RecipeSlot, string>>>;
-    state?: Record<string, Partial<Record<RecipeSlot, string>>>;
   };
 }
 
