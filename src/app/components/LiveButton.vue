@@ -4,6 +4,7 @@ import { buildComponentRecipes } from "@core/recipe-engine.js";
 import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 import { extractArbitrary } from "../extract-arbitrary.js";
+import { PREVIEW_STATES, projectToState } from "../project-to-state.js";
 
 interface Props {
   graph: TokenGraph | null;
@@ -63,8 +64,6 @@ const buttonRecipe = computed(() => {
 
 const SIZES = ["sm", "md", "lg"] as const;
 type Size = (typeof SIZES)[number];
-const STATES = ["default", "hover", "active", "disabled", "focus"] as const;
-type State = (typeof STATES)[number];
 // Fallback rendered as a single row when no variant tokens are present.
 const FALLBACK_VARIANT = "default";
 
@@ -98,52 +97,6 @@ interface VariantRow {
   segments: HighlightSegment[];
 }
 
-/**
- * Project a class string to a single state's static view by promoting
- * the chosen state's pseudo-class-prefixed classes to base classes and
- * dropping every other state. `default` keeps the unprefixed base and
- * drops all state-prefixed entries.
- *
- * Example for state="hover":
- *   "bg-[#A] hover:bg-[#B] active:bg-[#C]"
- *   → "bg-[#B]"  (hover wins; active dropped)
- */
-function projectToState(classString: string, state: State): string {
-  const STATE_PREFIXES: ReadonlySet<string> = new Set([
-    "hover",
-    "active",
-    "disabled",
-    "focus",
-  ]);
-  const baseClasses: string[] = [];
-  const stateClasses: string[] = [];
-
-  for (const cls of classString.split(/\s+/).filter(Boolean)) {
-    const m = cls.match(/^([a-z-]+):(.+)$/);
-    if (m === null) {
-      // No state prefix — part of the base look, always included.
-      baseClasses.push(cls);
-      continue;
-    }
-    const prefix = m[1]!;
-    const rest = m[2]!;
-    if (!STATE_PREFIXES.has(prefix)) {
-      // Some other prefix (responsive, dark, …) — leave untouched.
-      baseClasses.push(cls);
-      continue;
-    }
-    if (prefix === state) {
-      stateClasses.push(rest);
-    }
-    // Other state prefix → dropped for this projection.
-  }
-
-  // Promoted state classes come last so they override base ones via
-  // both Tailwind's last-wins rule AND extractArbitrary's later
-  // inline-style override.
-  return [...baseClasses, ...stateClasses].join(" ");
-}
-
 const variantRows = computed<VariantRow[]>(() => {
   const recipe = buttonRecipe.value;
   if (!recipe) return [];
@@ -175,7 +128,7 @@ const variantRows = computed<VariantRow[]>(() => {
       .filter((s) => s.length > 0)
       .join(" ")
       .trim();
-    const stateCells: PreviewCell[] = STATES.map((state) => {
+    const stateCells: PreviewCell[] = PREVIEW_STATES.map((state) => {
       const projected = projectToState(merged, state);
       const { classes: buttonClasses, style } = extractArbitrary(projected);
       // Disabled state also gets the standard opacity/cursor cue so the
