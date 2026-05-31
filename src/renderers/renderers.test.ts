@@ -234,6 +234,28 @@ describe("appConfigRenderer — recipe emission", () => {
     });
     expect(out.text).not.toContain("Incomplete in Figma");
   });
+
+  it("matches the golden app.config.ts snapshot", () => {
+    // Golden snapshot: pins the full emitted structure — the colors block, the
+    // recipe block, slot/variant ordering, indentation, and the completeness
+    // comment — so accidental formatting/ordering changes are caught. The
+    // `.toContain` tests above assert presence; this asserts exact shape.
+    // Regenerate intentionally with `vitest -u` only when the output changes.
+    const g = buildGraph(recipeSources);
+    const out = appConfigRenderer.render(g, {
+      completeness: [
+        {
+          component: "button",
+          axis: "size",
+          variantKey: "sm",
+          defined: 1,
+          total: 2,
+          missingUtilities: ["padding-y"],
+        },
+      ],
+    });
+    expect(out.text).toMatchSnapshot();
+  });
 });
 
 describe("renderer immutability", () => {
