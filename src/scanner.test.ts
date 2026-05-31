@@ -162,6 +162,30 @@ describe("scanGraph — classification hints", () => {
     expect(hint?.severity).toBe("hint");
   });
 
+  it("flags a semantic token defined for only one mode (would render in both)", () => {
+    // color-accent exists only in dark.tokens.json → classified theme-static
+    // with the dark value, emitted as a static @theme entry, so it shows the
+    // dark colour in light mode too.
+    const graph = makeGraph([
+      makeNode({ id: "color-accent", layer: "semantic", type: "color", source: "dark", dark: "#112233" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "single-mode-semantic");
+    expect(hint).toBeDefined();
+    expect(hint?.severity).toBe("warning");
+    expect(hint?.tokenIds).toContain("color-accent");
+    expect(hint?.message).toContain("dark mode only");
+  });
+
+  it("does not flag a normal dual-mode semantic token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "color-bg", layer: "semantic", type: "color", source: "light", light: "#fff", dark: "#000" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const hint = report.issues.find((i: ScanIssue) => i.kind === "single-mode-semantic");
+    expect(hint).toBeUndefined();
+  });
+
   it("flags snap-to-tailwind candidates for close-but-not-matching primitives", () => {
     const graph = makeGraph([
       makeNode({

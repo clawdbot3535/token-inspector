@@ -258,6 +258,30 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       });
     }
 
+    // Single-mode semantic: a semantic token defined for only one of light/dark.
+    // The classifier can't produce a `theme-mode-variant` (it needs both sides),
+    // so the cascade emits the sole value as a static @theme entry with no
+    // per-mode override — and it renders in BOTH modes. A dark-only token shows
+    // its dark value in light mode (and vice-versa), almost always an
+    // unfinished pass rather than an intentional mode-invariant value.
+    const hasLightMode = node.cssValue.light !== undefined;
+    const hasDarkMode = node.cssValue.dark !== undefined;
+    if (
+      (node.source === "light" || node.source === "dark") &&
+      hasLightMode !== hasDarkMode
+    ) {
+      const defined = hasDarkMode ? "dark" : "light";
+      const missing = hasDarkMode ? "light" : "dark";
+      issues.push({
+        id: `ch-single-mode-${node.id}`,
+        category: "classification-hint",
+        severity: "warning",
+        kind: "single-mode-semantic",
+        message: `${node.id} is defined for ${defined} mode only — its ${defined} value will also render in ${missing} mode (no ${missing} override is emitted).`,
+        tokenIds: [node.id],
+      });
+    }
+
     // Snap-to-tailwind: primitive dimension/number that doesn't match but
     // is within 1-2px of a Tailwind default.
     if (
