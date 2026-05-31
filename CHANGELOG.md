@@ -1,5 +1,52 @@
 # Changelog
 
+## [0.4.1] — 2026-05-31
+
+Preview-fidelity and output-parity patch. No new features. Fixes a class of
+silent rendering bugs in the live preview, aligns the Inspector's output with
+the CLI, removes a scanner false positive, and hardens input boundaries.
+
+### Fixed
+
+- **Live preview renders real token values regardless of Tailwind JIT.** The
+  recipe engine emits real Tailwind classes (`py-2.5`, `h-[44px]`,
+  `font-light`, `font-[Inter]`), but Tailwind v4's JIT only generates classes
+  present as static text in scanned source — so a recipe class rendered only by
+  coincidence (`px-2.5` ships in `@nuxt/ui`, `py-2.5` does not). `LiveButton`
+  now resolves **both** arbitrary (`x-[…]`) and scale (`py-2.5`) classes to
+  inline styles via the inverted `tailwind-defaults` tables
+  (`src/app/extract-arbitrary.ts`). Symptoms fixed: button heights collapsing
+  to content height, `lg` vertical padding rendering as `0`.
+- **`font-[Inter]` applied to `font-family`, not `font-weight`.** Font-family
+  and font-weight share the `font-` prefix; the preview wrote the family name
+  to `fontWeight` (an invalid value the browser ignored). Disambiguated by
+  value shape.
+- **font-weight scale classes (`font-light`/`font-bold`/…) now render.** Six of
+  nine weights never appear statically, so the JIT skipped them; they now
+  resolve to inline `fontWeight`.
+- **Inspector output now matches the CLI.** The on-screen `app.config.ts`
+  preview and the `Download .zip` bundle dropped the renderer options the CLI
+  passes, so `// Incomplete in Figma` comments were missing even while the Scan
+  view showed the same gaps. Scan completeness is now threaded into the
+  app.config render (`App.vue`, `state.ts`).
+- **CLI scans the full component allow-list.** `build:tokens` scanned only
+  `button` while rendering all 15 components, silently dropping completeness and
+  data-quality findings for the other 14 (`scripts/build-cli.ts`).
+- **Scanner orphaned-size-key false positive.** The hint fired on every
+  single-utility component; it now runs only when ≥2 utility types carry size
+  variants (`src/scanner.ts`).
+- **Input hardening.** Array-root JSON is rejected instead of producing
+  numeric-keyed garbage nodes; `figma-mapping.json` component elements are
+  validated as objects (`src/app/load-sources.ts`); a malformed
+  `slot-mapping.json` now throws a clear `Invalid slot-mapping.json` error
+  instead of a raw `SyntaxError` (`src/slot-mapping-loader.ts`).
+
+### Added
+
+- `docs/PROJECT-ANALYSIS.md` — multi-agent project analysis report.
+- Regression tests: `extract-arbitrary` font cases, scanner orphan x2,
+  `slot-mapping-loader` malformed input, new `load-sources.test.ts` (258 tests).
+
 ## [0.4.0] — 2026-05-27
 
 Multi-component recipe output + Token Scan view. The allow-list expands
