@@ -152,9 +152,11 @@ export function buildComponentRecipes(
     if ("error" in resolved) continue;
 
     // Redirect non-suffix tokens to the default size variant when the utility
-    // type has size-suffixed siblings in the graph.
+    // type has size-suffixed siblings in the graph. State-prefixed tokens
+    // (statePrefix set, variantKey null) are NOT non-suffix defaults — they
+    // emit a `focus:`/`hover:` utility on base and must skip this redirect.
     let effectiveMapping = mapping;
-    if (mapping.variantKey === null) {
+    if (mapping.variantKey === null && mapping.statePrefix == null) {
       const presenceKey = `${componentName}|${mapping.utilityType}`;
       const sizesPresent = utilityHasSizeVariants.get(presenceKey);
       if (sizesPresent && sizesPresent.size > 0) {

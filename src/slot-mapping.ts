@@ -192,15 +192,20 @@ function buildEntry(
       variantKey: ctx.size,
     };
   }
-  if (ctx.state !== null) {
-    // Back-compat: tokens like `button-rounded-focus` still bucket by state.
-    // normalizeState maps "hovered" → "hover" so bare ...-hovered tokens
-    // bucket under the canonical "hover" key.
+  if (ctx.state !== null && ctx.state !== "default") {
+    // A bare state suffix with no variant/size/color context (e.g.
+    // `button-rounded-focus`, `checkbox-bg-checked`) emits a Tailwind
+    // pseudo-class prefix on the base slot (`focus:rounded-md`), NOT a
+    // `variants.state` axis. Nuxt UI v4 has no `state` prop, so a state
+    // variant renders dead config that never applies. normalizeState maps
+    // "hovered" → "hover". `default` is the base look (not a pseudo-class)
+    // and falls through to the unprefixed base entry below.
     return {
       slot,
       utilityType,
-      variantAxis: "state",
-      variantKey: normalizeState(ctx.state),
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: normalizeState(ctx.state),
     };
   }
   return {

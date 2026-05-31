@@ -143,12 +143,25 @@ describe("heuristicSlotMapping — variant axis (solid/outline/ghost/link)", () 
     });
   });
 
-  it("preserves back-compat: state-only bucketing when no variant axis", () => {
+  it("emits a state suffix without a variant axis as a base pseudo-class prefix", () => {
+    // `button-rounded-focus` has no variant/size/color context, so the state
+    // becomes a `focus:` prefix on base (→ `focus:rounded-md`), NOT a dead
+    // `variants.state` axis that Nuxt UI v4 has no prop for.
     expect(heuristicSlotMapping("button-rounded-focus")).toEqual({
       slot: "base",
       utilityType: "rounded",
-      variantAxis: "state",
-      variantKey: "focus",
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: "focus",
+    });
+  });
+
+  it("treats a bare `default` state as the base look (no prefix, no axis)", () => {
+    expect(heuristicSlotMapping("button-rounded-default")).toEqual({
+      slot: "base",
+      utilityType: "rounded",
+      variantAxis: null,
+      variantKey: null,
     });
   });
 
@@ -211,9 +224,9 @@ describe("color-role variant axis (prefix position)", () => {
 });
 
 describe("extra state keys", () => {
-  it("recognizes checked as a state, bucketing by state when no variant", () => {
+  it("recognizes checked as a state, emitting a base `checked:` prefix when no variant", () => {
     expect(heuristicSlotMapping("checkbox-bg-checked")).toEqual({
-      slot: "base", utilityType: "bg-color", variantAxis: "state", variantKey: "checked",
+      slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null, statePrefix: "checked",
     });
   });
   it("normalizes hovered to a hover state prefix under a variant", () => {

@@ -260,6 +260,32 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     expect(recipes.button?.variants.variant?.solid?.base).toBe("focus:ring-[#6F82C2]");
   });
+
+  it("a bare state token (no variant) emits a base pseudo-class prefix, not a dead variants.state", () => {
+    // Regression: `button-radius-focus` used to bucket into variants.state.focus,
+    // which Nuxt UI v4 never applies (no `state` prop). It must fold into base
+    // as `focus:rounded-md`, which the pseudo-class actually triggers.
+    const graph = makeGraph([
+      makeNode({ id: "button-radius-focus", layer: "component", type: "dimension", source: "global", base: "6px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("focus:rounded-md");
+    expect(recipes.button?.variants.state).toBeUndefined();
+  });
+
+  it("keeps a state-prefixed token out of the non-suffix default-size redirect", () => {
+    // padding-y has size siblings, so a NON-suffix padding-y would be redirected
+    // into variants.size. A focus-state padding-y must NOT be swallowed by that
+    // logic — it emits focus:py-* on base.
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-y-sm", layer: "component", type: "dimension", source: "global", base: "4px" }),
+      makeNode({ id: "button-padding-y-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "button-padding-y-focus", layer: "component", type: "dimension", source: "global", base: "12px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base).toContain("focus:py-3"); // 12px → py-3
+    expect(recipes.button?.variants.state).toBeUndefined();
+  });
 });
 
 describe("buildComponentRecipes — semantic var references for colors", () => {

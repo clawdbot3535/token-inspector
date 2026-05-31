@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.4] — 2026-05-31
+
+### Fixed
+
+- **State tokens without a variant context emitted dead config.** A token like
+  `button-radius-focus` (also `gap-focus`, `padding-y-focus`) parsed to a
+  `variants.state.focus` axis and rendered `ui.button.variants.state.focus` —
+  but Nuxt UI v4 has no `state` prop (focus/hover/active are pseudo-states), so
+  the block was never applied. Such a token now emits a Tailwind pseudo-class
+  prefix on the base slot (`focus:rounded-md`), which the pseudo-class actually
+  triggers — matching how color-state tokens (`button-solid-bg-hover` →
+  `hover:bg-[…]`) already behaved. Fixed the slot-mapping grammar
+  (`src/slot-mapping.ts`, bare-state branch) and excluded state-prefixed tokens
+  from the non-suffix→default-size redirect (`src/recipe-engine.ts`). A bare
+  `default` state now correctly maps to the unprefixed base look. +3 regression
+  tests; verified end-to-end against the real export (the dead `variants.state`
+  block is gone, `focus:rounded-md` now lands in `slots.base`).
+
 ## [0.4.3] — 2026-05-31
 
 Tooling, test-safety, and a preview-display fix.
