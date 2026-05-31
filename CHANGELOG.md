@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.4.3] — 2026-05-31
+
+Tooling, test-safety, and a preview-display fix.
+
+### Fixed
+
+- **`DimensionRuler` scales by unit.** The dimension bar treated every numeric
+  value as pixels, so a `2rem` token drew a 2px bar and negative lengths drew
+  nothing with no indication. It now normalizes rem/em to px, hides the bar for
+  non-length units (`%`, `vw`, `calc()`), and draws an empty bar for negative
+  lengths while the value text still reports the real number
+  (`src/app/components/DimensionRuler.vue`).
+
+### Added
+
+- **CI** — `.github/workflows/ci.yml` runs typecheck + tests + build +
+  `build:tokens` on push/PR (the pre-commit hook had claimed CI parity that
+  didn't exist).
+- **Coverage** — `@vitest/coverage-v8` + a `coverage` script and config.
+- **Golden `app.config.ts` snapshot** pinning the exact emitted structure, and a
+  **Tailwind-version pin** test asserting the generated defaults table matches
+  the installed `tailwindcss` (fails loud on an un-regenerated bump).
+- **`scripts/build-cli.ts` is now type-checked** — `typecheck` runs
+  `vue-tsc -b && tsc -p tsconfig.scripts.json` (the CLI was previously in no
+  tsconfig).
+
+### Changed (internal)
+
+- `LiveButton` builds the disabled-cell style immutably (spread, no mutation).
+- Comment honesty: removed stale legacy/PR-era references in the CLI header,
+  `slot-mapping`, `recipe-engine`, and the `deriveRoles`/`nearestUtilityHint`
+  reserved stubs.
+
 ## [0.4.2] — 2026-05-31
 
 Scan-quality and test-infrastructure patch.
