@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.4.2] — 2026-05-31
+
+Scan-quality and test-infrastructure patch.
+
+### Added
+
+- **`single-mode-semantic` scan warning.** A semantic token defined for only
+  one of light/dark (e.g. present only in `dark.tokens.json`) cannot classify
+  as `theme-mode-variant`, so the cascade emits its sole value as a static
+  `@theme` entry that renders in **both** modes — a dark-only token shows its
+  dark value in light mode. The Scan view now surfaces this as a warning
+  instead of silently mis-rendering (`src/scanner.ts`).
+
+### Changed (internal)
+
+- **Vue component-test infrastructure.** Added `@vue/test-utils` + `jsdom` and
+  wired the Vue plugin into `vitest.config.ts` so `.vue` SFCs compile in tests
+  (engine tests stay in the node environment; component tests opt into jsdom
+  per-file). Extracted `projectToState` out of `LiveButton.vue` into
+  `src/app/project-to-state.ts` and added unit + mounted-component tests. Suite
+  grows to 270 tests.
+
 ## [0.4.1] — 2026-05-31
 
 Preview-fidelity and output-parity patch. No new features. Fixes a class of
