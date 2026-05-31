@@ -21,5 +21,19 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts"],
     environment: "node",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      // Measure the source we ship; exclude generated tables, type-only
+      // contracts, entrypoints and test files. No threshold gate yet — the
+      // UI layer is only partially covered (see PROJECT-ANALYSIS.md).
+      include: ["src/**/*.{ts,vue}"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/**/*.d.ts",
+        "src/tailwind-defaults.generated.ts",
+        "src/app/main.ts",
+      ],
+    },
   },
 });

@@ -10,7 +10,8 @@
     "build:tokens": "tsx scripts/build-cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "vue-tsc --noEmit",
+    "coverage": "vitest run --coverage",
+    "typecheck": "vue-tsc -b && tsc -p tsconfig.scripts.json",
     "extract-tailwind-defaults": "node scripts/extract-tailwind-defaults.mjs",
     "prepare": "husky"
   },
@@ -24,6 +25,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.2.0",
+    "@vitest/coverage-v8": "2.1.9",
     "@vue/test-utils": "2.4.10",
     "@vue/tsconfig": "^0.7.0",
     "husky": "^9.1.7",

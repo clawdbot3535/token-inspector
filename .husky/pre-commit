@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
-# Pre-commit gate: same checks Vercel runs in CI.
-# Catches TS strict-mode regressions (vue-tsc) and broken tests before
-# they leave the local machine.
+# Pre-commit gate: a subset of the GitHub Actions CI checks
+# (.github/workflows/ci.yml) — typecheck + tests. CI additionally runs the
+# full build and the token-pipeline CLI. Catches TS strict-mode regressions
+# (vue-tsc -b across app + node + scripts) and broken tests before they leave
+# the local machine.
 
 set -e
 
