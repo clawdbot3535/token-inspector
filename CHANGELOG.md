@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.5] — 2026-05-31
+
+### Fixed
+
+- **Inspector highlight now matches the recipe for arbitrary-value and color
+  tokens.** Selecting a token like `ring-offset` (also `height`, `width`,
+  `line-height`, `letter-spacing`, `font-family`, `padding`, and all color
+  tokens) highlighted nothing — in the code preview *and* the live-preview chip.
+  The Inspector re-derived the class through the shadow-node classification path
+  only, computing e.g. `ring-offset-1` while the recipe engine emitted
+  `ring-offset-[4px]`, so the strings never matched. Extracted
+  `utilityForMapping` in `recipe-engine.ts` as the single source of truth for
+  the emitted class, now shared by `buildComponentRecipes` and the Inspector's
+  highlight resolver (`App.vue`). Verified byte-identical recipe output (golden
+  snapshot) and exact highlight↔recipe match on the real export.
+
+### Changed (internal)
+
+- Removed the now-dead `state` variant axis (state tokens have emitted
+  pseudo-class prefixes since v0.4.4): the `VariantAxis` member,
+  `ComponentRecipe.variants.state`, `CompletenessScore.axis: "state"`, and the
+  app-config state branch.
+
 ## [0.4.4] — 2026-05-31
 
 ### Fixed

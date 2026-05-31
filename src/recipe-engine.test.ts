@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildComponentRecipes } from "./recipe-engine.js";
+import { buildComponentRecipes, utilityForMapping } from "./recipe-engine.js";
 import type { TokenGraph, TokenNode, GraphLayer, TokenType, SourceLayer } from "./token-graph.js";
 
 function makeNode(opts: {
@@ -285,6 +285,32 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     expect(recipes.button?.slots.base).toContain("focus:py-3"); // 12px → py-3
     expect(Object.keys(recipes.button?.variants ?? {})).not.toContain("state");
+  });
+});
+
+describe("utilityForMapping — highlight/recipe parity", () => {
+  // Regression: the Inspector's highlight resolver used to re-derive the class
+  // through the shadow-node path only, so an arbitrary-value type like
+  // ring-offset computed `ring-offset-1` while the recipe emitted
+  // `ring-offset-[4px]` — no match, no highlight. Both now share this function.
+  it("emits the arbitrary class for ring-offset, matching the recipe's base token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-ring-offset", layer: "component", type: "dimension", source: "global", base: "4px" }),
+    ]);
+    const node = graph.nodes.get("button-ring-offset")!;
+    const util = utilityForMapping(graph, node, "ring-offset", "4px");
+    expect(util).toBe("ring-offset-[4px]");
+
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect((recipes.button?.slots.base ?? "").split(/\s+/)).toContain(util);
+  });
+
+  it("emits a scale class for a non-arbitrary type (rounded), also matching the recipe", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-radius", layer: "component", type: "dimension", source: "global", base: "6px" }),
+    ]);
+    const node = graph.nodes.get("button-radius")!;
+    expect(utilityForMapping(graph, node, "rounded", "6px")).toBe("rounded-md");
   });
 });
 

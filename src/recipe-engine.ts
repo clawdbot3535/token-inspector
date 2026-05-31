@@ -5,7 +5,7 @@
 // Allow-list: pass `{ components: [...] }` to scope output to specific
 // components (the renderer passes the full 15-component standard set).
 
-import type { TokenGraph, TokenId } from "./token-graph.js";
+import type { TokenGraph, TokenId, TokenNode } from "./token-graph.js";
 import { classifyToken } from "./classify-token.js";
 import { resolveTokenToValue } from "./resolve-token.js";
 import {
@@ -60,6 +60,70 @@ function resolveColorReference(graph: TokenGraph, id: TokenId): ColorReference {
   return { kind: "literal", value: resolved.value };
 }
 
+// Utility types that carry color values; emitted directly as arbitrary-value
+// classes (with a var()/literal inner) without shadow-node scale matching.
+const COLOR_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
+  "bg-color",
+  "text-color",
+  "border-color",
+  "ring-color",
+  "underline-color",
+  "placeholder-color",
+  "overlay-bg",
+]);
+
+// Utility types that always emit arbitrary-value classes from the resolved
+// primitive value, bypassing Tailwind-default scale matching ("40px", "Inter").
+const ARBITRARY_VALUE_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
+  "height",
+  "width",
+  "line-height",
+  "letter-spacing",
+  "ring-offset",
+  "font-family",
+  "padding",
+]);
+
+/**
+ * Single source of truth for "what Tailwind utility class does this component
+ * token emit". Used by buildComponentRecipes for recipe output AND by the
+ * Inspector to highlight the matching class — keeping the two from drifting
+ * (an arbitrary type like `ring-offset` emits `ring-offset-[4px]`, not the
+ * scale class the shadow-node path alone would produce). Returns the bare
+ * utility; callers apply any statePrefix. `resolvedValue` is the token's
+ * already-resolved terminal value.
+ */
+export function utilityForMapping(
+  graph: TokenGraph,
+  node: TokenNode,
+  utilityType: UtilityType,
+  resolvedValue: string,
+  remBase?: number,
+): string | null {
+  if (COLOR_UTILITY_TYPES.has(utilityType)) {
+    const colorRef = resolveColorReference(graph, node.id);
+    const inner =
+      colorRef.kind === "var"
+        ? `var(--${colorRef.targetId})`
+        : colorRef.kind === "literal"
+          ? colorRef.value
+          : resolvedValue;
+    return `${prefixForUtility(utilityType)}[${escapeArbitrary(inner)}]`;
+  }
+  if (ARBITRARY_VALUE_TYPES.has(utilityType)) {
+    return `${prefixForUtility(utilityType)}[${escapeArbitrary(resolvedValue)}]`;
+  }
+  // Fabricate a shadow node with a canonical primitive-style id so
+  // classifyToken's tailwindCategoryFor picks the right category (radius,
+  // font-size, …) instead of falling through to the "spacing" default.
+  const classification = classifyToken(
+    { ...node, id: shadowIdFor(utilityType), layer: "primitive", cssValue: { base: resolvedValue } },
+    graph,
+    { remBase },
+  );
+  return utilityFor(utilityType, classification);
+}
+
 export interface ComponentRecipe {
   slots: Partial<Record<RecipeSlot, string>>;
   variants: {
@@ -112,32 +176,6 @@ export function buildComponentRecipes(
     set.add(mapping.variantKey);
   }
 
-  // Set of utility types that carry color values; the recipe-engine emits
-  // these directly as Tailwind arbitrary-value classes without going
-  // through the shadow-node tailwind-default matching.
-  const COLOR_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
-    "bg-color",
-    "text-color",
-    "border-color",
-    "ring-color",
-    "underline-color",
-    "placeholder-color",
-    "overlay-bg",
-  ]);
-
-  // Set of utility types that always emit arbitrary-value classes from the
-  // resolved primitive value, bypassing Tailwind-default scale matching.
-  // Values like "40px", "1.5", "Inter" have no Tailwind scale entry.
-  const ARBITRARY_VALUE_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
-    "height",
-    "width",
-    "line-height",
-    "letter-spacing",
-    "ring-offset",
-    "font-family",
-    "padding",
-  ]);
-
   for (const node of graph.nodes.values()) {
     if (node.layer !== "component") continue;
 
@@ -173,54 +211,16 @@ export function buildComponentRecipes(
       }
     }
 
-    // Color utilities never match a Tailwind default — short-circuit
-    // the shadow-node classification step and emit an arbitrary-value
-    // class. Prefer var(--semantic-id) over baked-in hex so dark-mode
-    // overrides in tokens.css cascade through automatically; fall back
-    // to the literal value when no aliased semantic ancestor exists.
-    let utility: string | null;
-    if (COLOR_UTILITY_TYPES.has(effectiveMapping.utilityType)) {
-      const colorRef = resolveColorReference(graph, node.id);
-      let inner: string;
-      switch (colorRef.kind) {
-        case "var":
-          inner = `var(--${colorRef.targetId})`;
-          break;
-        case "literal":
-          inner = colorRef.value;
-          break;
-        case "unresolved":
-          // Defensive — earlier resolveTokenToValue already returned a
-          // value, so this branch is practically unreachable. Fall back
-          // to the terminal value we already have.
-          inner = resolved.value;
-          break;
-      }
-      utility =
-        `${prefixForUtility(effectiveMapping.utilityType)}[${escapeArbitrary(inner)}]`;
-    } else if (ARBITRARY_VALUE_TYPES.has(effectiveMapping.utilityType)) {
-      // Arbitrary-value types (height, width, line-height, etc.) always emit
-      // directly from the resolved primitive value — no Tailwind scale exists.
-      utility = `${prefixForUtility(effectiveMapping.utilityType)}[${escapeArbitrary(resolved.value)}]`;
-    } else {
-      const classification = classifyToken(
-        // Fabricate a tiny shadow node carrying the resolved primitive value so
-        // classifyToken does not skip it as component-layer.
-        // Override the id with a canonical primitive id so tailwindCategoryFor
-        // picks the right Tailwind category (radius, font-size, etc.) instead
-        // of falling through to the "spacing" default.
-        {
-          ...node,
-          id: shadowIdFor(effectiveMapping.utilityType),
-          layer: "primitive",
-          cssValue: { base: resolved.value },
-        },
-        graph,
-        { remBase: options.remBase },
-      );
-
-      utility = utilityFor(effectiveMapping.utilityType, classification);
-    }
+    // Single source of truth for the emitted class — shared with the
+    // Inspector's highlight resolver so they never drift. Handles color,
+    // arbitrary-value, and shadow-node-classified utility types.
+    let utility = utilityForMapping(
+      graph,
+      node,
+      effectiveMapping.utilityType,
+      resolved.value,
+      options.remBase,
+    );
     if (!utility) continue;
 
     // Apply pseudo-class state prefix when set (e.g. button-solid-bg-hover

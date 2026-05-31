@@ -23,9 +23,8 @@ import SummaryPanel from "./components/SummaryPanel.vue";
 import OutputSection from "./components/OutputSection.vue";
 import { useClassifications } from "./classifications.js";
 import { resolveTokenToValue } from "@core/resolve-token.js";
-import { classifyToken } from "@core/classify-token.js";
 import { getSlotMapping } from "@core/slot-mapping.js";
-import { shadowIdFor, prefixForUtility, utilityFor } from "@core/recipe-engine.js";
+import { utilityForMapping } from "@core/recipe-engine.js";
 import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
@@ -149,18 +148,11 @@ const selectedVueTemplateClasses = computed<string | undefined>(() => {
   const resolved = resolveTokenToValue(id, graph);
   if ("error" in resolved) return undefined;
 
-  // Fabricate a shadow node with a canonical primitive-style id so
-  // classifyToken's tailwindCategoryFor picks the right category.
-  // Same technique used by the recipe engine for per-graph resolution.
-  const shadowNode = {
-    ...node,
-    id: shadowIdFor(mapping.utilityType),
-    layer: "primitive" as const,
-    cssValue: { base: resolved.value },
-  };
-  const classification = classifyToken(shadowNode, graph);
-
-  const base = utilityFor(mapping.utilityType, classification);
+  // Reuse the recipe engine's emit logic so the highlighted class always
+  // matches what the recipe actually produced — color and arbitrary-value
+  // types (e.g. ring-offset → `ring-offset-[4px]`) would otherwise resolve to
+  // a different scale class through the shadow-node path alone.
+  const base = utilityForMapping(graph, node, mapping.utilityType, resolved.value);
   if (base == null) return undefined;
   return mapping.statePrefix != null ? `${mapping.statePrefix}:${base}` : base;
 });
