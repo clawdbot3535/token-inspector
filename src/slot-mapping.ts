@@ -21,8 +21,8 @@
 //   The optional last segment <size|state> is recognised against SIZE_KEYS
 //   or STATE_KEYS.
 //
-// PR 2 ships with conventions for the `button` component. Other
-// components follow in later PRs.
+// The same id grammar applies to every component in the standard set
+// (button, badge, input, …); `button` is used as the running example below.
 
 export type RecipeSlot = "base" | "leadingIcon" | "trailingIcon" | "label";
 export type UtilityType =

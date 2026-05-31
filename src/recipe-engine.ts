@@ -2,7 +2,8 @@
 // value via the existing classification engine, and assembles
 // Nuxt UI v4 { slots, variants } recipes per component.
 //
-// Allow-list: pass `{ components: ['button'] }` to scope output.
+// Allow-list: pass `{ components: [...] }` to scope output to specific
+// components (the renderer passes the full 15-component standard set).
 
 import type { TokenGraph, TokenId } from "./token-graph.js";
 import { classifyToken } from "./classify-token.js";

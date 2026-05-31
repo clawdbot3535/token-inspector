@@ -102,9 +102,10 @@ export const appConfigRenderer: AppConfigRenderer = {
 };
 
 /**
- * Heuristic role derivation from the graph's semantic palette names.
- * Returns DEFAULT_ROLES — Inspector's "suggestion" framing is honest
- * because we have not yet implemented hue-proximity matching.
+ * Returns the fixed DEFAULT_ROLES mapping. Hue-proximity matching against the
+ * graph's semantic palette is not implemented; the `_graph` parameter is kept
+ * so a future heuristic can read it without changing the call site. The
+ * Inspector frames the output as a "suggestion", so a constant mapping is honest.
  */
 function deriveRoles(_graph: TokenGraph): RoleMapping {
   return DEFAULT_ROLES;

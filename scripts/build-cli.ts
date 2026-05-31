@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 // Typed CLI for the Tailwind-utility-first pipeline.
-// Reads components/*.tokens.json, builds the graph, classifies every
-// token, and writes the new tokens.css + app.config.ts to output/css/
-// and output/nuxt/. The legacy build-tokens.mjs remains untouched and
-// continues to write output/* in parallel during the transition window.
+// Reads components/*.tokens.json, builds the graph, classifies every token,
+// scans for issues, and writes tokens.css + app.config.ts to output/css/ and
+// output/nuxt/.
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";

@@ -132,12 +132,13 @@ const variantRows = computed<VariantRow[]>(() => {
       const projected = projectToState(merged, state);
       const { classes: buttonClasses, style } = extractArbitrary(projected);
       // Disabled state also gets the standard opacity/cursor cue so the
-      // preview matches what users perceive in real apps.
-      if (state === "disabled") {
-        (style as Record<string, string>).opacity = "0.6";
-        (style as Record<string, string>).cursor = "not-allowed";
-      }
-      return { label: state, buttonClasses, style };
+      // preview matches what users perceive in real apps. Spread into a new
+      // object rather than mutating the style returned by extractArbitrary.
+      const cellStyle: CSSProperties =
+        state === "disabled"
+          ? { ...style, opacity: "0.6", cursor: "not-allowed" }
+          : style;
+      return { label: state, buttonClasses, style: cellStyle };
     });
 
     return {

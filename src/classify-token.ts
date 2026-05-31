@@ -230,9 +230,10 @@ function nearestUtilityHint(
   _value: string,
   _remBase?: number,
 ): { utility: string; resolvedValue: string } | undefined {
-  // PR 1 ships without nearest-neighbor computation. The hint field is
-  // reserved; the Inspector simply omits the subline when undefined.
-  // PR 2 may fill this in if the visual review surfaces real need.
+  // Intentional no-op: nearest-neighbour computation is not implemented. The
+  // `utilityHint` field is reserved for it; the Inspector simply omits the
+  // subline while this returns undefined. `value`/`remBase` are accepted so the
+  // signature is ready to fill in without touching call sites.
   void category;
   return undefined;
 }
