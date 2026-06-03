@@ -76,12 +76,13 @@ ring-color) for ring-framed components, expressed in slot-mapping rather than ha
 Touches the slot grammar / a remap rule; weigh against keeping border for genuinely
 border-framed components elsewhere.
 
-**FIXED 2026-06-04 (partial):** ring-framed components with a clean base ring —
-`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal` — now emit
-`ring-*` for their `border-*` tokens via `RING_FRAMED_COMPONENTS` in the grammar.
-Variant-conditional/special framers (`button`, `badge`, `card`, `chip`, `switch`)
-remain deferred to **D2b**; `table`/`nav` keep genuine CSS borders. See
-`docs/superpowers/specs/2026-06-04-d2-border-to-ring-design.md`.
+**FIXED 2026-06-04 (partial):** ring-framed components with a base-slot ring —
+`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip` —
+now emit `ring-*` for their `border-*` tokens via `RING_FRAMED_COMPONENTS` in the
+grammar. Still deferred to **D2c**: `button` and `badge` (ring is variant/color-
+conditional). Not remapped: `switch` (transparent sizing `border-2`, not a frame),
+`table`/`nav` (genuine CSS borders). See
+`docs/superpowers/specs/2026-06-04-d2b-card-chip-ring-design.md`.
 
 ---
 

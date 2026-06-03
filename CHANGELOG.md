@@ -23,10 +23,10 @@
 - **Ring-framed components emit `ring-*` for their `border-*` tokens.** Nuxt UI v4
   form fields and several other components draw their frame as a Tailwind ring
   (with `border-0`), not a CSS border. `input`, `textarea`, `checkbox`, `radio`,
-  `kbd`, `dropdown`, and `modal` border tokens now emit `ring-[…]` (resting, hover,
-  focus, …) instead of `border-[…]`, removing the double frame on focus. Variant-
-  conditional framers (button, badge, card, chip, switch) are deferred; `table`/`nav`
-  keep genuine borders.
+  `kbd`, `dropdown`, `modal`, `card`, and `chip` border tokens now emit `ring-[…]`
+  (resting, hover, focus, …) instead of `border-[…]`, removing the double frame on
+  focus. `button`/`badge` (variant/color-conditional rings) are deferred; `switch`
+  (sizing border) and `table`/`nav` (genuine borders) are not remapped.
 - **Component `text` color tokens emit themeable `var(--…)` again.** A bare `text`
   utility was classified as `text-size` unless a variant/color-role axis was present, so
   axis-less color tokens (`input-text`, `input-text-disabled`, `textarea/text`) leaked a
