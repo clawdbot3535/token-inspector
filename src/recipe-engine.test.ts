@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildComponentRecipes, utilityForMapping } from "./recipe-engine.js";
-import type { TokenGraph, TokenNode, GraphLayer, TokenType, SourceLayer } from "./token-graph.js";
+import type { TokenGraph, TokenNode, GraphLayer, TokenType, SourceLayer, SourceFile } from "./token-graph.js";
+import { buildGraph } from "./build-graph.js";
 
 function makeNode(opts: {
   id: string;
@@ -637,5 +638,75 @@ describe("robustness — messy/inconsistent tokens degrade gracefully", () => {
     }).not.toThrow();
     expect(recipes!.card?.slots.base).toContain("p-[8px]");
     expect(JSON.stringify(recipes!)).not.toContain("frobnicate");
+  });
+});
+
+// Mirrors the real `input` subtree in components/global.tokens.json (literal
+// values so the snapshot is hermetic — the real export resolves these to
+// var() refs, which the CLI e2e step in the plan verifies separately).
+//
+// Uses buildGraph() (the full raw-token → recipe pipeline) on purpose, unlike
+// the makeGraph()-based unit tests above — this exercises the parser→recipe
+// seam end to end. Integer $values (e.g. 36, 6) are resolved to CSS by
+// buildGraph (36 → h-[36px], font-size 14 → the text-sm scale step).
+function inputGraph() {
+  const global = {
+    input: {
+      border: { $value: "#D4D4D8", $type: "color" },
+      "border-hover": { $value: "#A1A1AA", $type: "color" },
+      "border-focus": { $value: "#3B82F6", $type: "color" },
+      "border-disabled": { $value: "#E4E4E7", $type: "color" },
+      "border-error": { $value: "#EF4444", $type: "color" },
+      "border-success": { $value: "#22C55E", $type: "color" },
+      "bg-disabled": { $value: "#F4F4F5", $type: "color" },
+      text: { $value: "#18181B", $type: "color" },
+      "text-disabled": { $value: "#A1A1AA", $type: "color" },
+      placeholder: { $value: "#71717A", $type: "color" },
+      "placeholder-disabled": { $value: "#D4D4D8", $type: "color" },
+      "solid-bg": { $value: "#FAFAFA", $type: "color" },
+      "outline-bg": { $value: "#FFFFFF", $type: "color" },
+      "ring-focus": { $value: "#3B82F6", $type: "color" },
+      height: { $value: 36, $type: "number" },
+      "padding-x": { $value: 6, $type: "number" },
+      "padding-y": { $value: 8, $type: "number" },
+      radius: { $value: 6, $type: "number" },
+      "radius-focus": { $value: 8, $type: "number" },
+      "ring-offset": { $value: 4, $type: "number" },
+      "font-size": { $value: 14, $type: "number" },
+      "font-weight": { $value: 400, $type: "number" },
+      "icon-size-md": { $value: 16, $type: "number" },
+    },
+  };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+
+describe("buildComponentRecipes — input characterisation (cycle A baseline)", () => {
+  it("pins the emitted ui.input recipe block", () => {
+    const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
+    expect(recipes["input"]).toMatchSnapshot();
+  });
+
+  it("promotes interaction-state tokens to pseudo-class prefixes on base", () => {
+    const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
+    const base = recipes["input"]?.slots.base ?? "";
+    expect(base).toContain("focus:border-[#3B82F6]");
+    expect(base).toContain("hover:border-[#A1A1AA]");
+    expect(base).toContain("disabled:bg-[#F4F4F5]");
+    expect(base).toContain("focus:rounded-lg");
+  });
+
+  it("SEED for cycle B: input-border-error/success are silently dropped (no color axis)", () => {
+    const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
+    expect(recipes["input"]?.variants.color).toBeUndefined();
+    const base = recipes["input"]?.slots.base ?? "";
+    expect(base).not.toContain("#EF4444");
+    expect(base).not.toContain("#22C55E");
+  });
+
+  it("SEED for cycle B: emits a `solid` variant that Nuxt UI input does not define", () => {
+    const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
+    expect(recipes["input"]?.variants.variant?.["solid"]).toEqual({ base: "bg-[#FAFAFA]" });
+    expect(recipes["input"]?.variants.variant?.["outline"]).toBeDefined();
   });
 });
