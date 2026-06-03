@@ -62,7 +62,7 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     if (prefix === undefined) continue;
     allComponentPrefixes.add(prefix);
     if (!allowSet.has(prefix)) continue;
-    const mapping = getSlotMapping(node.id);
+    const mapping = getSlotMapping(node.id, undefined, node.type);
     if (mapping === null) continue;
     // The scanner's data-quality checks below operate on the size axis
     // only — they treat `variantKey` as a size key. Skip tokens on other

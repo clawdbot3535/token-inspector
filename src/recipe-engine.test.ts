@@ -710,3 +710,50 @@ describe("buildComponentRecipes — input characterisation (cycle A baseline)", 
     expect(recipes["input"]?.variants.variant?.["outline"]).toBeDefined();
   });
 });
+
+describe("buildComponentRecipes — color text tokens emit var() (D1)", () => {
+  // A semantic color target + a component `text` token aliasing it via the
+  // Figma alias extension, with NO variant axis — the input shape that used to
+  // leak a hardcoded hex.
+  function aliasedTextGraph() {
+    const light = {
+      color: { text: { primary: { $value: "#18181B", $type: "color" } } },
+    };
+    const global = {
+      input: {
+        text: {
+          $value: "#18181B",
+          $type: "color",
+          $extensions: {
+            "com.figma.aliasData": { targetVariableName: "color/text/primary" },
+          },
+        },
+      },
+    };
+    const sources: SourceFile[] = [
+      { name: "light", data: light },
+      { name: "global", data: global },
+    ];
+    return buildGraph(sources);
+  }
+
+  it("emits text-[var(--color-text-primary)] for an aliased color text token", () => {
+    const recipes = buildComponentRecipes(aliasedTextGraph(), { components: ["input"] });
+    const base = recipes["input"]?.slots.base ?? "";
+    expect(base).toContain("text-[var(--color-text-primary)]");
+    expect(base).not.toContain("text-[#18181B]");
+  });
+
+  it("classifies a number-typed text token as text-size, not a color (D1 negative)", () => {
+    const global = { input: { text: { $value: 14, $type: "number" } } };
+    const recipes = buildComponentRecipes(
+      buildGraph([{ name: "global", data: global }]),
+      { components: ["input"] },
+    );
+    const base = recipes["input"]?.slots.base ?? "";
+    // number-typed `text` → text-size path, never a color var/hex.
+    expect(base).not.toContain("text-[var");
+    expect(base).not.toContain("text-[#");
+    expect(base.length).toBeGreaterThan(0); // it still emits *something* (a text-size class)
+  });
+});

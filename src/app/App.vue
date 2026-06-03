@@ -143,7 +143,7 @@ const selectedVueTemplateClasses = computed<string | undefined>(() => {
   const node = graph.nodes.get(id);
   if (!node || node.layer !== "component") return undefined;
 
-  const mapping = getSlotMapping(id);
+  const mapping = getSlotMapping(id, undefined, node.type);
   if (!mapping) return undefined;
 
   const resolved = resolveTokenToValue(id, graph);

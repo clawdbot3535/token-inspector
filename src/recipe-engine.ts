@@ -164,7 +164,7 @@ export function buildComponentRecipes(
     if (node.layer !== "component") continue;
     const componentName = node.id.split("-")[0];
     if (componentName === undefined || !allowSet.has(componentName)) continue;
-    const mapping = getSlotMapping(node.id, options.slotMappingOverride);
+    const mapping = getSlotMapping(node.id, options.slotMappingOverride, node.type);
     if (!mapping || mapping.variantKey === null) continue;
     if (mapping.variantAxis !== "size") continue;
     const key = `${componentName}|${mapping.utilityType}`;
@@ -182,7 +182,7 @@ export function buildComponentRecipes(
     const componentName = node.id.split("-")[0];
     if (componentName === undefined || !allowSet.has(componentName)) continue;
 
-    const mapping = getSlotMapping(node.id, options.slotMappingOverride);
+    const mapping = getSlotMapping(node.id, options.slotMappingOverride, node.type);
     if (!mapping) continue;
 
     const resolved = resolveTokenToValue(node.id, graph);
