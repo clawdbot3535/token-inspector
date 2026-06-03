@@ -439,4 +439,33 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
   it("leaves input-border-error null (parses to utility 'border-error', matches no rule; intercept needs exactly 'border')", () => {
     expect(heuristicSlotMapping("input-border-error")).toBeNull();
   });
+
+  it("maps card-border to ring-color (card frame is a ring)", () => {
+    expect(heuristicSlotMapping("card-border")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("maps chip-border to ring-color (chip halo is a ring)", () => {
+    expect(heuristicSlotMapping("chip-border")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("maps chip-border-active to ring-color with an active prefix", () => {
+    expect(heuristicSlotMapping("chip-border-active")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+      statePrefix: "active",
+    });
+  });
+
+  it("keeps switch-border as border-color (sizing border, excluded)", () => {
+    expect(heuristicSlotMapping("switch-border")).toEqual({
+      slot: "base", utilityType: "border-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("leaves chip-border-error null (trailing color-role, unchanged)", () => {
+    expect(heuristicSlotMapping("chip-border-error")).toBeNull();
+  });
 });

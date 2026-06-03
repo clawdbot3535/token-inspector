@@ -20,12 +20,20 @@ export const SIZE_KEYS: ReadonlySet<string> = new Set(["xs", "sm", "md", "lg", "
 
 /**
  * Components whose Nuxt UI v4 frame is a Tailwind `ring` (not a CSS border):
- * their `border-*` tokens emit `ring-*` utilities. Limited to clean base-ring
- * frames. Variant-conditional/special framers (button, badge, card, chip,
- * switch) and genuine border framers (table, nav) are intentionally excluded.
+ * their `border-*` tokens emit `ring-*` utilities. Limited to frames expressed
+ * on the base slot.
+ *
+ * Excluded on purpose:
+ * - `button`, `badge`: ring is variant/color-conditional (only outline/subtle) —
+ *   their border tokens live on the variant/color axis; needs a variant-aware
+ *   remap (D2c), not this component-level one.
+ * - `switch`: its `border-*` is a transparent `border-2` used only for sizing
+ *   (the visible state is a background fill); it is not a frame.
+ * - `table`, `nav`: genuine CSS borders (`divide-y`, `border-s`).
  */
 export const RING_FRAMED_COMPONENTS: ReadonlySet<string> = new Set([
   "input", "textarea", "checkbox", "radio", "kbd", "dropdown", "modal",
+  "card", "chip",
 ]);
 
 /** Trailing interaction-state keys → Tailwind pseudo-class prefixes. */
