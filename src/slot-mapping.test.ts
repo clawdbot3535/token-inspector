@@ -396,3 +396,47 @@ describe("heuristicSlotMapping — new utility types (Task 4)", () => {
     });
   });
 });
+
+describe("heuristicSlotMapping — border→ring for ring-framed components", () => {
+  it("maps input-border to ring-color", () => {
+    expect(heuristicSlotMapping("input-border")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("maps input-border-hover to ring-color with a hover prefix", () => {
+    expect(heuristicSlotMapping("input-border-hover")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+      statePrefix: "hover",
+    });
+  });
+
+  it("maps checkbox-border-checked to ring-color with a checked prefix", () => {
+    expect(heuristicSlotMapping("checkbox-border-checked")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+      statePrefix: "checked",
+    });
+  });
+
+  it("keeps table-border as border-color (genuine CSS border, not remapped)", () => {
+    expect(heuristicSlotMapping("table-border")).toEqual({
+      slot: "base", utilityType: "border-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("keeps button-solid-border as border-color (deferred to D2b)", () => {
+    expect(heuristicSlotMapping("button-solid-border")).toEqual({
+      slot: "base", utilityType: "border-color", variantAxis: "variant", variantKey: "solid",
+    });
+  });
+
+  it("maps modal-border to ring-color (panel frame is a ring)", () => {
+    expect(heuristicSlotMapping("modal-border")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("leaves input-border-error null (parses to utility 'border-error', matches no rule; intercept needs exactly 'border')", () => {
+    expect(heuristicSlotMapping("input-border-error")).toBeNull();
+  });
+});

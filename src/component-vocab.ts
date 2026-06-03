@@ -18,6 +18,16 @@ export const KNOWN_VARIANT_NAMES: ReadonlySet<string> = new Set([
 
 export const SIZE_KEYS: ReadonlySet<string> = new Set(["xs", "sm", "md", "lg", "xl", "2xl"]);
 
+/**
+ * Components whose Nuxt UI v4 frame is a Tailwind `ring` (not a CSS border):
+ * their `border-*` tokens emit `ring-*` utilities. Limited to clean base-ring
+ * frames. Variant-conditional/special framers (button, badge, card, chip,
+ * switch) and genuine border framers (table, nav) are intentionally excluded.
+ */
+export const RING_FRAMED_COMPONENTS: ReadonlySet<string> = new Set([
+  "input", "textarea", "checkbox", "radio", "kbd", "dropdown", "modal",
+]);
+
 /** Trailing interaction-state keys → Tailwind pseudo-class prefixes. */
 export const STATE_KEYS: ReadonlySet<string> = new Set([
   "default", "hover", "active", "disabled", "focus", "checked", "hovered",

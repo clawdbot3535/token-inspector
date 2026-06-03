@@ -39,7 +39,7 @@ describe("LiveInput", () => {
     expect(previewInputs(wrapper)).toHaveLength(0);
   });
 
-  it("renders one input per state with inline border/height (JIT-class regression)", () => {
+  it("renders one input per state with inline ring/height (JIT-class regression)", () => {
     const wrapper = mount(LiveInput, { props: { graph: inputGraph() }, ...mountOpts });
     const inputs = previewInputs(wrapper);
     // default / hover / focus / disabled
@@ -48,12 +48,12 @@ describe("LiveInput", () => {
     // height-[36px] resolves to an inline style on every cell, not the JIT.
     expect(inputs.every((i) => i.element.style.height === "36px")).toBe(true);
 
-    // Each state promotes its own border color → distinct inline borderColor.
-    const borderColors = new Set(inputs.map((i) => i.element.style.borderColor));
-    expect(borderColors.size).toBeGreaterThanOrEqual(3);
+    // Each state promotes its own ring color → distinct inline boxShadow
+    // (the input frame is a ring, not a CSS border, matching Nuxt UI).
+    const boxShadows = new Set(inputs.map((i) => i.element.style.boxShadow));
+    expect(boxShadows.size).toBeGreaterThanOrEqual(3);
 
-    // No icon-size token here → no icons → padding stays the recipe value
-    // (padding-x 6 → px-1.5 → 0.375rem), not the 2rem icon reservation.
+    // No icon-size token here → no icons → padding stays the recipe value.
     expect(inputs.every((i) => i.element.style.paddingLeft === "0.375rem")).toBe(true);
   });
 

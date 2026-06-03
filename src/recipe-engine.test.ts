@@ -690,8 +690,8 @@ describe("buildComponentRecipes — input characterisation (cycle A baseline)", 
   it("promotes interaction-state tokens to pseudo-class prefixes on base", () => {
     const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
     const base = recipes["input"]?.slots.base ?? "";
-    expect(base).toContain("focus:border-[#3B82F6]");
-    expect(base).toContain("hover:border-[#A1A1AA]");
+    expect(base).toContain("focus:ring-[#3B82F6]");
+    expect(base).toContain("hover:ring-[#A1A1AA]");
     expect(base).toContain("disabled:bg-[#F4F4F5]");
     expect(base).toContain("focus:rounded-lg");
   });
@@ -755,5 +755,36 @@ describe("buildComponentRecipes — color text tokens emit var() (D1)", () => {
     expect(base).not.toContain("text-[var");
     expect(base).not.toContain("text-[#");
     expect(base.length).toBeGreaterThan(0); // it still emits *something* (a text-size class)
+  });
+});
+
+describe("buildComponentRecipes — ring-framed border emits ring (D2)", () => {
+  function aliasedBorderGraph() {
+    const light = {
+      color: { border: { default: { $value: "#D4D4D8", $type: "color" } } },
+    };
+    const global = {
+      input: {
+        border: {
+          $value: "#D4D4D8",
+          $type: "color",
+          $extensions: {
+            "com.figma.aliasData": { targetVariableName: "color/border/default" },
+          },
+        },
+      },
+    };
+    const sources: SourceFile[] = [
+      { name: "light", data: light },
+      { name: "global", data: global },
+    ];
+    return buildGraph(sources);
+  }
+
+  it("emits ring-[var(--color-border-default)] for input-border, not a CSS border", () => {
+    const recipes = buildComponentRecipes(aliasedBorderGraph(), { components: ["input"] });
+    const base = recipes["input"]?.slots.base ?? "";
+    expect(base).toContain("ring-[var(--color-border-default)]");
+    expect(base).not.toContain("border-[");
   });
 });
