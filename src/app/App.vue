@@ -571,6 +571,7 @@ function downloadAll() {
                 :highlighted-ids="state.highlightedIds.value"
                 :expanded-paths="effectiveExpandedPaths"
                 :kind-of="kindOf"
+                :preview-components="COMPONENTS_WITH_PREVIEW"
                 @select="(id: string) => (state.selection.value = id)"
                 @toggle="toggleExpanded"
                 @select-component="(name: string) => {

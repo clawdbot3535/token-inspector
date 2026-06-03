@@ -19,9 +19,26 @@ interface Props {
   depth?: number;
   /** Classifier — returns the badge kind for a given token id (or null/undefined). */
   kindOf: (id: string) => ClassificationKind | null | undefined;
+  /**
+   * Component names that have a rendered live preview. Top-level groups whose
+   * name is in this set get a "Live" pill so designers can see at a glance
+   * which components the middle pane can visually preview.
+   */
+  previewComponents?: ReadonlySet<string>;
 }
 
 const props = withDefaults(defineProps<Props>(), { depth: 0 });
+
+/**
+ * A top-level group (depth 0) maps to a component; show the "Live" pill when
+ * that component has a preview. Deeper groups are variant sub-paths
+ * (e.g. "button/solid") and never carry the pill.
+ */
+function hasPreview(path: string): boolean {
+  if (props.depth !== 0) return false;
+  const component = path.split("/")[0] ?? path;
+  return props.previewComponents?.has(component) ?? false;
+}
 
 const emit = defineEmits<{
   (e: "select", id: string): void;
@@ -62,6 +79,11 @@ function indentPx(): string {
             {{ expandedPaths.has(node.path) ? '▾' : '▸' }}
           </span>
           <span class="font-mono text-xs flex-1 truncate">{{ node.label }}</span>
+          <span
+            v-if="hasPreview(node.path)"
+            class="text-[9px] font-medium uppercase tracking-wide px-1 py-0.5 rounded bg-primary/10 text-primary select-none"
+            title="Live preview available"
+          >Live</span>
           <span class="text-[10px] tabular-nums text-zinc-400">{{ node.count }}</span>
         </button>
         <ComponentTree
@@ -72,6 +94,7 @@ function indentPx(): string {
           :expanded-paths="expandedPaths"
           :depth="depth + 1"
           :kind-of="kindOf"
+          :preview-components="previewComponents"
           @select="(id: string) => emit('select', id)"
           @toggle="(p: string) => emit('toggle', p)"
           @select-component="(name: string) => emit('select-component', name)"
