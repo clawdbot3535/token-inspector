@@ -15,6 +15,7 @@ import ScanView from "./components/ScanView.vue";
 import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
+import LiveInput from "./components/LiveInput.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import { buildTokenTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
@@ -124,7 +125,7 @@ const selectedComponent = ref<string>("button");
 // aren't buttons — confusing. Gate the visual preview on the supported
 // set; other components still get the token tree, OutputSection, and
 // code-preview highlighting, just not the rendered chip.
-const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button"]);
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input"]);
 const previewSupported = computed(() =>
   COMPONENTS_WITH_PREVIEW.has(selectedComponent.value),
 );
@@ -619,8 +620,20 @@ function downloadAll() {
                 :variant="variantForSelected"
               />
 
-              <LiveButton
+              <LiveInput
                 v-if="
+                  previewSupported &&
+                  selectedComponent === 'input' &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :icon-name="iconForSelectedComponent"
+                :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
+              />
+              <LiveButton
+                v-else-if="
                   previewSupported &&
                   selectedNode.id.split('-')[0] === selectedComponent
                 "
@@ -669,8 +682,15 @@ function downloadAll() {
                   click a different component group to switch the preview.
                 </div>
               </div>
+              <LiveInput
+                v-if="previewSupported && selectedComponent === 'input'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :icon-name="iconForSelectedComponent"
+                :completeness="scanReport.completeness"
+              />
               <LiveButton
-                v-if="previewSupported"
+                v-else-if="previewSupported"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :icon-name="iconForSelectedComponent"
@@ -685,7 +705,8 @@ function downloadAll() {
                   <code class="font-mono">{{ selectedComponent }}</code>.
                 </div>
                 <div class="text-zinc-500">
-                  Only <code class="font-mono">button</code> has a rendered
+                  Only <code class="font-mono">button</code> and
+                  <code class="font-mono">input</code> have a rendered
                   preview today — other components produce the correct
                   <code class="font-mono">app.config.ts</code> recipe and
                   highlight on click, but the visual chip is button-specific
