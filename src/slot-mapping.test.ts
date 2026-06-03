@@ -244,6 +244,48 @@ describe("sub-element slot extension point (B seam, empty in v0.4.0)", () => {
   });
 });
 
+describe("heuristicSlotMapping — text disambiguation by value type", () => {
+  it("maps a color-typed bare text token to text-color (no variant axis)", () => {
+    expect(heuristicSlotMapping("input-text", "color")).toEqual({
+      slot: "base",
+      utilityType: "text-color",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps a number-typed font-size token to text-size", () => {
+    expect(heuristicSlotMapping("input-font-size", "number")).toEqual({
+      slot: "base",
+      utilityType: "text-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("treats a bare 'text' token as text-size when value type is not color", () => {
+    expect(heuristicSlotMapping("input-text", "number")).toEqual({
+      slot: "base",
+      utilityType: "text-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("forwards value type through getSlotMapping", () => {
+    expect(getSlotMapping("input-text", undefined, "color")?.utilityType).toBe("text-color");
+    expect(getSlotMapping("input-text", undefined, "number")?.utilityType).toBe("text-size");
+  });
+
+  it("keeps the variant-axis text-color path intact regardless of value type", () => {
+    const expected = heuristicSlotMapping("button-solid-text-default"); // baseline (no valueType)
+    expect(expected?.utilityType).toBe("text-color");
+    // passing a non-color valueType must NOT downgrade the variant path
+    expect(heuristicSlotMapping("button-solid-text-default", "number")).toEqual(expected);
+    expect(heuristicSlotMapping("button-solid-text-default", "color")).toEqual(expected);
+  });
+});
+
 describe("heuristicSlotMapping — new utility types (Task 4)", () => {
   it("maps button-height-sm to base/height/size/sm", () => {
     expect(heuristicSlotMapping("button-height-sm")).toEqual({

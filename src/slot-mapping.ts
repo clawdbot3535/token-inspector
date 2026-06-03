@@ -321,7 +321,11 @@ const HEURISTIC_RULES: ReadonlyArray<{
 /**
  * Pure heuristic mapping. Returns null if no rule matches.
  */
-export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
+export function heuristicSlotMapping(
+  tokenId: string,
+  // TokenType in practice (e.g. "color"); typed as string to keep this module a pure id-based classifier with no domain-type coupling.
+  valueType?: string,
+): SlotMappingEntry | null {
   const parsed = parseSegments(tokenId);
   if (!parsed) return null;
   const slot: RecipeSlot = parsed.slotPrefix ?? "base";
@@ -332,11 +336,13 @@ export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
     state: parsed.state,
   };
 
-  // Special disambiguation: `button-<variant>-text[-state]` or
-  // `badge-<colorRole>-text[-state]` should map to text-color (not
-  // text-size) when a variant/color axis is present. The `text` matcher
-  // in HEURISTIC_RULES uses the text-size rule, so we intercept first.
-  if ((parsed.variant !== null || parsed.colorRole !== null) && parsed.utility === "text") {
+  // `text` defaults to text-size, but it means text-color when the token is a
+  // color — signalled either by a variant/color-role axis (button/badge) or,
+  // axis-independently, by the token's value type (input/textarea text colors).
+  if (
+    parsed.utility === "text" &&
+    (valueType === "color" || parsed.variant !== null || parsed.colorRole !== null)
+  ) {
     return buildEntry(slot, "text-color", ctx);
   }
 
@@ -358,9 +364,10 @@ export function heuristicSlotMapping(tokenId: string): SlotMappingEntry | null {
 export function getSlotMapping(
   tokenId: string,
   override?: SlotMappingOverride,
+  valueType?: string,
 ): SlotMappingEntry | null {
   if (override && Object.prototype.hasOwnProperty.call(override, tokenId)) {
     return override[tokenId] ?? null;
   }
-  return heuristicSlotMapping(tokenId);
+  return heuristicSlotMapping(tokenId, valueType);
 }
