@@ -20,6 +20,12 @@
 
 ### Fixed
 
+- **Component `text` color tokens emit themeable `var(--…)` again.** A bare `text`
+  utility was classified as `text-size` unless a variant/color-role axis was present, so
+  axis-less color tokens (`input-text`, `input-text-disabled`, `textarea/text`) leaked a
+  hardcoded `text-[#hex]` instead of a semantic `var()` reference. Bare `text` is now
+  classified as `text-color` whenever the token's value type is `color`, threaded through
+  the slot-mapping grammar's call sites.
 - **Leading/trailing icon no longer overlaps the input text in the preview.**
   The recipe's `px-*` padding resolved to an inline `paddingLeft`, which beats
   any `pl-*` class, so the offset for the absolutely-positioned icon was
@@ -34,9 +40,6 @@
   `compoundVariants`, which the recipe schema lacks.
 - `input-solid-bg` emits a `solid` variant that Nuxt UI v4 `input` does not define.
 - `input-border-*` emits a CSS `border`, but a Nuxt UI input frame is a `ring`.
-- `input-text` / `input-text-disabled` emit a hardcoded hex (`text-[#…]`)
-  instead of a `var(--…)` reference — the semantic alias (`com.figma.aliasData`)
-  on these override-resolved tokens is not followed.
 
 Full detector/resolution analysis:
 `docs/superpowers/specs/2026-06-03-cycle-b-deviation-detection-seeds.md`.

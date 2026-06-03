@@ -34,49 +34,22 @@ Nuxt UI v4 `input` theme facts used below (from the Nuxt UI MCP, `get-component 
 
 ---
 
-## D1 — Lost semantic alias → hardcoded color (data-fidelity bug)
+## D1 — Bare `text` color token misclassified as `text-size` (FIXED 2026-06-03)
 
-**Smell:** a component color token emits a raw hex (`text-[#18181B]`) instead of a
-semantic `var(--…)` reference, so the value is baked in and not themeable.
+**Root cause (corrected):** the alias machinery is healthy — `input-text` resolves to
+`color-text-primary` and the color resolver returns a `var()` reference. The bug was in
+`heuristicSlotMapping` (`src/slot-mapping.ts`): a bare `text` utility only routed to
+`text-color` when a variant/color-role axis was present, so axis-less color tokens
+(`input-text`, `input-text-disabled`, `textarea/text`) fell through to `text-size`,
+bypassing the color path and leaking a hardcoded `text-[#hex]`.
 
-**Evidence (real export):** in the emitted `ui.input.slots.base`:
-- `text-[#18181B]` ← from `input-text`
-- `disabled:text-[#A1A1AA]` ← from `input-text-disabled`
+**Fix:** classify bare `text` as `text-color` when the token's value type is `color`,
+threaded through all `getSlotMapping` call sites. See
+`docs/superpowers/specs/2026-06-03-d1-text-color-classification-design.md`.
 
-Yet the **same recipe** emits `disabled:placeholder:text-[var(--color-text-disabled)]`
-and `placeholder:text-[var(--color-text-muted)]` correctly as `var()`. The inconsistency
-is visible inside one component.
-
-Root cause: both tokens carry a `com.figma.aliasData.targetVariableName` pointing into the
-`semantic` set, with `com.figma.isOverride: true`:
-- `input.text` → `color/text/primary`, `$value.hex = #18181B`
-- `input.text-disabled` → `color/state/disabled-text`, `$value.hex = #A1A1AA`
-
-The inspector follows standard DTCG `$value` aliases but **not** the Figma
-`com.figma.aliasData` on override-resolved tokens, so the semantic reference is lost and
-the resolved hex is emitted.
-
-(The exact hex differs per export — a newer Figma export showed `#282631` /
-`#8E8D9F`. The pattern, not the value, is what the detector keys on.)
-
-**Why it is wrong:** a hardcoded color does not follow dark mode or design-system color
-changes; it contradicts the project's "semantic colors become `var()`" philosophy
-(see the Token Inspector design-philosophy memory).
-
-**Detector (`hardcoded-color` / `lost-semantic-alias`):** a component color token whose
-emitted class is a literal hex while a `com.figma.aliasData.targetVariableName` semantic
-target exists → flag, naming the lost target (`color/text/primary`).
-
-**Resolution (decision for Cycle B):**
-- (a) **Inspector-side fix:** follow `com.figma.aliasData` to recover the var() reference,
-  mapping `color/text/primary` → `--color-text-primary` (same naming transform already
-  used for the var()-emitting colors). This is likely a real bug fix, not just a
-  Nuxt-mapping deviation.
-- (b) **Source-side fix:** the `figma-token-export` plugin emits the DTCG alias instead of
-  an override-resolved hex for these variables.
-
-Note: this is the one family that is partly a **bug** (lost data), distinct from the
-Nuxt-semantics deviations D2/D3.
+**Follow-up (not done):** a `hardcoded-color` detector for genuinely alias-less color
+tokens. A scan of the current export found exactly one (`modal-overlay-bg`), so this is
+deferred as low-value for now.
 
 ---
 
