@@ -8,13 +8,38 @@
   engine already emits is now pinned by a golden snapshot, and a bespoke
   `LiveInput.vue` renders the input across its real interaction states
   (default / hover / focus / disabled) with JIT-safe inline styles, matching
-  the `button` treatment. No engine or grammar changes.
+  the `button` treatment. The preview shows a leading icon (default
+  `i-lucide-search` for inputs) and a trailing icon (default
+  `i-lucide-chevron-down`), both rendered when the recipe declares an
+  icon-size token. No engine or grammar changes.
+- **`Live` pill in the component sidebar.** Top-level components that have a
+  rendered preview (`button`, `input`) now show a small `Live` pill in the
+  `ComponentTree`, driven by the same `COMPONENTS_WITH_PREVIEW` source of
+  truth as the preview gate — so the pill can never drift from actual preview
+  support.
+
+### Fixed
+
+- **Leading/trailing icon no longer overlaps the input text in the preview.**
+  The recipe's `px-*` padding resolved to an inline `paddingLeft`, which beats
+  any `pl-*` class, so the offset for the absolutely-positioned icon was
+  ignored and the icon overlapped the placeholder. `LiveInput` now reserves
+  icon space via inline padding (which composes with the recipe's inline
+  styles) instead of a class.
 
 ### Known deviations (seeds for the cycle-B detection layer)
 
-- `input-border-error` / `input-border-success` are silently dropped by the
-  recipe grammar (`<comp>-border-<colorrole>` matches no rule).
+- `input-border-error` / `input-border-success` are silently dropped, and are
+  not expressible anyway: Nuxt UI colors validation via the `color` prop ×
+  `compoundVariants`, which the recipe schema lacks.
 - `input-solid-bg` emits a `solid` variant that Nuxt UI v4 `input` does not define.
+- `input-border-*` emits a CSS `border`, but a Nuxt UI input frame is a `ring`.
+- `input-text` / `input-text-disabled` emit a hardcoded hex (`text-[#…]`)
+  instead of a `var(--…)` reference — the semantic alias (`com.figma.aliasData`)
+  on these override-resolved tokens is not followed.
+
+Full detector/resolution analysis:
+`docs/superpowers/specs/2026-06-03-cycle-b-deviation-detection-seeds.md`.
 
 ## [0.4.5] — 2026-05-31
 
