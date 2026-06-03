@@ -51,6 +51,10 @@ describe("LiveInput", () => {
     // Each state promotes its own border color → distinct inline borderColor.
     const borderColors = new Set(inputs.map((i) => i.element.style.borderColor));
     expect(borderColors.size).toBeGreaterThanOrEqual(3);
+
+    // No icon-size token here → no icons → padding stays the recipe value
+    // (padding-x 6 → px-1.5 → 0.375rem), not the 2rem icon reservation.
+    expect(inputs.every((i) => i.element.style.paddingLeft === "0.375rem")).toBe(true);
   });
 
   it("applies the disabled opacity/cursor cue to the disabled cell only", () => {
@@ -61,11 +65,14 @@ describe("LiveInput", () => {
     expect(dimmed[0]!.element.style.cursor).toBe("not-allowed");
   });
 
-  it("offsets inputs and renders a leading icon when an icon-size token exists", () => {
+  it("reserves inline padding on both sides for the leading + trailing icons when an icon-size token exists", () => {
     const global = {
       input: {
         border: { $value: "#D4D4D8", $type: "color" },
         height: { $value: 36, $type: "number" },
+        // A recipe px token that would otherwise win as an inline style — the
+        // icon reservation must override it so the glyphs don't overlap text.
+        "padding-x": { $value: 6, $type: "number" },
         "icon-size-md": { $value: 16, $type: "number" },
       },
     };
@@ -73,6 +80,9 @@ describe("LiveInput", () => {
     const wrapper = mount(LiveInput, { props: { graph: buildGraph(sources) }, ...mountOpts });
     const inputs = wrapper.findAll("input");
     expect(inputs.length).toBeGreaterThan(0);
-    expect(inputs.every((i) => i.classes().includes("pl-7"))).toBe(true);
+    // Inline padding (not a class) clears the absolutely-positioned leading
+    // (search) and trailing (chevron) icons on both sides.
+    expect(inputs.every((i) => i.element.style.paddingLeft === "2rem")).toBe(true);
+    expect(inputs.every((i) => i.element.style.paddingRight === "2rem")).toBe(true);
   });
 });

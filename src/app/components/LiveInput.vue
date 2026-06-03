@@ -10,8 +10,17 @@ interface Props {
   graph: TokenGraph | null;
   /** Component name to preview (matches a key in the token graph). */
   componentName?: string;
-  /** Lucide icon name rendered in the leading slot when the recipe declares one. */
-  iconName?: string;
+  /**
+   * Lucide icon shown in the leading slot (left), analogous to LiveButton's
+   * single icon. Defaults to a search glyph for inputs.
+   */
+  leadingIconName?: string;
+  /**
+   * Lucide icon shown in the trailing slot (right). Inputs commonly pair a
+   * leading affordance with a trailing one (e.g. a chevron); defaults to that.
+   * Both icons render only when the recipe declares an icon-size token.
+   */
+  trailingIconName?: string;
   /** Tailwind utility to highlight inside the code block (selected token's class). */
   highlightUtility?: string;
   /** Completeness scores from the scan report; renders an n/m badge when present. */
@@ -20,7 +29,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   componentName: "input",
-  iconName: "i-lucide-search",
+  leadingIconName: "i-lucide-search",
+  trailingIconName: "i-lucide-chevron-down",
   highlightUtility: undefined,
   completeness: undefined,
 });
@@ -40,6 +50,35 @@ const inputRecipe = computed(() => {
 });
 
 const baseClasses = computed<string>(() => inputRecipe.value?.slots["base"] ?? "");
+
+// Icons render only when the recipe declares an icon-size token (which the
+// slot grammar maps to the leadingIcon slot). That single signal gates BOTH
+// the leading (search) and trailing (chevron) preview icons.
+const hasIcons = computed<boolean>(() => {
+  const r = inputRecipe.value;
+  if (!r) return false;
+  if (r.slots.leadingIcon) return true;
+  for (const slots of Object.values(r.variants.size ?? {})) {
+    if (slots.leadingIcon) return true;
+  }
+  return false;
+});
+
+// The icon size comes from the recipe's icon-size token (e.g. size-4 → 16px),
+// resolved to an inline style so it never depends on the Tailwind JIT.
+const iconStyle = computed<CSSProperties>(() => {
+  const r = inputRecipe.value;
+  let cls = r?.slots.leadingIcon ?? "";
+  if (cls === "") {
+    for (const slots of Object.values(r?.variants.size ?? {})) {
+      if (slots.leadingIcon) {
+        cls = slots.leadingIcon;
+        break;
+      }
+    }
+  }
+  return extractArbitrary(cls).style;
+});
 
 interface PreviewCell {
   /** State key shown under the input. */
@@ -70,11 +109,19 @@ const stateCells = computed<PreviewCell[]>(() => {
   return INPUT_STATES.map((state) => {
     const projected = projectToState(base, state);
     const { classes: inputClasses, style } = extractArbitrary(projected);
-    // Spread into a new object rather than mutating extractArbitrary's result.
+    // Reserve room for the absolutely-positioned icons via INLINE padding.
+    // The recipe's `px-*` resolves to an inline paddingLeft/Right, and inline
+    // styles beat classes — so a `pl-*` class can't push the text clear. We
+    // override the inline padding directly: 0.5rem icon offset + 1rem icon +
+    // 0.5rem gap = 2rem on each side that carries an icon. Spread into a new
+    // object rather than mutating extractArbitrary's result.
+    const withIconPadding: CSSProperties = hasIcons.value
+      ? { ...style, paddingLeft: "2rem", paddingRight: "2rem" }
+      : style;
     const cellStyle: CSSProperties =
       state === "disabled"
-        ? { ...style, opacity: "0.6", cursor: "not-allowed" }
-        : style;
+        ? { ...withIconPadding, opacity: "0.6", cursor: "not-allowed" }
+        : withIconPadding;
     return { label: state, inputClasses, style: cellStyle };
   });
 });
@@ -85,32 +132,6 @@ const segments = computed<HighlightSegment[]>(() => highlightSegments(baseClasse
 const baseCompleteness = computed<CompletenessScore | undefined>(() =>
   props.completeness?.find((c) => c.component === props.componentName),
 );
-
-// Show a leading icon when the recipe declares a leadingIcon slot (input
-// icon-size tokens land there). The icon size resolves to an inline style.
-const hasLeadingIcon = computed<boolean>(() => {
-  const r = inputRecipe.value;
-  if (!r) return false;
-  if (r.slots.leadingIcon) return true;
-  for (const slots of Object.values(r.variants.size ?? {})) {
-    if (slots.leadingIcon) return true;
-  }
-  return false;
-});
-
-const iconStyle = computed<CSSProperties>(() => {
-  const r = inputRecipe.value;
-  let cls = r?.slots.leadingIcon ?? "";
-  if (cls === "") {
-    for (const slots of Object.values(r?.variants.size ?? {})) {
-      if (slots.leadingIcon) {
-        cls = slots.leadingIcon;
-        break;
-      }
-    }
-  }
-  return extractArbitrary(cls).style;
-});
 
 const { copy, wasJustCopied } = useCopyToClipboard();
 </script>
@@ -155,8 +176,8 @@ const { copy, wasJustCopied } = useCopyToClipboard();
         >
           <div class="relative inline-flex items-center w-full">
             <UIcon
-              v-if="hasLeadingIcon"
-              :name="iconName"
+              v-if="hasIcons"
+              :name="leadingIconName"
               class="absolute left-2 shrink-0 text-zinc-400 pointer-events-none"
               :style="iconStyle"
             />
@@ -164,9 +185,15 @@ const { copy, wasJustCopied } = useCopyToClipboard();
               type="text"
               placeholder="Placeholder"
               :aria-label="`Input preview — ${cell.label} state`"
-              :class="[cell.inputClasses, 'w-full', hasLeadingIcon ? 'pl-7' : '']"
+              :class="[cell.inputClasses, 'w-full']"
               :style="cell.style"
               :disabled="cell.label === 'disabled'"
+            />
+            <UIcon
+              v-if="hasIcons"
+              :name="trailingIconName"
+              class="absolute right-2 shrink-0 text-zinc-400 pointer-events-none"
+              :style="iconStyle"
             />
           </div>
           <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>

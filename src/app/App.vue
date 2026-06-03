@@ -340,14 +340,22 @@ const defaultIconForSelected = computed<string | undefined>(() => {
   return matchMapping(figmaMapping.value, node.id)?.defaultIcon;
 });
 
-// Lucide icon name to render inside LiveButton for the focused component.
-// Falls back to "i-lucide-rocket" so the icon slot stays visible even when
-// the figma-mapping.json hasn't been wired up.
+// Lucide icon name to render inside the live preview for the focused
+// component. Prefers the figma-mapping.json defaultIcon; otherwise uses a
+// per-component sensible default (e.g. a search glyph for inputs); finally
+// falls back to "i-lucide-rocket" so the icon slot stays visible.
+const DEFAULT_PREVIEW_ICONS: Readonly<Record<string, string>> = {
+  input: "i-lucide-search",
+};
 const iconForSelectedComponent = computed<string>(() => {
   const mapping = figmaMapping.value.components.find(
     (c) => c.prefix === selectedComponent.value,
   );
-  return mapping?.defaultIcon ?? "i-lucide-rocket";
+  return (
+    mapping?.defaultIcon ??
+    DEFAULT_PREVIEW_ICONS[selectedComponent.value] ??
+    "i-lucide-rocket"
+  );
 });
 
 async function handleFiles(files: FileList | null) {
@@ -629,7 +637,7 @@ function downloadAll() {
                 "
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
-                :icon-name="iconForSelectedComponent"
+                :leading-icon-name="iconForSelectedComponent"
                 :highlight-utility="selectedVueTemplateClasses"
                 :completeness="scanReport.completeness"
               />
@@ -687,7 +695,7 @@ function downloadAll() {
                 v-if="previewSupported && selectedComponent === 'input'"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
-                :icon-name="iconForSelectedComponent"
+                :leading-icon-name="iconForSelectedComponent"
                 :completeness="scanReport.completeness"
               />
               <LiveButton
