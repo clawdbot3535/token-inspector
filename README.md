@@ -247,7 +247,9 @@ standard set (`button`, `badge`, `input`, `textarea`, `card`, `modal`,
 component-readiness table and output forecast. Sub-element-heavy
 components are partially mapped; full slot coverage and per-component
 live previews (`LiveBadge` / `LiveInput` / …) are planned for v0.5.0+.
-See `CHANGELOG.md` for the full entry.
+See `CHANGELOG.md` for the full entry. The `input` recipe is now golden-snapshot
+verified and `LiveInput` is the first rendered preview past `button` on the
+v0.5.0 recipe-output track.
 
 ## Roadmap
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **`input` recipe verified + `LiveInput` preview.** The `ui.input` recipe the
+  engine already emits is now pinned by a golden snapshot, and a bespoke
+  `LiveInput.vue` renders the input across its real interaction states
+  (default / hover / focus / disabled) with JIT-safe inline styles, matching
+  the `button` treatment. No engine or grammar changes.
+
+### Known deviations (seeds for the cycle-B detection layer)
+
+- `input-border-error` / `input-border-success` are silently dropped by the
+  recipe grammar (`<comp>-border-<colorrole>` matches no rule).
+- `input-solid-bg` emits a `solid` variant that Nuxt UI v4 `input` does not define.
+
 ## [0.4.5] — 2026-05-31
 
 ### Fixed
