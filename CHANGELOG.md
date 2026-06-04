@@ -1,6 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.5.0] — 2026-06-04
+
+The v0.5.0 milestone: the first component recipe past `button` (`input` + `LiveInput`),
+the cycle-B deviation work (semantic-alias fix, `border`→`ring` for ring-framed
+components, the validation-color detector), and a sidebar restructured into layer
+sections.
 
 ### Added
 
@@ -49,11 +54,14 @@
   icon space via inline padding (which composes with the recipe's inline
   styles) instead of a class.
 
-### Known deviations (seeds for the cycle-B detection layer)
+### Known deviations (still open after the cycle-B work)
 
-- `input-border-error` / `input-border-success` are silently dropped, and are
-  not expressible anyway: Nuxt UI colors validation via the `color` prop ×
-  `compoundVariants`, which the recipe schema lacks.
+- **Validation colors** (`<comp>-border-<error|success>`) are now surfaced by the
+  `validation-color-via-prop` scan warning, but the recipe still emits no override — a
+  `compoundVariants` emit path is deferred (Nuxt applies them via the `color` prop).
+- **`button` / `badge` rings are variant/color-conditional** (only `outline`/`subtle`),
+  so their `border-*` tokens still emit a CSS `border` rather than a `ring` — deferred
+  (D2c) until a variant-aware remap exists.
 - `input-solid-bg` emits a `solid` variant that Nuxt UI v4 `input` does not define.
 
 Full detector/resolution analysis:

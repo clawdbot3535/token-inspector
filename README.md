@@ -240,16 +240,16 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-v0.4.0 expands the Nuxt UI v4 recipe output to the full 15-component
-standard set (`button`, `badge`, `input`, `textarea`, `card`, `modal`,
-`kbd`, `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`,
-`table`, `progress`) and ships the Token Scan view with a
-component-readiness table and output forecast. Sub-element-heavy
-components are partially mapped; full slot coverage and per-component
-live previews (`LiveBadge` / `LiveInput` / …) are planned for v0.5.0+.
-See `CHANGELOG.md` for the full entry. The `input` recipe is now golden-snapshot
-verified and `LiveInput` is the first rendered preview past `button` on the
-v0.5.0 recipe-output track.
+v0.5.0 ships the first component recipe past `button` — `input`, golden-snapshot
+verified, with a bespoke `LiveInput` preview (leading `search` / trailing
+`chevron-down` icons, JIT-safe inline styles) — plus the cycle-B deviation work:
+component `text` colors emit themeable `var(--…)` again, ring-framed components
+(`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`)
+emit `ring-*` instead of CSS `border-*`, and a `validation-color-via-prop` scan warning
+explains the dropped `error`/`success` border tokens. The sidebar is regrouped into
+collapsible `Components` / `Semantic` / `Primitives` layer sections. Still deferred:
+`button`/`badge` variant-conditional rings (D2c) and a `compoundVariants` emit path for
+validation colors. See `CHANGELOG.md` for the full entry.
 
 ## Roadmap
 
@@ -262,7 +262,8 @@ v0.5.0 recipe-output track.
 | **v0.4.1** | ✅ released | **Preview fidelity + CLI/UI output parity.** Live preview resolves recipe scale/arbitrary classes to inline styles, so heights, padding, and font-family/weight no longer depend on Tailwind's JIT; Inspector preview + download carry the same `// Incomplete in Figma` comments as the CLI; CLI scans all 15 components; scanner orphaned-size-key false positive fixed; input hardening (array-root JSON, figma-mapping, slot-mapping parse) |
 | **v0.4.2** | ✅ released | **Scan quality + test infrastructure.** `single-mode-semantic` warning (dark-only / light-only tokens that leak across modes); Vue component-test harness (`@vue/test-utils` + jsdom), `projectToState` extracted and unit-tested |
 | **v0.4.3** | ✅ released | **CI, coverage & test safety.** GitHub Actions CI (typecheck + test + build + token CLI), coverage tooling, golden `app.config.ts` snapshot, Tailwind-defaults version pin, `scripts/` type-checking; `DimensionRuler` rem/em→px scaling |
-| **v0.5.0+** | 🔭 planned | **Component recipes, one per release** — `input`, `card`, `dropdown`, `modal`, … recipe output first (the engine is component-agnostic; the tokens already exist in Figma), bespoke live previews (`LiveBadge`/`LiveInput`/…) following incrementally; `custom/<name>` component convention for deviations from the Nuxt UI standard; fonts `@theme{--font-*}` pipeline |
+| **v0.5.0** | ✅ released | **`input` recipe + `LiveInput`, cycle-B deviation work, sidebar layer sections.** `input` recipe golden-pinned + bespoke `LiveInput` preview (leading/trailing icons, JIT-safe); `Live` pill in the sidebar; D1 — bare `text` colors classified by value type so aliased tokens emit `var(--…)` again; D2/D2b — `border`→`ring` for ring-framed components (`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`) via `RING_FRAMED_COMPONENTS`; D3 — `validation-color-via-prop` scan warning for dropped `error`/`success` border tokens; sidebar regrouped into collapsible `Components`/`Semantic`/`Primitives` layer sections (`buildLayeredTree`), redundant `Component` filter chip removed |
+| **v0.5.1+** | 🔭 planned | **D2c** — `button`/`badge` variant-conditional rings (ring only on `outline`/`subtle`); **scan-area navigation rework** (filters, per-component grouping, jump-to); `compoundVariants` emit path for validation colors; remaining component recipes (`card`, `dropdown`, `modal`, …) + bespoke previews; `custom/<name>` convention; fonts `@theme{--font-*}` pipeline |
 | **Inspector read-side** | 🔭 planned | **"Load from URL"** — fetch the committed `*.tokens.json` from a raw GitHub URL instead of the manual drag (the read side of the git workflow; own brainstorm round) |
 | **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
