@@ -120,6 +120,13 @@ validation color-role) token on a component whose Nuxt theme colors that role vi
   `ui.input.compoundVariants`. This is a **new engine emit path** (compoundVariants do not
   exist today) — its own design decision / sub-cycle.
 
+**FIXED 2026-06-04 (detector only):** the dropped `<comp>-border-<error|success>` tokens
+(`input`, `textarea`, `checkbox`, `radio`, `chip`, `switch`) now produce a
+`validation-color-via-prop` scan warning explaining they are applied via Nuxt's `color`
+prop — no longer silently swallowed. The `compoundVariants` emit path was deliberately not
+built (these tokens alias shared semantic colors; no per-component override is needed). See
+`docs/superpowers/specs/2026-06-04-d3-validation-color-detector-design.md`.
+
 ---
 
 ## Cross-cutting: engine capability gaps these expose

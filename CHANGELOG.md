@@ -17,6 +17,11 @@
   `ComponentTree`, driven by the same `COMPONENTS_WITH_PREVIEW` source of
   truth as the preview gate — so the pill can never drift from actual preview
   support.
+- **Scan warning for validation-color tokens.** `<comp>-border-<error|success>` tokens
+  (e.g. `input-border-error`) no longer vanish silently. The scanner now emits a
+  `validation-color-via-prop` warning explaining Nuxt UI applies error/success through the
+  component's `color` prop (or a `UFormField`), so the token needs no recipe override — it
+  lives in the color layer.
 
 ### Fixed
 
