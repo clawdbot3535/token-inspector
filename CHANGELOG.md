@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Sidebar grouped into layer sections.** The left token tree is now split into
+  collapsible `Components` / `Semantic` / `Primitives` sections (Components expanded by
+  default), so component tokens are no longer mixed in with raw primitives. The redundant
+  `Component` filter chip was removed; `All` / `Tailwind` / `Theme` / `Dark-var` remain.
 - **`input` recipe verified + `LiveInput` preview.** The `ui.input` recipe the
   engine already emits is now pinned by a golden snapshot, and a bespoke
   `LiveInput.vue` renders the input across its real interaction states

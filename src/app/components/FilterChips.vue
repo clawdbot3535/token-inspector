@@ -26,7 +26,6 @@ const CHIPS: ReadonlyArray<ChipDef> = [
   { value: "tailwind-default", label: "Tailwind", count: (s) => s.tailwind },
   { value: "theme-static", label: "Theme", count: (s) => s.themeStatic },
   { value: "theme-mode-variant", label: "Dark-var", count: (s) => s.modeVariant },
-  { value: "skip", label: "Component", count: (s) => s.skipped },
 ];
 
 const chips = computed(() =>

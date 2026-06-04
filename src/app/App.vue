@@ -17,7 +17,7 @@ import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import LiveInput from "./components/LiveInput.vue";
 import ComponentTree from "./components/ComponentTree.vue";
-import { buildTokenTree, leafIds, ancestorPaths } from "./token-tree.js";
+import { buildTokenTree, buildLayeredTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
 import FilterChips from "./components/FilterChips.vue";
 import SummaryPanel from "./components/SummaryPanel.vue";
@@ -27,6 +27,7 @@ import { resolveTokenToValue } from "@core/resolve-token.js";
 import { getSlotMapping } from "@core/slot-mapping.js";
 import { utilityForMapping } from "@core/recipe-engine.js";
 import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
+import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
 import {
@@ -200,6 +201,19 @@ const visibleNodes = computed(() => {
 
 // Hierarchical token tree for the left sidebar.
 const tokenTree = computed(() => buildTokenTree(visibleNodes.value));
+
+// Layer sections for rendering. `tokenTree` (flat) stays for the path/leaf
+// helpers (treeLeafCount, ancestorPaths, search-expand) — same path keys/leaf ids.
+const sections = computed(() => buildLayeredTree(visibleNodes.value));
+
+// Collapsed sections. Components open by default; semantic/primitive collapsed.
+const collapsedSections = ref<ReadonlySet<GraphLayer>>(new Set(["semantic", "primitive"]));
+function toggleSection(layer: GraphLayer): void {
+  const next = new Set(collapsedSections.value);
+  if (next.has(layer)) next.delete(layer);
+  else next.add(layer);
+  collapsedSections.value = next;
+}
 
 // Persisted expansion state — Set of group paths the user has opened.
 const EXPAND_STORAGE_KEY = "inspector.tree.expanded";
@@ -573,20 +587,33 @@ function downloadAll() {
               </div>
             </div>
             <div class="flex-1 overflow-y-auto py-1">
-              <ComponentTree
-                :nodes="tokenTree"
-                :selected-id="state.selection.value"
-                :highlighted-ids="state.highlightedIds.value"
-                :expanded-paths="effectiveExpandedPaths"
-                :kind-of="kindOf"
-                :preview-components="COMPONENTS_WITH_PREVIEW"
-                @select="(id: string) => (state.selection.value = id)"
-                @toggle="toggleExpanded"
-                @select-component="(name: string) => {
-                  selectedComponent = name;
-                  state.selection.value = null;
-                }"
-              />
+              <template v-for="section in sections" :key="section.layer">
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-wider text-zinc-500 hover:bg-elevated transition-colors select-none"
+                  @click="toggleSection(section.layer)"
+                >
+                  <span class="font-semibold">
+                    {{ collapsedSections.has(section.layer) ? '▸' : '▾' }} {{ section.label }}
+                  </span>
+                  <span class="font-mono tabular-nums text-zinc-400">{{ section.count }}</span>
+                </button>
+                <ComponentTree
+                  v-if="!collapsedSections.has(section.layer)"
+                  :nodes="section.tree"
+                  :selected-id="state.selection.value"
+                  :highlighted-ids="state.highlightedIds.value"
+                  :expanded-paths="effectiveExpandedPaths"
+                  :kind-of="kindOf"
+                  :preview-components="COMPONENTS_WITH_PREVIEW"
+                  @select="(id: string) => (state.selection.value = id)"
+                  @toggle="toggleExpanded"
+                  @select-component="(name: string) => {
+                    selectedComponent = name;
+                    state.selection.value = null;
+                  }"
+                />
+              </template>
             </div>
             <ResizeHandle side="right" @pointerdown="leftPane.onPointerDown" />
           </aside>
