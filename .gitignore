@@ -29,3 +29,6 @@ coverage/
 
 # understand-anything tool cache
 .understand-anything/
+
+# superpowers brainstorm mockups
+.superpowers/
