@@ -17,7 +17,7 @@
 // Pure function — no DOM, no Vue. Consumed by ComponentTree.vue and
 // covered by token-tree.test.ts.
 
-import type { TokenNode } from "@core/token-graph.js";
+import type { TokenNode, GraphLayer } from "@core/token-graph.js";
 
 export interface TreeLeaf {
   kind: "leaf";
@@ -41,6 +41,17 @@ export interface TreeGroup {
 }
 
 export type TreeNode = TreeGroup | TreeLeaf;
+
+export interface LayerSection {
+  /** The graph layer this section represents. */
+  layer: GraphLayer;
+  /** Display label, e.g. "Components". */
+  label: string;
+  /** Path-tree for this layer's nodes (via buildTokenTree). */
+  tree: TreeNode[];
+  /** Leaf count in this section. */
+  count: number;
+}
 
 /**
  * Build a tree from a sorted list of nodes. Leaves appear before
@@ -126,6 +137,27 @@ export function buildTokenTree(nodes: readonly TokenNode[]): TreeNode[] {
   }
 
   return freeze(root);
+}
+
+const LAYER_ORDER: ReadonlyArray<{ layer: GraphLayer; label: string }> = [
+  { layer: "component", label: "Components" },
+  { layer: "semantic", label: "Semantic" },
+  { layer: "primitive", label: "Primitives" },
+];
+
+/**
+ * Partition nodes by graph layer and build a path-tree per layer.
+ * Sections come in fixed order [component, semantic, primitive];
+ * a layer with no nodes is omitted.
+ */
+export function buildLayeredTree(nodes: readonly TokenNode[]): LayerSection[] {
+  const sections: LayerSection[] = [];
+  for (const { layer, label } of LAYER_ORDER) {
+    const partition = nodes.filter((n) => n.layer === layer);
+    if (partition.length === 0) continue;
+    sections.push({ layer, label, tree: buildTokenTree(partition), count: partition.length });
+  }
+  return sections;
 }
 
 function countLeaves(nodes: readonly TreeNode[]): number {

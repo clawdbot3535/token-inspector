@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildTokenTree, leafIds, ancestorPaths } from "./token-tree.js";
+import { buildTokenTree, leafIds, ancestorPaths, buildLayeredTree } from "./token-tree.js";
 import type { TokenNode, GraphLayer, TokenType, SourceLayer } from "@core/token-graph.js";
 
 function makeNode(opts: {
@@ -114,5 +114,46 @@ describe("ancestorPaths", () => {
       makeNode({ id: "button-solid-bg", path: ["button", "solid", "bg"] }),
     ]);
     expect(ancestorPaths(tree, "doesn-t-exist")).toEqual([]);
+  });
+});
+
+describe("buildLayeredTree", () => {
+  it("returns Components / Semantic / Primitives sections in fixed order", () => {
+    const sections = buildLayeredTree([
+      makeNode({ id: "button-bg", path: ["button", "bg"], layer: "component" }),
+      makeNode({ id: "button-text", path: ["button", "text"], layer: "component" }),
+      makeNode({ id: "color-text-primary", path: ["color", "text", "primary"], layer: "semantic" }),
+      makeNode({ id: "color-blue-500", path: ["color", "blue", "500"], layer: "primitive" }),
+    ]);
+    expect(sections.map((s) => s.layer)).toEqual(["component", "semantic", "primitive"]);
+    expect(sections.map((s) => s.label)).toEqual(["Components", "Semantic", "Primitives"]);
+    expect(sections.map((s) => s.count)).toEqual([2, 1, 1]);
+    expect(sections[0]!.tree).toEqual(
+      buildTokenTree([
+        makeNode({ id: "button-bg", path: ["button", "bg"], layer: "component" }),
+        makeNode({ id: "button-text", path: ["button", "text"], layer: "component" }),
+      ]),
+    );
+  });
+
+  it("omits sections with no nodes", () => {
+    const sections = buildLayeredTree([
+      makeNode({ id: "button-bg", path: ["button", "bg"], layer: "component" }),
+      makeNode({ id: "color-blue-500", path: ["color", "blue", "500"], layer: "primitive" }),
+    ]);
+    expect(sections.map((s) => s.layer)).toEqual(["component", "primitive"]);
+  });
+
+  it("returns a single section when all nodes share a layer", () => {
+    const sections = buildLayeredTree([
+      makeNode({ id: "color-blue-500", path: ["color", "blue", "500"], layer: "primitive" }),
+      makeNode({ id: "color-red-500", path: ["color", "red", "500"], layer: "primitive" }),
+    ]);
+    expect(sections).toHaveLength(1);
+    expect(sections[0]).toMatchObject({ layer: "primitive", label: "Primitives", count: 2 });
+  });
+
+  it("returns no sections for an empty input", () => {
+    expect(buildLayeredTree([])).toEqual([]);
   });
 });
