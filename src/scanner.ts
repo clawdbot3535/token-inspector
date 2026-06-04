@@ -36,6 +36,23 @@ interface ComponentEntry {
   value: string;
 }
 
+const VALIDATION_COLOR_ROLES: ReadonlySet<string> = new Set([
+  "error", "success", "warning", "info",
+]);
+
+/**
+ * True for the dropped `<comp>-border-<error|success|warning|info>` token form —
+ * a validation color Nuxt applies via the `color` prop, not a recipe slot.
+ * Excludes `badge-error-border` (`…, error, border`) and `input-border` (no role).
+ */
+function isValidationColorBorder(id: string): boolean {
+  const segs = id.split("-");
+  if (segs.length < 3) return false; // need comp + "border" + role
+  const last = segs[segs.length - 1]!;
+  const beforeLast = segs[segs.length - 2]!;
+  return beforeLast === "border" && VALIDATION_COLOR_ROLES.has(last);
+}
+
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   const issues: ScanIssue[] = [];
   const allowSet = new Set(options.components);
@@ -63,7 +80,24 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     allComponentPrefixes.add(prefix);
     if (!allowSet.has(prefix)) continue;
     const mapping = getSlotMapping(node.id, undefined, node.type);
-    if (mapping === null) continue;
+    if (mapping === null) {
+      if (node.type === "color" && isValidationColorBorder(node.id)) {
+        issues.push({
+          id: `vc-${node.id}`,
+          category: "classification-hint",
+          severity: "warning",
+          kind: "validation-color-via-prop",
+          message:
+            `\`${node.id}\` is a validation color. Nuxt UI applies validation colors (error / success / warning / info) ` +
+            `through the component's \`color\` prop (e.g. \`color="error"\`, or a ` +
+            `\`UFormField\` on validation), not a recipe slot — it lives in the color ` +
+            `layer, so no \`ui.${prefix}\` override is emitted.`,
+          tokenIds: [node.id],
+          componentName: prefix,
+        });
+      }
+      continue;
+    }
     // The scanner's data-quality checks below operate on the size axis
     // only — they treat `variantKey` as a size key. Skip tokens on other
     // axes (variant/state) to avoid false-positive completeness warnings;
