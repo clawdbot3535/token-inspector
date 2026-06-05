@@ -70,7 +70,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, isRingFramedVariant } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant } from "./component-vocab.js";
 
 // Approach-B extension point: maps a sub-element segment (immediately after
 // the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
@@ -364,7 +364,23 @@ export function heuristicSlotMapping(
   if (parsed.utility === "border" && ringFramed) {
     return buildEntry(slot, "ring-color", ctx);
   }
-  if (parsed.utility === "border-width" && ringFramed) {
+
+  // `ring-*` tokens are the focus-ring family (ring-focus colour, ring-offset).
+  // A bare `ring-width` is the focus-ring WIDTH → ring-width with a `focus:`
+  // prefix (Nuxt `focus-visible:ring-2`). An explicit state suffix wins. (D2e)
+  if (parsed.utility === "ring-width") {
+    const entry = buildEntry(slot, "ring-width", ctx);
+    return entry.statePrefix == null ? { ...entry, statePrefix: "focus" } : entry;
+  }
+
+  // `border-width` is the RESTING frame width. On a ring-framed variant/component
+  // it is the base ring width; a *component-level* width (variant === null) on a
+  // component that frames some variants (button) is also the resting ring width.
+  // Otherwise (table, nav) it stays a CSS border-width. (D2e)
+  const restingRingWidth =
+    ringFramed ||
+    (parsed.variant === null && RING_FRAMED_VARIANTS.has(parsed.component));
+  if (parsed.utility === "border-width" && restingRingWidth) {
     return buildEntry(slot, "ring-width", ctx);
   }
 

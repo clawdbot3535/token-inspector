@@ -298,6 +298,17 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     expect(recipes.table?.slots.base).toBe("border-[1px]");
   });
 
+  it("emits ring-[1px] (resting) + focus:ring-[2px] (focus) from component-level width tokens (D2e)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+      makeNode({ id: "button-ring-width", layer: "component", type: "number", source: "global", base: "2px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    const base = recipes.button?.slots.base ?? "";
+    expect(base).toContain("ring-[1px]");
+    expect(base).toContain("focus:ring-[2px]");
+  });
+
   it("keeps a state-prefixed token out of the non-suffix default-size redirect", () => {
     // padding-y has size siblings, so a NON-suffix padding-y would be redirected
     // into variants.size. A focus-state padding-y must NOT be swallowed by that

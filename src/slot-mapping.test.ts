@@ -150,6 +150,72 @@ describe("heuristicSlotMapping — variant axis (solid/outline/ghost/link)", () 
     });
   });
 
+  it("maps component-level button-border-width to ring-width on base (D2e resting)", () => {
+    expect(heuristicSlotMapping("button-border-width")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps button-ring-width to ring-width with a forced focus prefix (D2e)", () => {
+    expect(heuristicSlotMapping("button-ring-width")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: "focus",
+    });
+  });
+
+  it("maps input-border-width to ring-width on base (input is ring-framed)", () => {
+    expect(heuristicSlotMapping("input-border-width", "number")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps input-ring-width to focus ring-width", () => {
+    expect(heuristicSlotMapping("input-ring-width", "number")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: "focus",
+    });
+  });
+
+  it("keeps a non-framed component border-width as CSS border-width (table)", () => {
+    expect(heuristicSlotMapping("table-border-width")).toEqual({
+      slot: "base",
+      utilityType: "border-width",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps button-outline-border-width to ring-width via the framed-variant path (D2e/D2c)", () => {
+    expect(heuristicSlotMapping("button-outline-border-width")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: "variant",
+      variantKey: "outline",
+    });
+  });
+
+  it("lets an explicit state suffix win over the forced focus on ring-width", () => {
+    expect(heuristicSlotMapping("button-ring-width-hover")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: "hover",
+    });
+  });
+
   it("maps button-ghost-text-active", () => {
     expect(heuristicSlotMapping("button-ghost-text-active")).toEqual({
       slot: "base",
