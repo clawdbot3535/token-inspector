@@ -247,9 +247,19 @@ component `text` colors emit themeable `var(--…)` again, ring-framed component
 (`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`)
 emit `ring-*` instead of CSS `border-*`, and a `validation-color-via-prop` scan warning
 explains the dropped `error`/`success` border tokens. The sidebar is regrouped into
-collapsible `Components` / `Semantic` / `Primitives` layer sections. Still deferred:
-`button`/`badge` variant-conditional rings (D2c) and a `compoundVariants` emit path for
-validation colors. See `CHANGELOG.md` for the full entry.
+collapsible `Components` / `Semantic` / `Primitives` layer sections.
+
+Since then a large batch has landed on `main` (unreleased): the **scan-area rework**
+(`ScanView` Issues/Readiness/Forecast tabs, severity filter, per-component grouping);
+**D2c** — `button` variant-conditional rings (`RING_FRAMED_VARIANTS`) plus `border-width`
+/`ring-width` utility types; **D2e** — `border-width`=resting / `ring-width`=focus
+semantics, with a component-level resting ring-width paired to its ring-colour so unframed
+variants get no stray ring; **prop-driven states** (`input`/`textarea` `active`→`highlight`
+prop, `state-via-prop` warning); dropping fully-transparent colour emissions; and the
+**Nuxt slot inventory** (`NUXT_SLOTS`) + an `unsupported-part` scan warning with Figma→Nuxt
+rename suggestions. Still deferred: sub-element slot routing, a typo / "did-you-mean"
+detector, rebuilding the aggregate `component-looks-custom` flag, the `custom/<name>` layer,
+a `compoundVariants` emit path, and the remaining component recipes. See `CHANGELOG.md`.
 
 ## Roadmap
 
@@ -263,7 +273,8 @@ validation colors. See `CHANGELOG.md` for the full entry.
 | **v0.4.2** | ✅ released | **Scan quality + test infrastructure.** `single-mode-semantic` warning (dark-only / light-only tokens that leak across modes); Vue component-test harness (`@vue/test-utils` + jsdom), `projectToState` extracted and unit-tested |
 | **v0.4.3** | ✅ released | **CI, coverage & test safety.** GitHub Actions CI (typecheck + test + build + token CLI), coverage tooling, golden `app.config.ts` snapshot, Tailwind-defaults version pin, `scripts/` type-checking; `DimensionRuler` rem/em→px scaling |
 | **v0.5.0** | ✅ released | **`input` recipe + `LiveInput`, cycle-B deviation work, sidebar layer sections.** `input` recipe golden-pinned + bespoke `LiveInput` preview (leading/trailing icons, JIT-safe); `Live` pill in the sidebar; D1 — bare `text` colors classified by value type so aliased tokens emit `var(--…)` again; D2/D2b — `border`→`ring` for ring-framed components (`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`) via `RING_FRAMED_COMPONENTS`; D3 — `validation-color-via-prop` scan warning for dropped `error`/`success` border tokens; sidebar regrouped into collapsible `Components`/`Semantic`/`Primitives` layer sections (`buildLayeredTree`), redundant `Component` filter chip removed |
-| **v0.5.1+** | 🔭 planned | **D2c** — `button`/`badge` variant-conditional rings (ring only on `outline`/`subtle`); **scan-area navigation rework** (filters, per-component grouping, jump-to); `compoundVariants` emit path for validation colors; remaining component recipes (`card`, `dropdown`, `modal`, …) + bespoke previews; `custom/<name>` convention; fonts `@theme{--font-*}` pipeline |
+| **Unreleased** (on `main`) | 🚢 | **Variant-conditional rings, width semantics, scan rework, capability hints.** Scan-area rework (`ScanView` Issues/Readiness/Forecast tabs + severity filter + per-component grouping); **D2c** — `button` variant-conditional rings (`RING_FRAMED_VARIANTS`) + `border-width`/`ring-width` utility types + `border-on-unframed-variant` hint; **D2e** — `border-width`=resting / `ring-width`=focus, resting ring-width paired to its ring-colour (no stray ring on `solid`/`ghost`/`link`); **prop-driven states** — `input`/`textarea` `active`→`highlight` prop + `state-via-prop` warning; drop fully-transparent colour emissions (`color-opacity.ts`); **Nuxt slot inventory** (`NUXT_SLOTS`) + `unsupported-part` hint (`NON_PART_SEGMENTS` + `FIGMA_NUXT_PART_ALIAS` rename suggestions) |
+| **Next** | 🔭 planned | **Sub-element slot routing** — fill `SLOT_PREFIXES` from `NUXT_SLOTS` so `dropdown-item`/`table-th`/`nav-item` map instead of being unrouted; typo / "did-you-mean" utility detector (e.g. `letter-spaching`); rebuild the aggregate `component-looks-custom` flag on the inventory + `NON_PART_SEGMENTS`; `custom/<name>` component layer (divergent components emitted standalone, not as `ui.<nuxt>`); `compoundVariants` emit path for validation colours; remaining component recipes (`card`, `dropdown`, `modal`, …) + bespoke previews; fonts `@theme{--font-*}` pipeline |
 | **Inspector read-side** | 🔭 planned | **"Load from URL"** — fetch the committed `*.tokens.json` from a raw GitHub URL instead of the manual drag (the read side of the git workflow; own brainstorm round) |
 | **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
