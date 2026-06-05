@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, KNOWN_VARIANT_NAMES, SIZE_KEYS, STATE_KEYS } from "./component-vocab";
+import {
+  BUTTON_VARIANT_KEYS,
+  COLOR_ROLE_KEYS,
+  KNOWN_VARIANT_NAMES,
+  SIZE_KEYS,
+  STATE_KEYS,
+  RING_FRAMED_VARIANTS,
+  isRingFramedVariant,
+} from "./component-vocab";
 
 describe("component-vocab", () => {
   it("button variants and color roles are disjoint", () => {
@@ -16,5 +24,26 @@ describe("component-vocab", () => {
   });
   it("size keys cover the Tailwind scale", () => {
     for (const k of ["xs", "sm", "md", "lg", "xl", "2xl"]) expect(SIZE_KEYS.has(k)).toBe(true);
+  });
+});
+
+describe("RING_FRAMED_VARIANTS / isRingFramedVariant", () => {
+  it("marks button outline and subtle as ring-framed", () => {
+    expect(isRingFramedVariant("button", "outline")).toBe(true);
+    expect(isRingFramedVariant("button", "subtle")).toBe(true);
+  });
+  it("does not mark solid/ghost/link as ring-framed", () => {
+    expect(isRingFramedVariant("button", "solid")).toBe(false);
+    expect(isRingFramedVariant("button", "ghost")).toBe(false);
+    expect(isRingFramedVariant("button", "link")).toBe(false);
+  });
+  it("returns false for a null variant or an unknown component", () => {
+    expect(isRingFramedVariant("button", null)).toBe(false);
+    expect(isRingFramedVariant("input", "outline")).toBe(false);
+  });
+  it("framed variant keys are a subset of BUTTON_VARIANT_KEYS", () => {
+    for (const v of RING_FRAMED_VARIANTS.get("button") ?? []) {
+      expect(BUTTON_VARIANT_KEYS.has(v)).toBe(true);
+    }
   });
 });

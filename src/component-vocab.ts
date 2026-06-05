@@ -36,6 +36,27 @@ export const RING_FRAMED_COMPONENTS: ReadonlySet<string> = new Set([
   "card", "chip",
 ]);
 
+/**
+ * Components whose ring frame is *variant-conditional*: only the listed
+ * variants draw a Tailwind `ring`; the others have no frame. Distinct from
+ * RING_FRAMED_COMPONENTS, where every `border-*` token is a ring. Nuxt UI v4
+ * frames the button `outline` and `subtle` variants with `ring ring-inset`;
+ * `solid`/`soft`/`ghost`/`link` have no frame (their `border` tokens are
+ * transparent placeholders). `subtle` is included for Nuxt-correctness even
+ * though the current export defines no `subtle` tokens.
+ */
+export const RING_FRAMED_VARIANTS: ReadonlyMap<string, ReadonlySet<string>> =
+  new Map([["button", new Set(["outline", "subtle"])]]);
+
+/** True when `component`'s `variant` draws a Tailwind ring frame (D2c). */
+export function isRingFramedVariant(
+  component: string,
+  variant: string | null,
+): boolean {
+  if (variant === null) return false;
+  return RING_FRAMED_VARIANTS.get(component)?.has(variant) ?? false;
+}
+
 /** Trailing interaction-state keys → Tailwind pseudo-class prefixes. */
 export const STATE_KEYS: ReadonlySet<string> = new Set([
   "default", "hover", "active", "disabled", "focus", "checked", "hovered",
