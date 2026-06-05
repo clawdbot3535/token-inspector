@@ -591,3 +591,61 @@ describe("scanGraph — prop-driven state hint (capability)", () => {
     expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
   });
 });
+
+describe("scanGraph — unsupported-part hint (slot inventory)", () => {
+  it("flags chip label/close parts (Nuxt chip has no such slot), not bg", () => {
+    const graph = makeGraph([
+      makeNode({ id: "chip-bg", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+      makeNode({ id: "chip-label-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+      makeNode({ id: "chip-label-text-disabled", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+      makeNode({ id: "chip-close-icon", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const ups = report.issues.filter((i) => i.kind === "unsupported-part");
+    expect(ups.map((i) => i.id).sort()).toEqual(["up-chip-close", "up-chip-label"]);
+    const labelHit = ups.find((i) => i.id === "up-chip-label")!;
+    expect(labelHit.severity).toBe("warning");
+    expect(labelHit.componentName).toBe("chip");
+    expect(labelHit.message).toContain("label");
+    expect(labelHit.tokenIds).toContain("chip-label-text");
+    // bg is a mapped utility → never flagged as a part
+    expect(report.issues.find((i) => i.kind === "unsupported-part" && i.id === "up-chip-bg")).toBeUndefined();
+  });
+
+  it("does not flag a part that IS a Nuxt slot (dropdown item)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "dropdown-item-padding", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "dropdown-item-hover-bg", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+    ]);
+    const report = scanGraph(graph, { components: ["dropdown"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-part")).toBeUndefined();
+  });
+
+  it("does not flag a validation combo on a mapped utility segment (checkbox-bg-error)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "checkbox-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "checkbox-bg-error", layer: "component", type: "color", source: "global", base: "#E64041" }),
+    ]);
+    const report = scanGraph(graph, { components: ["checkbox"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-part")).toBeUndefined();
+  });
+
+  it("skips an uninventoried component (no NUXT_SLOTS entry)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "widget-thing-color", layer: "component", type: "color", source: "global", base: "#000000" }),
+    ]);
+    const report = scanGraph(graph, { components: ["widget"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-part")).toBeUndefined();
+  });
+
+  it("emits one hint per part across multiple tokens", () => {
+    const graph = makeGraph([
+      makeNode({ id: "chip-label-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+      makeNode({ id: "chip-label-text-disabled", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const labelHits = report.issues.filter((i) => i.kind === "unsupported-part" && i.id === "up-chip-label");
+    expect(labelHits).toHaveLength(1);
+    expect(labelHits[0]!.tokenIds.length).toBeGreaterThanOrEqual(2);
+  });
+});
