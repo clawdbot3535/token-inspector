@@ -299,3 +299,148 @@ Verify no attribution trailer; amend if present.
 - **Disjoint & additive:** the accumulators piggyback on the existing `getSlotMapping` call; the emit loop only adds `unsupported-part` issues; no existing detector touched.
 - **Verified data:** DropdownMenu `item`, Table `th`, NavigationMenu `item`/`link` confirmed via MCP → dropdown/table/nav do not flag. `button-overlay` flags (no `overlay` slot); `nav-overlay-bg` does NOT flag (it maps to the `overlay-bg` utility, so `overlay` ∈ mappedSecondSeg for nav).
 - **No placeholders:** every step has full code + exact command + expected result.
+
+---
+
+### Task 3: Over-fire fix — NON_PART_SEGMENTS + rename suggestions (verification-driven)
+
+Real-export verification of Task 2 over-fired (7 false positives on utility/state/dimension 2nd-segments: size, min, resize, ring, letter, checked, focus). Revise the detector to exclude `NON_PART_SEGMENTS` and emit a concrete rename suggestion for known Figma→Nuxt naming mismatches. See the spec's "Revision" section.
+
+**Files:**
+- Modify: `src/component-vocab.ts` (add `NON_PART_SEGMENTS`, `FIGMA_NUXT_PART_ALIAS`)
+- Modify: `src/scanner.ts` (import them; extend the skip condition; alias-aware message)
+- Test: `src/component-vocab.test.ts`, `src/scanner.test.ts`
+
+- [ ] **Step 1: Write failing tests**
+
+(a) `src/component-vocab.test.ts` — add `NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS` to the import, and:
+
+```typescript
+describe("NON_PART_SEGMENTS / FIGMA_NUXT_PART_ALIAS", () => {
+  it("treats utility/state/dimension words as non-parts", () => {
+    for (const w of ["size", "min", "resize", "ring", "letter", "checked", "focus", "bg"]) {
+      expect(NON_PART_SEGMENTS.has(w)).toBe(true);
+    }
+  });
+  it("does not list genuine part nouns as non-parts", () => {
+    for (const p of ["label", "close", "overlay", "row", "divider", "check", "item"]) {
+      expect(NON_PART_SEGMENTS.has(p)).toBe(false);
+    }
+  });
+  it("aliases Figma part names to Nuxt slot names", () => {
+    expect(FIGMA_NUXT_PART_ALIAS.get("row")).toBe("tr");
+    expect(FIGMA_NUXT_PART_ALIAS.get("divider")).toBe("separator");
+    expect(FIGMA_NUXT_PART_ALIAS.get("check")).toBe("icon");
+  });
+});
+```
+
+(b) `src/scanner.test.ts` — in the `unsupported-part` describe block, add:
+
+```typescript
+  it("does not flag utility/state/dimension 2nd-segments (over-fire fix)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "checkbox-base-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "checkbox-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "checkbox-checked", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["checkbox"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-part" && (i.id === "up-checkbox-size" || i.id === "up-checkbox-checked"))).toBeUndefined();
+  });
+
+  it("suggests the Nuxt slot name for a known naming mismatch (table row → tr)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "table-base-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "table-row-hover-bg", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+    ]);
+    const report = scanGraph(graph, { components: ["table"] });
+    const hit = report.issues.find((i) => i.kind === "unsupported-part" && i.id === "up-table-row");
+    expect(hit).toBeDefined();
+    expect(hit!.message).toContain("`tr`");
+    expect(hit!.message.toLowerCase()).toContain("rename");
+  });
+```
+
+(Note: `checkbox-base-bg` / `table-base-bg` give those components a mapped token so the component is processed; "base"/"bg" are mapped/utility so they never flag. `chip-checkbox` etc. unchanged.)
+
+- [ ] **Step 2: Run tests to verify they fail** — `npx vitest run src/component-vocab.test.ts src/scanner.test.ts` (the size/checked still flag; row has the old generic message without "tr"/"rename").
+
+- [ ] **Step 3: Add the vocab exports**
+
+Append to `src/component-vocab.ts` (NON_PART_SEGMENTS references `STATE_KEYS`, already defined above it):
+
+```typescript
+/**
+ * 2nd segments that are NEVER a sub-element part — utility / state / dimension
+ * words. Excluded from the unsupported-part detector: the "mapped 2nd segment"
+ * trick alone misses utility words that, for a given component, appear only in
+ * null-mapped tokens (e.g. `checkbox-size-md`, `nav-ring-radius`, `textarea-min-height`).
+ */
+export const NON_PART_SEGMENTS: ReadonlySet<string> = new Set<string>([
+  ...STATE_KEYS,
+  "selected", "visited",
+  "size", "min", "max", "height", "width", "radius", "gap", "offset", "spacing", "padding",
+  "font", "letter", "line", "text", "tracking", "leading", "weight", "family",
+  "border", "bg", "ring", "overlay", "placeholder", "underline", "icon", "color",
+  "fill", "stroke", "resize", "shadow",
+]);
+
+/**
+ * Figma part name → the Nuxt UI v4 slot it corresponds to (a naming mismatch).
+ * Drives a concrete "rename in Figma" suggestion in the unsupported-part hint.
+ * Only suggested when the aliased name is a real slot of that component
+ * (self-validating in the scanner).
+ */
+export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
+  ["row", "tr"],
+  ["divider", "separator"],
+  ["check", "icon"],
+]);
+```
+
+- [ ] **Step 4: Revise the scanner detector**
+
+In `src/scanner.ts`, add `NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS` to the `./component-vocab.js` import. In the unsupported-part emit loop:
+
+(a) extend the skip condition:
+```typescript
+      if (mapped.has(seg) || slots.has(seg) || NON_PART_SEGMENTS.has(seg)) continue;
+```
+
+(b) replace the single `message:` with the alias-aware two-flavour message. The per-part push becomes:
+```typescript
+    for (const [part, ids] of byPart) {
+      const alias = FIGMA_NUXT_PART_ALIAS.get(part);
+      const examples = ids.slice(0, 3).map((i) => `\`${i}\``).join(", ");
+      const message =
+        alias !== undefined && slots.has(alias)
+          ? `Figma \`${comp}\` uses a \`${part}\` part. Nuxt UI v4 \`${comp}\` calls this slot ` +
+            `\`${alias}\` — rename it in Figma to \`${comp}-${alias}-…\` (tokens: ${examples}).`
+          : `Figma \`${comp}\` references a \`${part}\` part that Nuxt UI v4 \`${comp}\` has no ` +
+            `slot for (slots: ${[...slots].slice(0, 6).join(", ")}${slots.size > 6 ? ", …" : ""}). ` +
+            `\`${comp}\` may be a custom component, or the part is mis-named (e.g. ${examples}).`;
+      issues.push({
+        id: `up-${comp}-${part}`,
+        category: "classification-hint",
+        severity: "warning",
+        kind: "unsupported-part",
+        message,
+        tokenIds: ids,
+        componentName: comp,
+      });
+    }
+```
+
+- [ ] **Step 5: Run tests** — `npx vitest run src/component-vocab.test.ts src/scanner.test.ts` (PASS: size/checked not flagged; row → message with `tr` + rename; the original chip/dropdown/checkbox-bg-error/uninventoried/one-per-part tests still green).
+
+- [ ] **Step 6: Typecheck + full suite** — `npm run typecheck && npx vitest run` (PASS).
+
+- [ ] **Step 7: Commit**
+```bash
+git add src/component-vocab.ts src/component-vocab.test.ts src/scanner.ts src/scanner.test.ts
+git commit -m "fix(scanner): exclude NON_PART_SEGMENTS + rename suggestions (unsupported-part over-fire)"
+```
+Verify no attribution trailer; amend if present.
+
+## Final verification (revised)
+- Against the new export: the CLI scan's `unsupported-part` set is exactly **chip→label/close, button→overlay** (custom/mis-named) and **table→row/divider, checkbox→check** (with `tr`/`separator`/`icon` rename suggestions). The 7 utility/state FPs are gone. `badge-letter-spaching` is not flagged (deferred typo). List the set to confirm.
