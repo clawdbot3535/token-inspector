@@ -11,6 +11,8 @@ import {
   propDrivenStateFor,
   NUXT_SLOTS,
   nuxtSlotsFor,
+  NON_PART_SEGMENTS,
+  FIGMA_NUXT_PART_ALIAS,
 } from "./component-vocab";
 
 describe("component-vocab", () => {
@@ -88,5 +90,23 @@ describe("NUXT_SLOTS / nuxtSlotsFor", () => {
     for (const [, slots] of NUXT_SLOTS) {
       expect(slots.size).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("NON_PART_SEGMENTS / FIGMA_NUXT_PART_ALIAS", () => {
+  it("treats utility/state/dimension words as non-parts", () => {
+    for (const w of ["size", "min", "resize", "ring", "letter", "checked", "focus", "bg"]) {
+      expect(NON_PART_SEGMENTS.has(w)).toBe(true);
+    }
+  });
+  it("does not list genuine part nouns as non-parts", () => {
+    for (const p of ["label", "close", "overlay", "row", "divider", "check", "item", "icon"]) {
+      expect(NON_PART_SEGMENTS.has(p)).toBe(false);
+    }
+  });
+  it("aliases Figma part names to Nuxt slot names", () => {
+    expect(FIGMA_NUXT_PART_ALIAS.get("row")).toBe("tr");
+    expect(FIGMA_NUXT_PART_ALIAS.get("divider")).toBe("separator");
+    expect(FIGMA_NUXT_PART_ALIAS.get("check")).toBe("icon");
   });
 });

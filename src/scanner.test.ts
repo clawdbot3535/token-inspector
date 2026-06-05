@@ -648,4 +648,26 @@ describe("scanGraph — unsupported-part hint (slot inventory)", () => {
     expect(labelHits).toHaveLength(1);
     expect(labelHits[0]!.tokenIds.length).toBeGreaterThanOrEqual(2);
   });
+
+  it("does not flag utility/state/dimension 2nd-segments (over-fire fix)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "checkbox-base-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "checkbox-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "checkbox-checked", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["checkbox"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-part" && (i.id === "up-checkbox-size" || i.id === "up-checkbox-checked"))).toBeUndefined();
+  });
+
+  it("suggests the Nuxt slot name for a known naming mismatch (table row → tr)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "table-base-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "table-row-hover-bg", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+    ]);
+    const report = scanGraph(graph, { components: ["table"] });
+    const hit = report.issues.find((i) => i.kind === "unsupported-part" && i.id === "up-table-row");
+    expect(hit).toBeDefined();
+    expect(hit!.message).toContain("`tr`");
+    expect(hit!.message.toLowerCase()).toContain("rename");
+  });
 });

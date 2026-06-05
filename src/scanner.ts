@@ -18,7 +18,7 @@ import {
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor } from "./component-vocab.js";
+import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
@@ -203,21 +203,27 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     const mapped = mappedSecondSegByComponent.get(comp) ?? new Set<string>();
     const byPart = new Map<string, string[]>();
     for (const { seg, id } of nullToks) {
-      if (mapped.has(seg) || slots.has(seg)) continue;
+      if (mapped.has(seg) || slots.has(seg) || NON_PART_SEGMENTS.has(seg)) continue;
       const arr = byPart.get(seg) ?? [];
       arr.push(id);
       byPart.set(seg, arr);
     }
     for (const [part, ids] of byPart) {
+      const alias = FIGMA_NUXT_PART_ALIAS.get(part);
+      const examples = ids.slice(0, 3).map((i) => `\`${i}\``).join(", ");
+      const message =
+        alias !== undefined && slots.has(alias)
+          ? `Figma \`${comp}\` uses a \`${part}\` part. Nuxt UI v4 \`${comp}\` calls this slot ` +
+            `\`${alias}\` — rename it in Figma to \`${comp}-${alias}-…\` (tokens: ${examples}).`
+          : `Figma \`${comp}\` references a \`${part}\` part that Nuxt UI v4 \`${comp}\` has no ` +
+            `slot for (slots: ${[...slots].slice(0, 6).join(", ")}${slots.size > 6 ? ", …" : ""}). ` +
+            `\`${comp}\` may be a custom component, or the part is mis-named (e.g. ${examples}).`;
       issues.push({
         id: `up-${comp}-${part}`,
         category: "classification-hint",
         severity: "warning",
         kind: "unsupported-part",
-        message:
-          `Figma \`${comp}\` references a \`${part}\` part that Nuxt UI v4 \`${comp}\` has no ` +
-          `slot for (e.g. ${ids.slice(0, 3).map((i) => `\`${i}\``).join(", ")}). These tokens ` +
-          `are not mapped — \`${comp}\` may be a custom component, or the part is mis-named.`,
+        message,
         tokenIds: ids,
         componentName: comp,
       });

@@ -125,3 +125,30 @@ export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
 export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined {
   return NUXT_SLOTS.get(component);
 }
+
+/**
+ * 2nd segments that are NEVER a sub-element part — utility / state / dimension
+ * words. Excluded from the unsupported-part detector: the "mapped 2nd segment"
+ * trick alone misses utility words that, for a given component, appear only in
+ * null-mapped tokens (e.g. `checkbox-size-md`, `nav-ring-radius`, `textarea-min-height`).
+ */
+export const NON_PART_SEGMENTS: ReadonlySet<string> = new Set<string>([
+  ...STATE_KEYS,
+  "selected", "visited",
+  "size", "min", "max", "height", "width", "radius", "gap", "offset", "spacing", "padding",
+  "font", "letter", "line", "text", "tracking", "leading", "weight", "family",
+  "border", "bg", "ring", "placeholder", "underline", "color",
+  "fill", "stroke", "resize", "shadow",
+]);
+
+/**
+ * Figma part name → the Nuxt UI v4 slot it corresponds to (a naming mismatch).
+ * Drives a concrete "rename in Figma" suggestion in the unsupported-part hint.
+ * Only suggested when the aliased name is a real slot of that component
+ * (self-validating in the scanner).
+ */
+export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
+  ["row", "tr"],
+  ["divider", "separator"],
+  ["check", "icon"],
+]);
