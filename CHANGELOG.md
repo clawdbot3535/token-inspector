@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- **Scan view reworked into tabs.** The scan area is now **Issues / Readiness / Forecast**
+  tabs. The Issues tab adds a severity filter (`All` / `Errors` / `Warnings` / `Hints`) and
+  groups issues by component (collapsible, `General` for component-less issues), replacing
+  the single scroll and the technical category accordions. Row-click still jumps to the
+  token.
+
 ## [0.5.0] — 2026-06-04
 
 The v0.5.0 milestone: the first component recipe past `button` (`input` + `LiveInput`),

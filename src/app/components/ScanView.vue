@@ -1,121 +1,150 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { ScanReport, ScanIssue, ScanCategory } from "@core/token-graph.js";
+import { computed, ref } from "vue";
+import type { ScanReport, ScanIssue } from "@core/token-graph.js";
+import { groupIssuesByComponent } from "../scan-grouping.js";
 
-interface Props {
-  report: ScanReport;
-}
-interface Emits {
-  (event: "select-tokens", tokenIds: readonly string[]): void;
-}
-
+interface Props { report: ScanReport; }
+interface Emits { (event: "select-tokens", tokenIds: readonly string[]): void; }
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const CATEGORIES: ScanCategory[] = ["build-time", "data-quality", "classification-hint"];
+type Tab = "issues" | "readiness" | "forecast";
+type SeverityFilter = "all" | "error" | "warning" | "hint";
 
-const byCategory = computed<Record<ScanCategory, ScanIssue[]>>(() => {
-  const out: Record<ScanCategory, ScanIssue[]> = {
-    "build-time": [],
-    "data-quality": [],
-    "classification-hint": [],
-  };
+const activeTab = ref<Tab>("issues");
+const severityFilter = ref<SeverityFilter>("all");
+const collapsedGroups = ref<ReadonlySet<string>>(new Set());
+
+function toggleGroup(component: string): void {
+  const next = new Set(collapsedGroups.value);
+  if (next.has(component)) next.delete(component);
+  else next.add(component);
+  collapsedGroups.value = next;
+}
+
+const counts = computed(() => {
+  const c = { all: 0, error: 0, warning: 0, hint: 0 };
   for (const i of props.report.issues) {
-    out[i.category].push(i);
+    c.all += 1;
+    if (i.severity === "error") c.error += 1;
+    else if (i.severity === "warning") c.warning += 1;
+    else if (i.severity === "hint") c.hint += 1;
   }
-  return out;
+  return c;
 });
 
-const severityClass = (sev: string) =>
+const filteredIssues = computed(() =>
+  severityFilter.value === "all"
+    ? props.report.issues
+    : props.report.issues.filter((i) => i.severity === severityFilter.value),
+);
+
+const groups = computed(() => groupIssuesByComponent(filteredIssues.value));
+
+const severityTagClass = (sev: string): string =>
   ({
-    error: "text-red-600 dark:text-red-400",
-    warning: "text-amber-600 dark:text-amber-400",
-    hint: "text-zinc-500 dark:text-zinc-400",
+    error: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+    warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+    hint: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
   })[sev] ?? "";
 
-const errorCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "error").length,
-);
-const warningCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "warning").length,
-);
-const hintCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "hint").length,
-);
-
 function onIssueClick(issue: ScanIssue): void {
-  if (issue.tokenIds.length > 0) {
-    emit("select-tokens", issue.tokenIds);
-  }
+  if (issue.tokenIds.length > 0) emit("select-tokens", issue.tokenIds);
 }
+
+const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
+  { value: "issues", label: "Issues" },
+  { value: "readiness", label: "Readiness" },
+  { value: "forecast", label: "Forecast" },
+];
+const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "error", label: "Errors" },
+  { value: "warning", label: "Warnings" },
+  { value: "hint", label: "Hints" },
+];
 </script>
 
 <template>
-  <div class="space-y-4 p-3">
-    <!-- Summary line -->
-    <div class="flex flex-wrap items-baseline gap-x-3 text-sm">
-      <span class="font-semibold">{{ report.issues.length }} issues</span>
-      <span :class="errorCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-400'">
-        {{ errorCount }} errors
-      </span>
-      <span class="text-zinc-400">·</span>
-      <span :class="warningCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-400'">
-        {{ warningCount }} warnings
-      </span>
-      <span class="text-zinc-400">·</span>
-      <span class="text-zinc-500">{{ hintCount }} hints</span>
+  <div class="flex flex-col">
+    <div role="tablist" class="flex gap-1 border-b border-zinc-200 dark:border-zinc-800 px-3 pt-2">
+      <button
+        v-for="t in TABS"
+        :key="t.value"
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === t.value"
+        class="px-3 py-1.5 text-xs border-b-2 -mb-px transition-colors select-none"
+        :class="activeTab === t.value
+          ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 font-semibold'
+          : 'border-transparent text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'"
+        @click="activeTab = t.value"
+      >
+        {{ t.label }}<span v-if="t.value === 'issues'" class="ml-1 font-mono">· {{ counts.all }}</span>
+      </button>
     </div>
 
-    <!-- Category accordions -->
-    <div
-      v-for="cat in CATEGORIES"
-      :key="cat"
-      class="space-y-1"
-    >
-      <details v-if="byCategory[cat].length > 0" open>
-        <summary
-          class="cursor-pointer text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 select-none"
+    <div v-if="activeTab === 'issues'" class="p-3 space-y-3">
+      <div class="flex flex-wrap gap-1">
+        <button
+          v-for="f in SEVERITY_FILTERS"
+          :key="f.value"
+          type="button"
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition-colors"
+          :class="severityFilter === f.value
+            ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
+            : 'bg-transparent text-zinc-700 border-zinc-300 hover:bg-zinc-100 dark:text-zinc-300 dark:border-zinc-700 dark:hover:bg-zinc-800'"
+          @click="severityFilter = f.value"
         >
-          {{ cat }} ({{ byCategory[cat].length }})
-        </summary>
-        <ul class="mt-1 space-y-1 text-xs">
+          <span>{{ f.label }}</span>
+          <span class="text-[10px] font-mono opacity-70">{{ counts[f.value] }}</span>
+        </button>
+      </div>
+
+      <p v-if="filteredIssues.length === 0" class="text-xs text-zinc-400">
+        No {{ severityFilter === 'all' ? '' : severityFilter + ' ' }}issues.
+      </p>
+
+      <div v-for="group in groups" :key="group.component" class="space-y-1">
+        <button
+          type="button"
+          class="w-full flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-elevated transition-colors rounded px-1 py-0.5 select-none"
+          @click="toggleGroup(group.component)"
+        >
+          <span>{{ collapsedGroups.has(group.component) ? '▸' : '▾' }} {{ group.component }}</span>
+          <span class="font-normal text-zinc-400 font-mono text-[10px]">{{ group.issues.length }}</span>
+        </button>
+        <ul v-if="!collapsedGroups.has(group.component)" class="space-y-1 text-xs">
           <li
-            v-for="issue in byCategory[cat]"
+            v-for="issue in group.issues"
             :key="issue.id"
             class="border border-zinc-200 dark:border-zinc-700 rounded p-2 flex items-start justify-between gap-2"
             :class="issue.tokenIds.length > 0 ? 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800' : ''"
             @click="onIssueClick(issue)"
           >
             <div class="min-w-0 space-y-0.5">
-              <span :class="severityClass(issue.severity)" class="font-mono">
-                {{ issue.severity }}
-              </span>
+              <span
+                class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded"
+                :class="severityTagClass(issue.severity)"
+              >{{ issue.severity }}</span>
               <span class="ml-2 text-zinc-700 dark:text-zinc-300">{{ issue.message }}</span>
-              <div
-                v-if="issue.componentName"
-                class="text-zinc-400 font-mono text-[10px]"
-              >
-                {{ issue.componentName }}{{ issue.variantKey ? ` / ${issue.variantKey}` : "" }}
+              <div v-if="issue.componentName && issue.variantKey" class="text-zinc-400 font-mono text-[10px]">
+                {{ issue.componentName }} / {{ issue.variantKey }}
               </div>
             </div>
-            <span
-              v-if="issue.tokenIds.length > 0"
-              class="shrink-0 text-[10px] text-zinc-400"
-            >
-              {{ issue.tokenIds.length }} token{{ issue.tokenIds.length === 1 ? "" : "s" }} →
+            <span v-if="issue.tokenIds.length > 0" class="shrink-0 text-[10px] text-zinc-400">
+              {{ issue.tokenIds.length }} token{{ issue.tokenIds.length === 1 ? '' : 's' }} &rarr;
             </span>
           </li>
         </ul>
-      </details>
-      <div v-else class="text-xs text-zinc-400">{{ cat }}: none</div>
+      </div>
     </div>
 
-    <!-- Component readiness table -->
-    <div v-if="report.completeness.length > 0">
-      <h3 class="text-xs font-mono uppercase text-zinc-500 dark:text-zinc-400 mb-1">
-        Component readiness
-      </h3>
-      <table class="w-full text-sm">
+    <div v-else-if="activeTab === 'readiness'" class="p-3">
+      <p v-if="report.completeness.length === 0" class="text-xs text-zinc-400">
+        No completeness data.
+      </p>
+      <table v-else class="w-full text-sm">
         <thead>
           <tr class="text-left text-xs text-zinc-500 dark:text-zinc-400">
             <th class="py-1 pr-2">Component</th>
@@ -147,8 +176,7 @@ function onIssueClick(issue: ScanIssue): void {
       </table>
     </div>
 
-    <!-- Forecast -->
-    <div class="text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-200 dark:border-zinc-800 pt-3">
+    <div v-else class="p-3 text-xs text-zinc-500 dark:text-zinc-400">
       Forecast:
       ~{{ Math.round(report.forecast.tokensCss.estimatedBytes / 100) / 10 }}KB tokens.css,
       {{ report.forecast.tokensCss.tailwindMatches }} Tailwind matches,
