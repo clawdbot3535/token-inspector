@@ -94,3 +94,28 @@ describe("LiveButton — D2c outline ring", () => {
     expect(ringed).toBe(true);
   });
 });
+
+// border-width=1 (resting) + ring-width=2 (focus) + an outline border colour.
+// D2e: resting ring composes to 1px, focus ring to 2px.
+function widthGraph() {
+  const global = {
+    button: {
+      "border-width": { $value: 1, $type: "number" },
+      "ring-width": { $value: 2, $type: "number" },
+      outline: { border: { $value: { components: [0.31, 0.39, 0.82], hex: "#4F63D2" }, $type: "color" } },
+      "outline-ring-focus": { $value: { components: [0.44, 0.51, 0.76], hex: "#6F82C2" }, $type: "color" },
+    },
+  };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+
+describe("LiveButton — D2e ring widths", () => {
+  it("resting outline ring is 1px (border-width), focus ring is 2px (ring-width)", () => {
+    const wrapper = mount(LiveButton, { props: { graph: widthGraph() }, ...mountOpts });
+    const shadows = previewButtons(wrapper).map((b) => b.element.style.boxShadow);
+    // Some preview cell paints a 1px resting ring; some (the focus state cell) a 2px ring.
+    expect(shadows.some((s) => s.startsWith("0 0 0 1px"))).toBe(true);
+    expect(shadows.some((s) => s.startsWith("0 0 0 2px"))).toBe(true);
+  });
+});
