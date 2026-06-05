@@ -1,6 +1,28 @@
 # Changelog
 
-## [Unreleased]
+## [0.6.0] — 2026-06-06
+
+A large post-`0.5.0` batch: the scan-area rework, `button` variant-conditional rings with
+correct `border-width`/`ring-width` semantics, prop-driven state handling, dropping
+transparent colour emissions, and the Nuxt slot/part inventory with its `unsupported-part`
+scan hint.
+
+### Added
+
+- **`button` variant-conditional rings (D2c).** Nuxt UI v4 frames only `outline`/`subtle`
+  button variants as a ring, so their border tokens now emit `ring-*` (via
+  `RING_FRAMED_VARIANTS`) while `solid`/`ghost`/`link` stay frameless. New `border-width`
+  and `ring-width` utility types are recognised, and a `border-on-unframed-variant` scan
+  hint flags a border set on a frameless variant (it would never render).
+- **Prop-driven state handling.** `input`/`textarea` `active` tokens map to Nuxt's
+  `highlight` prop (set programmatically), not a `:active` pseudo-class; a `state-via-prop`
+  scan warning explains why those tokens emit no recipe override.
+- **Nuxt slot/part inventory + `unsupported-part` hint.** `NUXT_SLOTS` (per-component Nuxt
+  theme slot names) + `nuxtSlotsFor`. A new `unsupported-part` scan warning flags Figma
+  tokens whose part has no Nuxt slot (e.g. `chip-label`, `chip-close`, `button-overlay`),
+  and suggests the rename for known naming mismatches (`row`→`tr`, `divider`→`separator`,
+  `check`→`icon`) — driven by `NON_PART_SEGMENTS` (utility/state/dimension words are never
+  parts) and `FIGMA_NUXT_PART_ALIAS`.
 
 ### Changed
 
@@ -9,6 +31,20 @@
   groups issues by component (collapsible, `General` for component-less issues), replacing
   the single scroll and the technical category accordions. Row-click still jumps to the
   token.
+- **`border-width` vs `ring-width` semantics (D2e).** `*-border-width` is the resting frame
+  width, `*-ring-width` is the focus-ring width — mapped distinctly so a resting frame and a
+  focus ring no longer collide on one utility.
+
+### Fixed
+
+- **No stray resting ring on frameless button variants (D2e).** A component-level resting
+  `ring-width` is now paired with its resting ring-*colour* by location (the framed `outline`
+  variant for `button`, `base` for `input`), or dropped when there is none — so
+  `solid`/`ghost`/`link` no longer inherit a colourless `ring-[1px]` on `slots.base`.
+- **Fully-transparent colours no longer emit dead classes.** `ghost`/`link` borders set to
+  `transparent` (and any `rgba(…,0)` / `#RRGGBB00`) are dropped instead of emitting
+  `border-[var(--color-transparent)]`; opacity is detected by a shared `isOpaqueColor`
+  (`color-opacity.ts`).
 
 ## [0.5.0] — 2026-06-04
 
