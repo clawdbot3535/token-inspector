@@ -298,15 +298,63 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     expect(recipes.table?.slots.base).toBe("border-[1px]");
   });
 
-  it("emits ring-[1px] (resting) + focus:ring-[2px] (focus) from component-level width tokens (D2e)", () => {
+  it("emits focus:ring-[2px] from button-ring-width; resting ring-[1px] is dropped (no ring-colour to pair with) (D2e)", () => {
+    // button-border-width maps to a resting ring-width. Without a resting
+    // ring-colour in the graph there is no pairing target, so the width is
+    // dropped rather than painting a colourless ring on every variant.
+    // button-ring-width has statePrefix="focus" and is unaffected by the fix.
     const graph = makeGraph([
       makeNode({ id: "button-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
       makeNode({ id: "button-ring-width", layer: "component", type: "number", source: "global", base: "2px" }),
     ]);
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     const base = recipes.button?.slots.base ?? "";
-    expect(base).toContain("ring-[1px]");
+    expect(base).not.toContain("ring-[1px]"); // no ring-colour → width dropped
     expect(base).toContain("focus:ring-[2px]");
+  });
+
+  it("pairs a component-level resting ring-width with the framed variant's ring-colour (D2e leak fix)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+      makeNode({ id: "button-outline-border", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#222222" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    // ring-[1px] lands on outline (with its ring colour), NOT on slots.base.
+    expect(recipes.button?.variants.variant?.outline?.base ?? "").toContain("ring-[1px]");
+    expect(recipes.button?.slots.base ?? "").not.toContain("ring-[1px]");
+    // unframed variants get no resting ring.
+    expect(recipes.button?.variants.variant?.solid?.base ?? "").not.toContain("ring-[");
+  });
+
+  it("keeps a whole-component resting ring-width on base when the ring-colour is on base (input)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+      makeNode({ id: "input-border", layer: "component", type: "color", source: "global", base: "#E4E4E7" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["input"] });
+    expect(recipes.input?.slots.base ?? "").toContain("ring-[1px]");
+  });
+
+  it("drops a component-level resting ring-width with no resting ring-colour to pair with", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#222222" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    const r = recipes.button;
+    const anyRingWidth =
+      (r?.slots.base ?? "").includes("ring-[1px]") ||
+      Object.values(r?.variants.variant ?? {}).some((v) => (v.base ?? "").includes("ring-[1px]"));
+    expect(anyRingWidth).toBe(false);
+  });
+
+  it("leaves the focus ring-width on base (component-level, intended on all variants)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-ring-width", layer: "component", type: "number", source: "global", base: "2px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.slots.base ?? "").toContain("focus:ring-[2px]");
   });
 
   it("keeps a state-prefixed token out of the non-suffix default-size redirect", () => {

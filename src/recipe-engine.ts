@@ -179,6 +179,30 @@ export function buildComponentRecipes(
     set.add(mapping.variantKey);
   }
 
+  // Pre-scan: record where each component's RESTING ring-colour lives so a
+  // component-level resting ring-WIDTH can be paired to those locations only.
+  // (A ring-width without a ring-colour still draws a ring, so we must not
+  // emit it on variants that have no colour to justify it.)
+  type RingColourTarget = { variantAxis: VariantAxis | null; variantKey: string | null };
+  const restingRingColourTargets = new Map<string, RingColourTarget[]>();
+
+  for (const node of graph.nodes.values()) {
+    if (node.layer !== "component") continue;
+    const componentName = node.id.split("-")[0];
+    if (componentName === undefined || !allowSet.has(componentName)) continue;
+    const mapping = getSlotMapping(node.id, options.slotMappingOverride, node.type);
+    if (!mapping || mapping.utilityType !== "ring-color" || mapping.statePrefix != null) continue;
+    if (mapping.variantAxis !== null && mapping.variantAxis !== "variant") continue;
+    const resolved = resolveTokenToValue(node.id, graph);
+    if ("error" in resolved || !isOpaqueColor(resolved.value)) continue; // dropped colours aren't pairing targets
+    const list = restingRingColourTargets.get(componentName) ?? [];
+    const target: RingColourTarget = { variantAxis: mapping.variantAxis, variantKey: mapping.variantKey };
+    if (!list.some((t) => t.variantAxis === target.variantAxis && t.variantKey === target.variantKey)) {
+      list.push(target);
+    }
+    restingRingColourTargets.set(componentName, list);
+  }
+
   for (const node of graph.nodes.values()) {
     if (node.layer !== "component") continue;
 
@@ -197,6 +221,40 @@ export function buildComponentRecipes(
     // default applies.
     if (COLOR_UTILITY_TYPES.has(mapping.utilityType) && !isOpaqueColor(resolved.value)) {
       continue;
+    }
+
+    // A component-level resting ring-width (no variant, no state) must pair with
+    // a resting ring-COLOUR, or it paints a colourless ring on every variant.
+    // Emit it only at the colour's location(s); drop it if there is none.
+    // (Fixes the D2e leak where button-border-width ringed solid/ghost/link.)
+    if (
+      mapping.utilityType === "ring-width" &&
+      mapping.variantAxis === null &&
+      mapping.variantKey === null &&
+      mapping.statePrefix == null
+    ) {
+      const targets = restingRingColourTargets.get(componentName) ?? [];
+      const widthClass = utilityForMapping(
+        graph,
+        node,
+        mapping.utilityType,
+        resolved.value,
+        options.remBase,
+      );
+      if (widthClass) {
+        for (const target of targets) {
+          const targetMapping: SlotMappingEntry = {
+            ...mapping,
+            variantAxis: target.variantAxis,
+            variantKey: target.variantKey,
+          };
+          const bk = bucketKeyFor(componentName, targetMapping);
+          const arr = utilityBuckets.get(bk) ?? [];
+          arr.push(widthClass);
+          utilityBuckets.set(bk, arr);
+        }
+      }
+      continue; // handled (and dropped when targets is empty)
     }
 
     // Redirect non-suffix tokens to the default size variant when the utility
