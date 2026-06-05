@@ -28,6 +28,19 @@ function previewButtons(wrapper: ReturnType<typeof mount>) {
   return wrapper.findAll("button").filter((b) => b.text() === "Button");
 }
 
+// A button graph whose outline variant defines an opaque border — D2c routes
+// it to ring-color, so the outline preview button must paint a ring (boxShadow).
+function outlineBorderGraph() {
+  const global = {
+    button: {
+      solid: { bg: { $value: { components: [0.31, 0.39, 0.82], hex: "#4F63D2" }, $type: "color" } },
+      outline: { border: { $value: { components: [0.31, 0.39, 0.82], hex: "#4F63D2" }, $type: "color" } },
+    },
+  };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+
 describe("LiveButton", () => {
   it("shows a fallback message and no preview when the graph has no button tokens", () => {
     const wrapper = mount(LiveButton, { props: { graph: null }, ...mountOpts });
@@ -66,5 +79,18 @@ describe("LiveButton", () => {
     // padding (py-2.5 → 0.625rem) — proving the switch drives the cells.
     const paddings = previewButtons(wrapper).map((b) => b.element.style.paddingTop);
     expect(paddings.filter((p) => p === "0.625rem").length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("LiveButton — D2c outline ring", () => {
+  it("paints a ring (boxShadow) on the outline variant preview", () => {
+    const wrapper = mount(LiveButton, {
+      props: { graph: outlineBorderGraph() },
+      ...mountOpts,
+    });
+    const ringed = previewButtons(wrapper).some(
+      (b) => b.element.style.boxShadow.length > 0,
+    );
+    expect(ringed).toBe(true);
   });
 });
