@@ -590,3 +590,35 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
     expect(heuristicSlotMapping("chip-border-error")).toBeNull();
   });
 });
+
+describe("heuristicSlotMapping — prop-driven states (capability)", () => {
+  it("drops input-border-active (Nuxt applies `active` via the highlight prop)", () => {
+    expect(heuristicSlotMapping("input-border-active", "color")).toBeNull();
+  });
+  it("keeps input-border-focus mapping (focus is a real pseudo-class)", () => {
+    expect(heuristicSlotMapping("input-border-focus", "color")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: null,
+      variantKey: null,
+      statePrefix: "focus",
+    });
+  });
+  it("keeps button-solid-bg-active (`:active` is valid for button)", () => {
+    expect(heuristicSlotMapping("button-solid-bg-active")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+      statePrefix: "active",
+    });
+  });
+  it("does not drop a state-less input token (null-state guard)", () => {
+    expect(heuristicSlotMapping("input-border", "color")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+});

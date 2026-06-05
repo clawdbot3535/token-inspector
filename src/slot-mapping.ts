@@ -70,7 +70,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor } from "./component-vocab.js";
 
 // Approach-B extension point: maps a sub-element segment (immediately after
 // the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
@@ -341,6 +341,12 @@ export function heuristicSlotMapping(
     size: parsed.size,
     state: parsed.state,
   };
+
+  // Prop-driven states (input `active` → `highlight` prop) are applied by Nuxt
+  // via a prop, not a recipe class — drop them; the scanner flags the deviation.
+  if (propDrivenStateFor(parsed.component, parsed.state) !== null) {
+    return null;
+  }
 
   // `text` defaults to text-size, but it means text-color when the token is a
   // color — signalled either by a variant/color-role axis (button/badge) or,
