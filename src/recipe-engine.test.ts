@@ -241,7 +241,7 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     const recipes = buildComponentRecipes(graph, { components: ["button"] });
     const v = recipes.button?.variants.variant;
     expect(v?.solid?.base).toBe("bg-[#4F63D2]");
-    expect(v?.outline?.base).toBe("border-[#5667A7]");
+    expect(v?.outline?.base).toBe("ring-[#5667A7]"); // D2c: outline border → ring
     expect(v?.ghost?.base).toBe("text-[#18181B]");
     expect(v?.link?.base).toBe("underline-[#41508D]");
   });

@@ -76,22 +76,50 @@ describe("heuristicSlotMapping — variant axis (solid/outline/ghost/link)", () 
     });
   });
 
-  it("maps button-outline-border to border-color on the outline variant", () => {
+  it("maps button-outline-border to ring-color on the outline variant (D2c)", () => {
     expect(heuristicSlotMapping("button-outline-border")).toEqual({
       slot: "base",
-      utilityType: "border-color",
+      utilityType: "ring-color",
       variantAxis: "variant",
       variantKey: "outline",
     });
   });
 
-  it("maps button-outline-border-disabled with disabled prefix", () => {
+  it("maps button-outline-border-disabled to ring-color with disabled prefix (D2c)", () => {
     expect(heuristicSlotMapping("button-outline-border-disabled")).toEqual({
       slot: "base",
-      utilityType: "border-color",
+      utilityType: "ring-color",
       variantAxis: "variant",
       variantKey: "outline",
       statePrefix: "disabled",
+    });
+  });
+
+  it("keeps button-solid-border as border-color (solid is not ring-framed)", () => {
+    expect(heuristicSlotMapping("button-solid-border")).toEqual({
+      slot: "base",
+      utilityType: "border-color",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps button-outline-border-hover to ring-color with hover prefix (D2c)", () => {
+    expect(heuristicSlotMapping("button-outline-border-hover")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: "variant",
+      variantKey: "outline",
+      statePrefix: "hover",
+    });
+  });
+
+  it("maps button-subtle-border to ring-color on the subtle variant (D2c forward-compat)", () => {
+    expect(heuristicSlotMapping("button-subtle-border")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: "variant",
+      variantKey: "subtle",
     });
   });
 

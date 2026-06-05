@@ -68,7 +68,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, isRingFramedVariant } from "./component-vocab.js";
 
 // Approach-B extension point: maps a sub-element segment (immediately after
 // the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
@@ -348,9 +348,14 @@ export function heuristicSlotMapping(
 
   // Ring-framed components (input, checkbox, …) draw their frame as a Tailwind
   // `ring`, not a CSS border, so a bare `border` utility emits ring-color.
-  // Genuine border framers (table, nav) and variant-conditional framers
-  // (button, badge, …) fall through to the border-color rule below.
-  if (parsed.utility === "border" && RING_FRAMED_COMPONENTS.has(parsed.component)) {
+  // Variant-conditional framers (button) ring only specific variants
+  // (outline/subtle) — those redirect to ring-color too; their other variants
+  // (solid/ghost/link) keep border-color. Genuine border framers (table, nav)
+  // fall through to the border-color rule below.
+  const ringFramed =
+    RING_FRAMED_COMPONENTS.has(parsed.component) ||
+    isRingFramedVariant(parsed.component, parsed.variant);
+  if (parsed.utility === "border" && ringFramed) {
     return buildEntry(slot, "ring-color", ctx);
   }
 
