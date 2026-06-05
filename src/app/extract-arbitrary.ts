@@ -39,9 +39,7 @@ const ARBITRARY_TO_CSS: Readonly<Record<string, ReadonlyArray<keyof CSSPropertie
   leading: ["lineHeight"],
   tracking: ["letterSpacing"],
   bg: ["backgroundColor"],
-  border: ["borderColor"],
   underline: ["textDecorationColor"],
-  ring: ["boxShadow"],
 };
 
 // The generated defaults tables are keyed `remValue → scaleSuffix`
@@ -96,6 +94,15 @@ function fontProperty(value: string): keyof CSSProperties {
   return /^\d+$/.test(value.trim()) ? "fontWeight" : "fontFamily";
 }
 
+// A Tailwind arbitrary value is a CSS length (not a color) when it begins with
+// a digit, sign, or dot. Colours are #hex, rgb(), hsl(), var(), or colour
+// words (all start with a letter or #). Used to split `ring-[1px]` (width)
+// from `ring-[#hex]` (color) and likewise for `border-[…]`. Every width the
+// recipe engine emits is a resolved length that leads with a digit/sign/dot.
+function isLengthValue(value: string): boolean {
+  return /^[-.\d]/.test(value.trim());
+}
+
 export interface Extracted {
   classes: string;
   style: CSSProperties;
@@ -145,7 +152,21 @@ export function extractArbitrary(classString: string): Extracted {
     } else if (prefix === "font") {
       properties = [fontProperty(value)];
     } else if (prefix === "ring") {
-      style.boxShadow = `0 0 0 2px ${value}`;
+      if (isLengthValue(value)) {
+        // ring-width — independent of the ring-color boxShadow (D2c).
+        style.outlineStyle = "solid";
+        style.outlineWidth = value;
+        style.outlineColor = "currentColor";
+      } else {
+        style.boxShadow = `0 0 0 2px ${value}`;
+      }
+      continue;
+    } else if (prefix === "border") {
+      if (isLengthValue(value)) {
+        style.borderWidth = value;
+      } else {
+        style.borderColor = value;
+      }
       continue;
     } else {
       properties = ARBITRARY_TO_CSS[prefix];

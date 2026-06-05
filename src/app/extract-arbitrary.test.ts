@@ -93,4 +93,37 @@ describe("extractArbitrary", () => {
     expect(style.borderWidth).toBe("1px");
     expect(style.borderStyle).toBe("solid");
   });
+
+  // D2c: ring-[1px] is a width, ring-[#hex] is a color. Keep them independent:
+  // ring-color stays a 2px boxShadow; ring-width emits an outline fallback so
+  // ring-[1px] never corrupts the boxShadow into "0 0 0 2px 1px".
+  it("routes ring-[length] to an outline fallback, ring-[color] to boxShadow", () => {
+    const width = extractArbitrary("ring-[1px]");
+    expect(width.style.outlineWidth).toBe("1px");
+    expect(width.style.outlineStyle).toBe("solid");
+    expect(width.style.outlineColor).toBe("currentColor");
+    expect(width.style.boxShadow).toBeUndefined();
+
+    const color = extractArbitrary("ring-[#4F63D2]");
+    expect(color.style.boxShadow).toBe("0 0 0 2px #4F63D2");
+    expect(color.style.outlineWidth).toBeUndefined();
+  });
+
+  it("treats ring-[var(--c)] as a color (boxShadow), not a width", () => {
+    const { style } = extractArbitrary("ring-[var(--brand)]");
+    expect(style.boxShadow).toBe("0 0 0 2px var(--brand)");
+    expect(style.outlineWidth).toBeUndefined();
+  });
+
+  // D2c: border-[1px] is a width, border-[#hex]/border-[var(--c)] is a color.
+  it("routes border-[length] to borderWidth, border-[color] to borderColor", () => {
+    const width = extractArbitrary("border-[2px]");
+    expect(width.style.borderWidth).toBe("2px");
+    expect(width.style.borderColor).toBeUndefined();
+
+    const color = extractArbitrary("border-[#fff]");
+    expect(color.style.borderColor).toBe("#fff");
+    // existing preflight compensation still applies for color-only borders:
+    expect(color.style.borderWidth).toBe("1px");
+  });
 });
