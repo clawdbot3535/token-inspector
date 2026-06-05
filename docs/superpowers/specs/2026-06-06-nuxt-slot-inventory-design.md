@@ -177,3 +177,68 @@ Notes:
   A future mismatch would surface as a (reviewable) `unsupported-part` warning, not a silent bug.
 - **Partial inventory.** Components without a `NUXT_SLOTS` entry are skipped (no flag) — safe;
   the inventory is populated for the full allow-list so coverage is broad.
+
+---
+
+## Revision (verification-driven, 2026-06-06)
+
+Building the detector exactly as designed above over-fired on the real export: **13 warnings**
+instead of ~3. chip(label/close) + button(overlay) were correct, but 7 were false positives —
+`badge→letter` (a typo `letter-spaching`), `checkbox→size`/`checked`, `textarea→min`/`resize`,
+`nav→ring`/`focus`. Root cause: the "mapped-2nd-seg" trick only excludes a 2nd segment if some
+token with that exact segment maps; **utility/state/dimension words that appear only in
+null-mapped tokens for a component** (size, min, resize, ring, letter, checked, focus) slip
+through. The central claim "no utility word-list needed" is disproven.
+
+The user's intent (confirmed): the warnings ARE a Figma-cleanup tool — typos and naming
+mismatches *should* surface (to fix in Figma), but the utility/state/dimension false positives
+must not. Decisions: **(a)** add a `NON_PART_SEGMENTS` exclusion; **(b)** add concrete rename
+suggestions via a Figma→Nuxt part-alias map; **(c)** defer typo detection (a separate
+"unrecognized-utility / did-you-mean" detector — its own cycle; the one typo `letter-spaching`
+is fixed in Figma manually and is excluded here since `letter` ∈ `NON_PART_SEGMENTS`).
+
+### Revised design
+
+**`component-vocab.ts`** — two new exports:
+
+```typescript
+/** 2nd segments that are NEVER a sub-element part — utility/state/dimension words.
+ * Excludes these from the unsupported-part detector (the mapped-2nd-seg trick alone
+ * misses utility words that only appear in null-mapped tokens for a component). */
+export const NON_PART_SEGMENTS: ReadonlySet<string> = new Set<string>([
+  ...STATE_KEYS, // hover, active, disabled, focus, checked, default, hovered
+  "selected", "visited",
+  "size", "min", "max", "height", "width", "radius", "gap", "offset", "spacing", "padding",
+  "font", "letter", "line", "text", "tracking", "leading", "weight", "family",
+  "border", "bg", "ring", "overlay", "placeholder", "underline", "icon", "color",
+  "fill", "stroke", "resize", "shadow",
+]);
+
+/** Figma part name → the Nuxt UI v4 slot it corresponds to (naming mismatch). Drives a
+ * concrete "rename in Figma" suggestion. Only suggested when the aliased name is a real slot
+ * of that component (self-validating). */
+export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
+  ["row", "tr"],
+  ["divider", "separator"],
+  ["check", "icon"],
+]);
+```
+
+**`scanner.ts` detector** — a referenced part is flagged iff it is `!mapped.has(seg) &&
+!slots.has(seg) && !NON_PART_SEGMENTS.has(seg)`. The message has two flavours:
+
+- **Naming mismatch** (`FIGMA_NUXT_PART_ALIAS` has the part AND `slots.has(alias)`):
+  `` `table-row-hover-bg` uses a `row` part. Nuxt UI v4 `table` calls this slot `tr` — rename in Figma (e.g. `table-tr-…`). (tokens: `table-row-hover-bg`, …) ``
+- **Genuine missing / custom** (no valid alias):
+  `` `chip-label-text` references a `label` part that Nuxt UI v4 `chip` has no slot for (slots: root, base). `chip` may be a custom component, or the part is mis-named. ``
+
+### Revised expected result (real export)
+After the revision, exactly: **chip→label/close** and **button→overlay** (custom/mis-named),
+**table→row/divider** and **checkbox→check** (with rename suggestions). The 7 utility/state FPs
+are gone. The typo `badge-letter-spaching` is not flagged this cycle (deferred to a typo
+detector; fix in Figma).
+
+### Out of scope (revision)
+- The "unrecognized-utility / did-you-mean" typo detector (fuzzy-match) — separate cycle.
+- Per-component alias scoping (the alias map is global; the `slots.has(alias)` self-validation
+  prevents a wrong suggestion on a component that lacks the aliased slot).
