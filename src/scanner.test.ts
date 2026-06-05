@@ -487,6 +487,46 @@ describe("scanGraph — validation-color-via-prop (D3)", () => {
   });
 });
 
+describe("scanGraph — D2c border-on-unframed-variant hint", () => {
+  function unframed(base: string) {
+    return makeGraph([
+      makeNode({ id: "button-solid-border", layer: "component", type: "color", source: "global", base }),
+    ]);
+  }
+
+  it("flags an opaque border on the solid (unframed) variant", () => {
+    const report = scanGraph(unframed("#4F63D2"), { components: ["button"] });
+    const hint = report.issues.find((i) => i.kind === "border-on-unframed-variant");
+    expect(hint).toBeDefined();
+    expect(hint?.severity).toBe("hint");
+    expect(hint?.componentName).toBe("button");
+    expect(hint?.tokenIds).toContain("button-solid-border");
+  });
+
+  it("does not flag a transparent placeholder border", () => {
+    const report = scanGraph(unframed("rgba(0, 0, 0, 0)"), { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "border-on-unframed-variant")).toBeUndefined();
+  });
+
+  it("flags an opaque rgb() border even when blue is zero", () => {
+    const report = scanGraph(unframed("rgb(0, 0, 0)"), { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "border-on-unframed-variant")).toBeDefined();
+  });
+
+  it("flags a fully-opaque rgba(...,1) border", () => {
+    const report = scanGraph(unframed("rgba(79, 99, 210, 1)"), { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "border-on-unframed-variant")).toBeDefined();
+  });
+
+  it("does not flag the outline (framed) variant border", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-outline-border", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "border-on-unframed-variant")).toBeUndefined();
+  });
+});
+
 describe("scanGraph — output forecast", () => {
   it("reports unmapped component prefixes outside the allow-list", () => {
     const graph = makeGraph([

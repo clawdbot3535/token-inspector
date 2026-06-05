@@ -18,7 +18,7 @@ import {
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES } from "./component-vocab.js";
+import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS } from "./component-vocab.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
 const SIZE_ORDER: ReadonlyArray<string> = ["xs", "sm", "md", "lg", "xl", "2xl"];
@@ -51,6 +51,27 @@ function isValidationColorBorder(id: string): boolean {
   const last = segs[segs.length - 1]!;
   const beforeLast = segs[segs.length - 2]!;
   return beforeLast === "border" && VALIDATION_COLOR_ROLES.has(last);
+}
+
+/**
+ * True for a colour value that paints (alpha > 0). Transparent placeholders
+ * (`rgba(…, 0)`, `transparent`, `#RRGGBB00`) return false. For numeric
+ * border-width values, a positive length is "opaque" (handled at the call site).
+ */
+function isOpaqueColor(value: string): boolean {
+  const v = value.trim().toLowerCase();
+  if (v === "transparent" || v === "") return false;
+
+  // rgba(r, g, b, a) — alpha is the 4th component.
+  const rgba = v.match(/^rgba\(\s*[^,]+,[^,]+,[^,]+,\s*([0-9.]+)\s*\)$/);
+  if (rgba) return parseFloat(rgba[1]!) > 0;
+
+  // rgb(r, g, b) — no alpha channel; always opaque.
+  if (/^rgb\([^)]*\)$/.test(v)) return true;
+
+  const hex8 = v.match(/^#[0-9a-f]{6}([0-9a-f]{2})$/);
+  if (hex8) return parseInt(hex8[1]!, 16) > 0;
+  return true; // #RRGGBB, named colours, var(…)
 }
 
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
@@ -98,6 +119,38 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       }
       continue;
     }
+    // D2c: an opaque border / border-width on an unframed button variant
+    // (solid/ghost/link) is a deviation — Nuxt UI v4 frames only outline/subtle,
+    // so the border never renders. Gated on opacity so the transparent
+    // placeholder borders (rgba(…,0)) do not trip it.
+    const framedVariants = RING_FRAMED_VARIANTS.get(prefix);
+    if (
+      framedVariants !== undefined &&
+      (mapping.utilityType === "border-color" || mapping.utilityType === "border-width") &&
+      mapping.variantAxis === "variant" &&
+      mapping.variantKey !== null &&
+      !framedVariants.has(mapping.variantKey)
+    ) {
+      const value =
+        node.cssValue.base ?? node.cssValue.light ?? node.cssValue.dark ?? "";
+      const opaque =
+        node.type === "color" ? isOpaqueColor(value) : parseFloat(value) > 0;
+      if (opaque) {
+        issues.push({
+          id: `uvb-${node.id}`,
+          category: "classification-hint",
+          severity: "hint",
+          kind: "border-on-unframed-variant",
+          message:
+            `\`${node.id}\` sets a border on the \`${mapping.variantKey}\` button variant, ` +
+            `which Nuxt UI v4 renders without a frame (only \`outline\`/\`subtle\` are ring-framed). ` +
+            `This border will not appear in the output.`,
+          tokenIds: [node.id],
+          componentName: prefix,
+        });
+      }
+    }
+
     // The scanner's data-quality checks below operate on the size axis
     // only — they treat `variantKey` as a size key. Skip tokens on other
     // axes (variant/state) to avoid false-positive completeness warnings;
