@@ -3,8 +3,8 @@
 //   { slot: 'base' | 'leadingIcon' | 'trailingIcon' | ... ,
 //     utilityType: 'padding-x' | 'padding-y' | 'rounded' | 'font-weight'
 //                  | 'text-size' | 'gap' | 'icon-size'
-//                  | 'bg-color' | 'text-color' | 'border-color'
-//                  | 'ring-color' | 'underline-color'
+//                  | 'bg-color' | 'text-color' | 'border-color' | 'border-width'
+//                  | 'ring-color' | 'ring-width' | 'underline-color'
 //                  | 'height' | 'width' | 'line-height'
 //                  | 'letter-spacing' | 'placeholder-color'
 //                  | 'ring-offset' | 'font-family' | 'padding'
@@ -38,7 +38,9 @@ export type UtilityType =
   | "bg-color"
   | "text-color"
   | "border-color"
+  | "border-width"
   | "ring-color"
+  | "ring-width"
   | "underline-color"
   | "height"
   | "width"
@@ -272,6 +274,10 @@ const HEURISTIC_RULES: ReadonlyArray<{
     build: (ctx) => buildEntry("base", "border-color", ctx),
   },
   {
+    match: (u) => u === "border-width",
+    build: (ctx) => buildEntry("base", "border-width", ctx),
+  },
+  {
     match: (u) => u === "ring",
     build: (ctx) => buildEntry("base", "ring-color", ctx),
   },
@@ -357,6 +363,9 @@ export function heuristicSlotMapping(
     isRingFramedVariant(parsed.component, parsed.variant);
   if (parsed.utility === "border" && ringFramed) {
     return buildEntry(slot, "ring-color", ctx);
+  }
+  if (parsed.utility === "border-width" && ringFramed) {
+    return buildEntry(slot, "ring-width", ctx);
   }
 
   for (const rule of HEURISTIC_RULES) {

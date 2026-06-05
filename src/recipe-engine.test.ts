@@ -274,6 +274,30 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     expect(Object.keys(recipes.button?.variants ?? {})).not.toContain("state");
   });
 
+  it("emits ring-[Npx] for an outline border-width token (D2c)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-outline-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.outline?.base).toBe("ring-[1px]");
+  });
+
+  it("emits border-[Npx] for an unframed-variant border-width token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-border-width", layer: "component", type: "number", source: "global", base: "2px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toBe("border-[2px]");
+  });
+
+  it("emits border-[Npx] for a component-level border-width token (no variant)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "table-border-width", layer: "component", type: "number", source: "global", base: "1px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["table"] });
+    expect(recipes.table?.slots.base).toBe("border-[1px]");
+  });
+
   it("keeps a state-prefixed token out of the non-suffix default-size redirect", () => {
     // padding-y has size siblings, so a NON-suffix padding-y would be redirected
     // into variants.size. A focus-state padding-y must NOT be swallowed by that

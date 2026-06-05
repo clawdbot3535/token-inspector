@@ -77,6 +77,8 @@ const COLOR_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
 const ARBITRARY_VALUE_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
   "height",
   "width",
+  "border-width",
+  "ring-width",
   "line-height",
   "letter-spacing",
   "ring-offset",
@@ -289,6 +291,8 @@ export function shadowIdFor(utilityType: UtilityType): string {
       return "color-temp";
     case "height":
     case "width":
+    case "border-width":
+    case "ring-width":
     case "line-height":
     case "letter-spacing":
     case "ring-offset":
@@ -380,7 +384,11 @@ export function prefixForUtility(utilityType: UtilityType): string {
       return "text-";
     case "border-color":
       return "border-";
+    case "border-width":
+      return "border-";
     case "ring-color":
+      return "ring-";
+    case "ring-width":
       return "ring-";
     case "underline-color":
       return "underline-";

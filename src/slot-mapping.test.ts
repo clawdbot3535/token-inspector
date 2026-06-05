@@ -123,6 +123,33 @@ describe("heuristicSlotMapping — variant axis (solid/outline/ghost/link)", () 
     });
   });
 
+  it("maps button-outline-border-width to ring-width on the outline variant (D2c)", () => {
+    expect(heuristicSlotMapping("button-outline-border-width")).toEqual({
+      slot: "base",
+      utilityType: "ring-width",
+      variantAxis: "variant",
+      variantKey: "outline",
+    });
+  });
+
+  it("maps an unframed-variant border-width to the border-width utility", () => {
+    expect(heuristicSlotMapping("button-solid-border-width")).toEqual({
+      slot: "base",
+      utilityType: "border-width",
+      variantAxis: "variant",
+      variantKey: "solid",
+    });
+  });
+
+  it("maps a component-level border-width (no variant) to border-width", () => {
+    expect(heuristicSlotMapping("table-border-width")).toEqual({
+      slot: "base",
+      utilityType: "border-width",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
   it("maps button-ghost-text-active", () => {
     expect(heuristicSlotMapping("button-ghost-text-active")).toEqual({
       slot: "base",
