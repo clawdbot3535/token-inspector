@@ -128,6 +128,8 @@ function applyScaleClass(cls: string, style: Record<string, string>): boolean {
 export function extractArbitrary(classString: string): Extracted {
   const style: Record<string, string> = {};
   const classes: string[] = [];
+  let ringColor: string | undefined;
+  let ringWidth: string | undefined;
   for (const cls of classString.split(/\s+/).filter(Boolean)) {
     if (cls.includes(":")) {
       classes.push(cls);
@@ -152,14 +154,9 @@ export function extractArbitrary(classString: string): Extracted {
     } else if (prefix === "font") {
       properties = [fontProperty(value)];
     } else if (prefix === "ring") {
-      if (isLengthValue(value)) {
-        // ring-width — independent of the ring-color boxShadow (D2c).
-        style.outlineStyle = "solid";
-        style.outlineWidth = value;
-        style.outlineColor = "currentColor";
-      } else {
-        style.boxShadow = `0 0 0 2px ${value}`;
-      }
+      // ring-[length] = width, ring-[colour] = colour; composed below (D2e).
+      if (isLengthValue(value)) ringWidth = value;
+      else ringColor = value;
       continue;
     } else if (prefix === "border") {
       if (isLengthValue(value)) {
@@ -178,6 +175,13 @@ export function extractArbitrary(classString: string): Extracted {
     for (const prop of properties) {
       style[prop as string] = value;
     }
+  }
+
+  // Compose the ring (D2e): one boxShadow carrying the token's width + colour.
+  // Defaults: 2px width (Tailwind ring default) and currentColor when only one
+  // half is present. ring-[length] no longer emits a competing CSS outline.
+  if (ringColor !== undefined || ringWidth !== undefined) {
+    style.boxShadow = `0 0 0 ${ringWidth ?? "2px"} ${ringColor ?? "currentColor"}`;
   }
 
   // Tailwind preflight zeroes border-width on every element, so a bare

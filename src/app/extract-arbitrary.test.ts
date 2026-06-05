@@ -94,19 +94,23 @@ describe("extractArbitrary", () => {
     expect(style.borderStyle).toBe("solid");
   });
 
-  // D2c: ring-[1px] is a width, ring-[#hex] is a color. Keep them independent:
-  // ring-color stays a 2px boxShadow; ring-width emits an outline fallback so
-  // ring-[1px] never corrupts the boxShadow into "0 0 0 2px 1px".
-  it("routes ring-[length] to an outline fallback, ring-[color] to boxShadow", () => {
-    const width = extractArbitrary("ring-[1px]");
-    expect(width.style.outlineWidth).toBe("1px");
-    expect(width.style.outlineStyle).toBe("solid");
-    expect(width.style.outlineColor).toBe("currentColor");
-    expect(width.style.boxShadow).toBeUndefined();
+  // D2e: a ring is one boxShadow carrying both width and colour, so the preview
+  // shows the token's real ring width per state (resting 1px vs focus 2px),
+  // not a fixed 2px and not a competing CSS outline.
+  it("composes ring width + colour into a single boxShadow", () => {
+    const both = extractArbitrary("ring-[1px] ring-[#4F63D2]");
+    expect(both.style.boxShadow).toBe("0 0 0 1px #4F63D2");
+    expect(both.style.outlineWidth).toBeUndefined();
 
-    const color = extractArbitrary("ring-[#4F63D2]");
-    expect(color.style.boxShadow).toBe("0 0 0 2px #4F63D2");
-    expect(color.style.outlineWidth).toBeUndefined();
+    const widthOnly = extractArbitrary("ring-[1px]");
+    expect(widthOnly.style.boxShadow).toBe("0 0 0 1px currentColor");
+
+    const colorOnly = extractArbitrary("ring-[#4F63D2]");
+    expect(colorOnly.style.boxShadow).toBe("0 0 0 2px #4F63D2");
+
+    // order-independent: colour before width composes the same single ring.
+    const reversed = extractArbitrary("ring-[#4F63D2] ring-[1px]");
+    expect(reversed.style.boxShadow).toBe("0 0 0 1px #4F63D2");
   });
 
   it("treats ring-[var(--c)] as a color (boxShadow), not a width", () => {
