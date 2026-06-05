@@ -9,6 +9,8 @@ import {
   isRingFramedVariant,
   PROP_DRIVEN_STATES,
   propDrivenStateFor,
+  NUXT_SLOTS,
+  nuxtSlotsFor,
 } from "./component-vocab";
 
 describe("component-vocab", () => {
@@ -64,5 +66,27 @@ describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
   });
   it("marks textarea `active` as driven by the highlight prop (input's twin)", () => {
     expect(propDrivenStateFor("textarea", "active")).toBe("highlight");
+  });
+});
+
+describe("NUXT_SLOTS / nuxtSlotsFor", () => {
+  it("knows chip has only root/base (no label/close)", () => {
+    const chip = nuxtSlotsFor("chip");
+    expect(chip?.has("base")).toBe(true);
+    expect(chip?.has("label")).toBe(false);
+    expect(chip?.has("close")).toBe(false);
+  });
+  it("knows the sub-element slots that exist (dropdown item, table th, nav item)", () => {
+    expect(nuxtSlotsFor("dropdown")?.has("item")).toBe(true);
+    expect(nuxtSlotsFor("table")?.has("th")).toBe(true);
+    expect(nuxtSlotsFor("nav")?.has("item")).toBe(true);
+  });
+  it("returns undefined for an uninventoried component", () => {
+    expect(nuxtSlotsFor("typography")).toBeUndefined();
+  });
+  it("every inventoried component has a non-empty slot set", () => {
+    for (const [, slots] of NUXT_SLOTS) {
+      expect(slots.size).toBeGreaterThan(0);
+    }
   });
 });

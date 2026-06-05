@@ -84,3 +84,44 @@ export function propDrivenStateFor(component: string, state: string | null): str
   if (state === null) return null;
   return PROP_DRIVEN_STATES.get(component)?.get(state) ?? null;
 }
+
+/**
+ * Per-Figma-component → the Nuxt UI v4 theme slot ("part") names that component
+ * defines. Hand-authored from each component's theme `slots` keys (Nuxt UI MCP;
+ * Nuxt UI v4 is the pinned target). Keyed by the Figma component name as it
+ * appears in token ids (chip, dropdown, nav); slots taken from the matching Nuxt
+ * component (Chip, DropdownMenu, NavigationMenu, …). Used to tell "Nuxt has no
+ * such slot (custom/mis-named)" from "valid Nuxt slot the adapter doesn't route
+ * yet". Covers the parts-bearing + form/display components; the rest of the
+ * allow-list (card, kbd, modal, progress, radio, switch) have no referenced
+ * parts today — add their slot sets here when they do (the detector skips
+ * uninventoried components safely).
+ */
+export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  ["button", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
+  ["badge", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
+  ["input", new Set(["root", "base", "leading", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailing", "trailingIcon"])],
+  ["textarea", new Set(["root", "base", "leading", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailing", "trailingIcon"])],
+  ["chip", new Set(["root", "base"])],
+  ["checkbox", new Set(["root", "container", "base", "indicator", "icon", "wrapper", "label", "description"])],
+  ["dropdown", new Set([
+    "content", "input", "empty", "viewport", "arrow", "group", "label", "separator",
+    "item", "itemLeadingIcon", "itemLeadingAvatar", "itemLeadingAvatarSize", "itemTrailing",
+    "itemTrailingIcon", "itemTrailingKbds", "itemTrailingKbdsSize", "itemWrapper", "itemLabel",
+    "itemDescription", "itemLabelExternalIcon",
+  ])],
+  ["table", new Set(["root", "base", "caption", "thead", "tbody", "tfoot", "tr", "th", "td", "separator", "empty", "loading"])],
+  ["nav", new Set([
+    "root", "list", "label", "item", "link", "linkLeadingIcon", "linkLeadingAvatar",
+    "linkLeadingAvatarSize", "linkLeadingChipSize", "linkTrailing", "linkTrailingBadge",
+    "linkTrailingBadgeSize", "linkTrailingIcon", "linkLabel", "linkLabelExternalIcon",
+    "childList", "childLabel", "childItem", "childLink", "childLinkWrapper", "childLinkIcon",
+    "childLinkLabel", "childLinkLabelExternalIcon", "childLinkDescription", "separator",
+    "viewportWrapper", "viewport", "content", "indicator", "arrow",
+  ])],
+]);
+
+/** The Nuxt UI v4 theme slot names for a Figma component, or undefined if not inventoried. */
+export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined {
+  return NUXT_SLOTS.get(component);
+}
