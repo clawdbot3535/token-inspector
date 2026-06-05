@@ -7,6 +7,8 @@ import {
   STATE_KEYS,
   RING_FRAMED_VARIANTS,
   isRingFramedVariant,
+  PROP_DRIVEN_STATES,
+  propDrivenStateFor,
 } from "./component-vocab";
 
 describe("component-vocab", () => {
@@ -45,5 +47,19 @@ describe("RING_FRAMED_VARIANTS / isRingFramedVariant", () => {
     for (const v of RING_FRAMED_VARIANTS.get("button") ?? []) {
       expect(BUTTON_VARIANT_KEYS.has(v)).toBe(true);
     }
+  });
+});
+
+describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
+  it("marks input `active` as driven by the highlight prop", () => {
+    expect(propDrivenStateFor("input", "active")).toBe("highlight");
+  });
+  it("does not mark `active` as prop-driven for button (valid :active there)", () => {
+    expect(propDrivenStateFor("button", "active")).toBeNull();
+  });
+  it("returns null for a null state, a real pseudo-class state, and unknown components", () => {
+    expect(propDrivenStateFor("input", null)).toBeNull();
+    expect(propDrivenStateFor("input", "focus")).toBeNull();
+    expect(propDrivenStateFor("table", "active")).toBeNull();
   });
 });

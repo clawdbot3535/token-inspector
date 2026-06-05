@@ -61,3 +61,22 @@ export function isRingFramedVariant(
 export const STATE_KEYS: ReadonlySet<string> = new Set([
   "default", "hover", "active", "disabled", "focus", "checked", "hovered",
 ]);
+
+/**
+ * Per-component states that Nuxt UI v4 applies via a PROP, not a CSS
+ * pseudo-class. Such tokens cannot be expressed as a recipe slot/class, so the
+ * grammar drops them and the scanner flags them as deviations.
+ *
+ * Seed: Nuxt Input has no `:active` state — its "active / selected" look is the
+ * `highlight` boolean prop (`ring ring-inset ring-<color>`). `:active` IS valid
+ * for button (pressed), so this is keyed per component. Only deviations live
+ * here; real pseudo-class states (hover/focus/disabled) route via STATE_KEYS.
+ */
+export const PROP_DRIVEN_STATES: ReadonlyMap<string, ReadonlyMap<string, string>> =
+  new Map([["input", new Map([["active", "highlight"]])]]);
+
+/** Returns the Nuxt prop that drives `state` on `component`, or null. */
+export function propDrivenStateFor(component: string, state: string | null): string | null {
+  if (state === null) return null;
+  return PROP_DRIVEN_STATES.get(component)?.get(state) ?? null;
+}
