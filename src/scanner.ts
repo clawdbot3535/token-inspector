@@ -18,7 +18,7 @@ import {
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS } from "./component-vocab.js";
+import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor } from "./component-vocab.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
 const SIZE_ORDER: ReadonlyArray<string> = ["xs", "sm", "md", "lg", "xl", "2xl"];
@@ -51,6 +51,16 @@ function isValidationColorBorder(id: string): boolean {
   const last = segs[segs.length - 1]!;
   const beforeLast = segs[segs.length - 2]!;
   return beforeLast === "border" && VALIDATION_COLOR_ROLES.has(last);
+}
+
+/** {state, prop} when the token's trailing state is prop-driven for its component, else null. */
+function propDrivenStateForId(id: string): { state: string; prop: string } | null {
+  const segs = id.split("-");
+  if (segs.length < 2) return null;
+  const component = segs[0]!;
+  const last = segs[segs.length - 1]!;
+  const prop = propDrivenStateFor(component, last);
+  return prop === null ? null : { state: last, prop };
 }
 
 /**
@@ -116,6 +126,23 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
           tokenIds: [node.id],
           componentName: prefix,
         });
+      } else {
+        const pd = propDrivenStateForId(node.id);
+        if (pd !== null) {
+          issues.push({
+            id: `pd-${node.id}`,
+            category: "classification-hint",
+            severity: "warning",
+            kind: "state-via-prop",
+            message:
+              `\`${node.id}\` targets the \`${pd.state}\` state, which Nuxt UI v4 applies via ` +
+              `the \`${pd.prop}\` prop (set programmatically), not a recipe slot — ` +
+              `\`${prefix}\` has no \`:${pd.state}\` pseudo-class state, so no \`ui.${prefix}\` ` +
+              `override is emitted.`,
+            tokenIds: [node.id],
+            componentName: prefix,
+          });
+        }
       }
       continue;
     }

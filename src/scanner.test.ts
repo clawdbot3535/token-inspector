@@ -548,3 +548,35 @@ describe("scanGraph — output forecast", () => {
     expect(report.forecast.tokensCss.modeVariantEntries).toBe(1);
   });
 });
+
+describe("scanGraph — prop-driven state hint (capability)", () => {
+  it("flags input-border-active as applied via the highlight prop", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-border-active", layer: "component", type: "color", source: "global", base: "#8A9DDB" }),
+    ]);
+    const report = scanGraph(graph, { components: ["input"] });
+    const hint = report.issues.find((i) => i.kind === "state-via-prop");
+    expect(hint).toBeDefined();
+    expect(hint?.severity).toBe("warning");
+    expect(hint?.componentName).toBe("input");
+    expect(hint?.message).toContain("highlight");
+    expect(hint?.tokenIds).toContain("input-border-active");
+  });
+
+  it("does not flag input-border-focus (real pseudo-class state)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-border-focus", layer: "component", type: "color", source: "global", base: "#6F82C2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["input"] });
+    expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
+  });
+
+  it("still flags input-border-error as a validation colour, not state-via-prop", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-border-error", layer: "component", type: "color", source: "global", base: "#E64041" }),
+    ]);
+    const report = scanGraph(graph, { components: ["input"] });
+    expect(report.issues.find((i) => i.kind === "validation-color-via-prop")).toBeDefined();
+    expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
+  });
+});
