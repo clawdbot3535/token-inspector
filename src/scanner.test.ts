@@ -563,6 +563,17 @@ describe("scanGraph — prop-driven state hint (capability)", () => {
     expect(hint?.tokenIds).toContain("input-border-active");
   });
 
+  it("flags textarea-border-active as applied via the highlight prop", () => {
+    const graph = makeGraph([
+      makeNode({ id: "textarea-border-active", layer: "component", type: "color", source: "global", base: "#8A9DDB" }),
+    ]);
+    const report = scanGraph(graph, { components: ["textarea"] });
+    const hint = report.issues.find((i) => i.kind === "state-via-prop");
+    expect(hint).toBeDefined();
+    expect(hint?.componentName).toBe("textarea");
+    expect(hint?.message).toContain("highlight");
+  });
+
   it("does not flag input-border-focus (real pseudo-class state)", () => {
     const graph = makeGraph([
       makeNode({ id: "input-border-focus", layer: "component", type: "color", source: "global", base: "#6F82C2" }),

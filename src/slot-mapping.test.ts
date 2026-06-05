@@ -595,6 +595,9 @@ describe("heuristicSlotMapping — prop-driven states (capability)", () => {
   it("drops input-border-active (Nuxt applies `active` via the highlight prop)", () => {
     expect(heuristicSlotMapping("input-border-active", "color")).toBeNull();
   });
+  it("drops textarea-border-active (Nuxt applies `active` via the highlight prop)", () => {
+    expect(heuristicSlotMapping("textarea-border-active", "color")).toBeNull();
+  });
   it("keeps input-border-focus mapping (focus is a real pseudo-class)", () => {
     expect(heuristicSlotMapping("input-border-focus", "color")).toEqual({
       slot: "base",

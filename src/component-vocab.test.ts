@@ -62,4 +62,7 @@ describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
     expect(propDrivenStateFor("input", "focus")).toBeNull();
     expect(propDrivenStateFor("table", "active")).toBeNull();
   });
+  it("marks textarea `active` as driven by the highlight prop (input's twin)", () => {
+    expect(propDrivenStateFor("textarea", "active")).toBe("highlight");
+  });
 });

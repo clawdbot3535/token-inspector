@@ -71,9 +71,13 @@ export const STATE_KEYS: ReadonlySet<string> = new Set([
  * `highlight` boolean prop (`ring ring-inset ring-<color>`). `:active` IS valid
  * for button (pressed), so this is keyed per component. Only deviations live
  * here; real pseudo-class states (hover/focus/disabled) route via STATE_KEYS.
+ * Textarea is Input's twin (same `highlight` prop, no `:active`), so it shares the entry.
  */
 export const PROP_DRIVEN_STATES: ReadonlyMap<string, ReadonlyMap<string, string>> =
-  new Map([["input", new Map([["active", "highlight"]])]]);
+  new Map([
+    ["input", new Map([["active", "highlight"]])],
+    ["textarea", new Map([["active", "highlight"]])],
+  ]);
 
 /** Returns the Nuxt prop that drives `state` on `component`, or null. */
 export function propDrivenStateFor(component: string, state: string | null): string | null {
