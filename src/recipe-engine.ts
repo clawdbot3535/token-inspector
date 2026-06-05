@@ -8,6 +8,7 @@
 import type { TokenGraph, TokenId, TokenNode } from "./token-graph.js";
 import { classifyToken } from "./classify-token.js";
 import { resolveTokenToValue } from "./resolve-token.js";
+import { isOpaqueColor } from "./color-opacity.js";
 import {
   getSlotMapping,
   type SlotMappingOverride,
@@ -189,6 +190,14 @@ export function buildComponentRecipes(
 
     const resolved = resolveTokenToValue(node.id, graph);
     if ("error" in resolved) continue;
+
+    // A fully-transparent colour paints nothing — emitting a class (e.g.
+    // border-[var(--color-transparent)]) is dead output and trips the preview's
+    // border-preflight compensation. Skip it; Nuxt's (equally transparent)
+    // default applies.
+    if (COLOR_UTILITY_TYPES.has(mapping.utilityType) && !isOpaqueColor(resolved.value)) {
+      continue;
+    }
 
     // Redirect non-suffix tokens to the default size variant when the utility
     // type has size-suffixed siblings in the graph. State-prefixed tokens

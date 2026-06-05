@@ -322,6 +322,34 @@ describe("buildComponentRecipes — variant axis (solid/outline/ghost/link)", ()
     expect(recipes.button?.slots.base).toContain("focus:py-3"); // 12px → py-3
     expect(Object.keys(recipes.button?.variants ?? {})).not.toContain("state");
   });
+
+  it("drops a fully-transparent border colour (no class emitted)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-ghost-border", layer: "component", type: "color", source: "global", base: "rgba(0, 0, 0, 0)" }),
+      makeNode({ id: "button-ghost-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    const cls = recipes.button?.variants.variant?.ghost?.base ?? "";
+    expect(cls).not.toContain("border-");
+    expect(cls).toContain("text-[#52525B]");
+  });
+
+  it("drops a fully-transparent background colour", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-link-bg", layer: "component", type: "color", source: "global", base: "rgba(0, 0, 0, 0)" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    const cls = recipes.button?.variants.variant?.link?.base ?? "";
+    expect(cls).not.toContain("bg-");
+  });
+
+  it("keeps opaque colours (transparent rule is value-gated)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes.button?.variants.variant?.solid?.base).toBe("bg-[#4F63D2]");
+  });
 });
 
 describe("utilityForMapping — highlight/recipe parity", () => {
