@@ -357,11 +357,10 @@ describe("extra state keys", () => {
   });
 });
 
-describe("sub-element slot extension point (B seam, empty in v0.4.0)", () => {
-  it("does not yet recognize sub-element prefixes (item-* stays base/null)", () => {
-    // nav-item-bg currently parses utility "item-bg" → no rule → null.
-    // When v0.5.0 fills SLOT_PREFIXES, this expectation changes.
-    expect(heuristicSlotMapping("nav-item-bg")).toBeNull();
+describe("sub-element slot extension point (B seam)", () => {
+  it("routes nav-item-bg to the item slot via exact-match fallback", () => {
+    // nav is inventoried in NUXT_SLOTS; "item" is an exact slot name → routes.
+    expect(heuristicSlotMapping("nav-item-bg")?.slot).toBe("item");
   });
 });
 
@@ -623,5 +622,31 @@ describe("heuristicSlotMapping — prop-driven states (capability)", () => {
       variantAxis: null,
       variantKey: null,
     });
+  });
+});
+
+describe("sub-element slot routing (exact-match NUXT_SLOTS, fallback)", () => {
+  it("routes dropdown-item-* to the item slot", () => {
+    const m = heuristicSlotMapping("dropdown-item-bg");
+    expect(m?.slot).toBe("item");
+  });
+  it("routes table-th-* to the th slot", () => {
+    expect(heuristicSlotMapping("table-th-bg")?.slot).toBe("th");
+  });
+  it("routes nav-item-* to the item slot", () => {
+    expect(heuristicSlotMapping("nav-item-bg")?.slot).toBe("item");
+  });
+  it("does NOT regress icon-size (stays leadingIcon, even when the component has an icon slot)", () => {
+    expect(heuristicSlotMapping("button-icon-size-md")?.slot).toBe("leadingIcon");
+    expect(heuristicSlotMapping("checkbox-icon-size-md")?.slot).toBe("leadingIcon");
+  });
+  it("does NOT route a naming-mismatch part (checkbox-check stays unrouted)", () => {
+    // "check" is not an exact checkbox slot (Nuxt uses "icon") → unsupported-part flags it elsewhere.
+    expect(heuristicSlotMapping("checkbox-check-color")?.slot).not.toBe("check");
+  });
+  it("does not route for a component with no NUXT_SLOTS entry", () => {
+    const m = heuristicSlotMapping("widget-item-padding-x");
+    // no inventory → "item" cannot be a known slot → either null or slot 'base', never 'item'.
+    expect(m?.slot).not.toBe("item");
   });
 });

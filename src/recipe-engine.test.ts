@@ -869,6 +869,19 @@ describe("buildComponentRecipes — color text tokens emit var() (D1)", () => {
   });
 });
 
+describe("buildComponentRecipes — sub-element slot routing", () => {
+  it("emits a sub-element slot for an exact-match Nuxt slot token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "dropdown-item-bg", layer: "component", type: "color", source: "global", base: "#18181B" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["dropdown"] });
+    const item = recipes["dropdown"]?.slots.item ?? "";
+    const base = recipes["dropdown"]?.slots.base ?? "";
+    expect(item).toContain("bg-[#18181B]");
+    expect(base).not.toContain("bg-[#18181B]");
+  });
+});
+
 describe("buildComponentRecipes — ring-framed border emits ring (D2)", () => {
   function aliasedBorderGraph() {
     const light = {

@@ -72,13 +72,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor } from "./component-vocab.js";
-
-// Approach-B extension point: maps a sub-element segment (immediately after
-// the component) to a Nuxt UI recipe slot. EMPTY in v0.4.0 — v0.5.0+ fills it
-// per component (e.g. "item" → "item", "thumb" → "thumb"). Leaving it empty
-// keeps every token routing to the "base" slot, unchanged.
-const SLOT_PREFIXES: ReadonlyMap<string, RecipeSlot> = new Map();
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor } from "./component-vocab.js";
 
 interface ParsedSegments {
   component: string;
@@ -91,11 +85,11 @@ interface ParsedSegments {
   size: string | null;
   /** The state key (hover/active/...) when present as last segment. */
   state: string | null;
-  /** The recipe slot from SLOT_PREFIXES when a sub-element segment is matched. */
+  /** The recipe slot when a sub-element segment exactly matches a componentSlots entry. */
   slotPrefix: RecipeSlot | null;
 }
 
-function parseSegments(tokenId: string): ParsedSegments | null {
+function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): ParsedSegments | null {
   const parts = tokenId.split("-");
   if (parts.length < 2) return null;
   const component = parts[0];
@@ -117,12 +111,18 @@ function parseSegments(tokenId: string): ParsedSegments | null {
     else if (COLOR_ROLE_KEYS.has(second)) { colorRole = second; start = 2; }
   }
 
-  // Approach-B seam: after variant/color-role detection, check if the next
-  // segment is a known sub-element slot prefix (empty map in v0.4.0).
+  // Seam: after variant/color-role detection, consume the next segment when it
+  // EXACTLY matches a known Nuxt slot for this component. When componentSlots is
+  // omitted (normal first pass), nothing is consumed — today's behaviour.
   let slotPrefix: RecipeSlot | null = null;
   const slotSeg = parts[start];
-  if (slotSeg !== undefined && SLOT_PREFIXES.has(slotSeg)) {
-    slotPrefix = SLOT_PREFIXES.get(slotSeg)!;
+  if (
+    slotSeg !== undefined &&
+    slotSeg !== "base" &&
+    componentSlots !== undefined &&
+    componentSlots.has(slotSeg)
+  ) {
+    slotPrefix = slotSeg;
     start += 1;
   }
 
@@ -327,15 +327,10 @@ const HEURISTIC_RULES: ReadonlyArray<{
 ];
 
 /**
- * Pure heuristic mapping. Returns null if no rule matches.
+ * Apply all heuristic rules to an already-parsed token. Extracted so the
+ * sub-element fallback path can re-use the same logic with a re-parsed token.
  */
-export function heuristicSlotMapping(
-  tokenId: string,
-  // TokenType in practice (e.g. "color"); typed as string to keep this module a pure id-based classifier with no domain-type coupling.
-  valueType?: string,
-): SlotMappingEntry | null {
-  const parsed = parseSegments(tokenId);
-  if (!parsed) return null;
+function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEntry | null {
   const slot: RecipeSlot = parsed.slotPrefix ?? "base";
   const ctx: BuildContext = {
     variant: parsed.variant,
@@ -394,10 +389,38 @@ export function heuristicSlotMapping(
 
   for (const rule of HEURISTIC_RULES) {
     if (rule.match(parsed.utility)) {
-      // Route the slot through parsed.slotPrefix so v0.5.0 can fill
-      // SLOT_PREFIXES and sub-element tokens get their correct recipe slot.
       const entry = rule.build(ctx);
       return slot === "base" ? entry : { ...entry, slot };
+    }
+  }
+  return null;
+}
+
+/**
+ * Pure heuristic mapping. Returns null if no rule matches.
+ */
+export function heuristicSlotMapping(
+  tokenId: string,
+  // TokenType in practice (e.g. "color"); typed as string to keep this module a pure id-based classifier with no domain-type coupling.
+  valueType?: string,
+): SlotMappingEntry | null {
+  const parsed = parseSegments(tokenId);
+  if (!parsed) return null;
+
+  // 1) Normal mapping — no sub-element routing. icon-size and every existing
+  //    rule win here, so this path is regression-free.
+  const normal = matchParsed(parsed, valueType);
+  if (normal) return normal;
+
+  // 2) Fallback: route a leading segment that EXACTLY matches a Nuxt slot of
+  //    this component (from NUXT_SLOTS). No aliasing — naming mismatches stay
+  //    null and are surfaced by the unsupported-part hint.
+  const slots = nuxtSlotsFor(parsed.component);
+  if (slots) {
+    const routed = parseSegments(tokenId, slots);
+    if (routed && routed.slotPrefix !== null) {
+      const m = matchParsed(routed, valueType);
+      if (m) return m;
     }
   }
   return null;
