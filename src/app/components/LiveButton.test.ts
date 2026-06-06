@@ -48,19 +48,38 @@ describe("LiveButton", () => {
     expect(previewButtons(wrapper)).toHaveLength(0);
   });
 
-  it("renders size variants with distinct inline padding (JIT-class regression)", () => {
+  it("renders the active size's padding inline (JIT-class regression)", () => {
+    const wrapper = mount(LiveButton, { props: { graph: buttonGraph() }, ...mountOpts });
+    const buttons = previewButtons(wrapper);
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    // default active size md → py-2 (0.5rem), resolved inline, not left to the JIT.
+    expect(buttons.every((b) => b.element.style.paddingTop === "0.5rem")).toBe(true);
+  });
+
+  it("shows a size switch button per recipe size", () => {
+    const wrapper = mount(LiveButton, { props: { graph: buttonGraph() }, ...mountOpts });
+    // buttonGraph defines padding-y-sm/md/lg → sizes sm, md, lg.
+    expect(wrapper.findAll('[data-testid="button-size-switch"]').length).toBe(3);
+  });
+
+  it("shows the active size's completeness score in the header", () => {
     const wrapper = mount(LiveButton, {
-      props: { graph: buttonGraph() },
+      props: {
+        graph: buttonGraph(),
+        completeness: [
+          {
+            component: "button",
+            axis: "size",
+            variantKey: "md",
+            defined: 2,
+            total: 3,
+            missingUtilities: [],
+          },
+        ],
+      },
       ...mountOpts,
     });
-    const buttons = previewButtons(wrapper);
-    expect(buttons.length).toBeGreaterThanOrEqual(3);
-
-    const paddings = new Set(buttons.map((b) => b.element.style.paddingTop));
-    // sm=py-1 (0.25rem), md=py-2 (0.5rem), lg=py-2.5 (0.625rem) — all inline,
-    // none left to the JIT. 0.625rem is the lg value that used to vanish.
-    expect(paddings.has("0.625rem")).toBe(true);
-    expect(paddings.size).toBeGreaterThanOrEqual(3);
+    expect(wrapper.text()).toContain("2/3");
   });
 
   it("resizes the state-row buttons when the size switcher is clicked", async () => {

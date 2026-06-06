@@ -62,14 +62,22 @@ const buttonRecipe = computed(() => {
   return recipes[props.componentName] ?? null;
 });
 
-const SIZES = ["sm", "md", "lg"] as const;
-type Size = (typeof SIZES)[number];
 // Fallback rendered as a single row when no variant tokens are present.
 const FALLBACK_VARIANT = "default";
 
-// User-selectable size used for the state-axis row. The size-axis row
-// always shows all sizes so this only affects the state preview cells.
-const stateAxisSize = ref<Size>("md");
+// Sizes derived from the recipe (ordered xs→xl), the switcher's selected size,
+// and a guarded active size — mirrors LiveBadge so the switch shows the real
+// sizes (button has xs/sm/md/lg) and never points at a missing one.
+const SIZE_ORDER: readonly string[] = ["xs", "sm", "md", "lg", "xl"];
+const sizes = computed<string[]>(() => {
+  const keys = Object.keys(buttonRecipe.value?.variants.size ?? {});
+  if (keys.length === 0) return ["default"];
+  return [...keys].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
+});
+const selectedSize = ref<string>("md");
+const activeSize = computed<string>(() =>
+  sizes.value.includes(selectedSize.value) ? selectedSize.value : (sizes.value[0] ?? "default"),
+);
 
 interface PreviewCell {
   /** Label shown under the button (size key or state key). */
@@ -78,8 +86,6 @@ interface PreviewCell {
   buttonClasses: string;
   /** Inline style hosting arbitrary values that Tailwind JIT can't see. */
   style: CSSProperties;
-  /** Completeness score for this cell's size key, when a scan report is present. */
-  completeness?: CompletenessScore;
 }
 
 interface HighlightSegment {
@@ -89,7 +95,6 @@ interface HighlightSegment {
 
 interface VariantRow {
   variant: string;
-  sizeCells: PreviewCell[];
   stateCells: PreviewCell[];
   /** Full merged class string for `md` — shown in the code preview row. */
   inspectClasses: string;
@@ -109,21 +114,9 @@ const variantRows = computed<VariantRow[]>(() => {
     const variantClasses =
       variant === FALLBACK_VARIANT ? "" : (variantMap[variant]?.["base"] ?? "");
 
-    // ── Sizes row: vary size for the default (no-state) projection. ──
-    const sizeCells: PreviewCell[] = SIZES.map((size) => {
-      const sizeClasses = recipe.variants.size?.[size]?.["base"] ?? "";
-      const merged = [baseClasses, variantClasses, sizeClasses]
-        .filter((s) => s.length > 0)
-        .join(" ")
-        .trim();
-      const projected = projectToState(merged, "default");
-      const { classes: buttonClasses, style } = extractArbitrary(projected);
-      return { label: size, buttonClasses, style, completeness: cellCompleteness(size) };
-    });
-
-    // ── States row: hold size at user-chosen value, vary state projection. ──
+    // ── States row: hold size at the active value, vary state projection. ──
     const sizeClasses =
-      recipe.variants.size?.[stateAxisSize.value]?.["base"] ?? "";
+      recipe.variants.size?.[activeSize.value]?.["base"] ?? "";
     const merged = [baseClasses, variantClasses, sizeClasses]
       .filter((s) => s.length > 0)
       .join(" ")
@@ -143,13 +136,18 @@ const variantRows = computed<VariantRow[]>(() => {
 
     return {
       variant,
-      sizeCells,
       stateCells,
       inspectClasses: merged,
       segments: highlightSegments(merged),
     };
   });
 });
+
+// Completeness for the active size — shown once in each variant row header
+// (replaces the per-size-cell badges of the removed size axis).
+const activeCompleteness = computed<CompletenessScore | undefined>(() =>
+  cellCompleteness(activeSize.value),
+);
 
 // Human-readable label rendered inside each preview button. Capitalises
 // the component name so "button" → "Button", "badge" → "Badge". The cell
@@ -199,33 +197,45 @@ const { copy, wasJustCopied } = useCopyToClipboard();
       class="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-3"
     >
       <div class="flex items-center gap-3">
-        <span
-          class="text-xs font-mono uppercase tracking-wide text-zinc-500"
-        >
+        <span class="text-xs font-mono uppercase tracking-wide text-zinc-500">
           {{ row.variant }}
         </span>
-        <!-- Size switcher for the state-axis row. Hoisted here so the
-             selected size sits next to the variant label and the rest
-             of the grid stays flat. -->
+
+        <!-- Size switcher — drives the state row's size. Shown when >1 size. -->
         <div
+          v-if="sizes.length > 1"
           class="inline-flex rounded border border-zinc-300 dark:border-zinc-700 text-[10px] overflow-hidden"
-          :title="`State preview size — currently ${stateAxisSize}`"
+          :title="`Preview size — currently ${activeSize}`"
         >
           <button
-            v-for="s in SIZES"
+            v-for="s in sizes"
             :key="s"
             type="button"
+            data-testid="button-size-switch"
             class="px-1.5 py-0.5 transition-colors"
             :class="
-              stateAxisSize === s
+              activeSize === s
                 ? 'bg-primary text-inverted'
                 : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             "
-            @click="stateAxisSize = s"
+            @click="selectedSize = s"
           >
             {{ s }}
           </button>
         </div>
+
+        <span
+          v-if="activeCompleteness"
+          class="text-[9px] font-mono"
+          :class="
+            activeCompleteness.defined === activeCompleteness.total
+              ? 'text-emerald-500'
+              : 'text-amber-500'
+          "
+        >
+          {{ activeCompleteness.defined }}/{{ activeCompleteness.total }}
+        </span>
+
         <button
           type="button"
           class="ml-auto text-xs px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -233,83 +243,33 @@ const { copy, wasJustCopied } = useCopyToClipboard();
             'text-success border-success/60': wasJustCopied(`livebtn-${row.variant}`),
           }"
           @click="copy(row.inspectClasses, `livebtn-${row.variant}`)"
-          :title="`Copy ${stateAxisSize} classes for ${row.variant}`"
+          :title="`Copy ${activeSize} classes for ${row.variant}`"
         >
           {{ wasJustCopied(`livebtn-${row.variant}`) ? "Copied!" : "Copy" }}
         </button>
       </div>
 
-      <!-- Axis grid: left column = axis label / controls, right column = cells. -->
-      <div class="grid grid-cols-[72px_1fr] gap-y-4 gap-x-4 items-start">
-        <!-- Size axis: vary sm/md/lg at the default state. -->
+      <!-- State row at the active size (the only row; badge-style). -->
+      <div class="flex flex-wrap gap-x-6 gap-y-3">
         <div
-          class="text-[10px] uppercase tracking-wider text-zinc-400 pt-2"
+          v-for="cell in row.stateCells"
+          :key="`state-${cell.label}`"
+          class="flex flex-col justify-end items-center gap-1 min-w-[88px]"
         >
-          size
-        </div>
-        <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <div
-            v-for="cell in row.sizeCells"
-            :key="`size-${cell.label}`"
-            class="flex flex-col justify-end items-center gap-1 min-w-[88px]"
+          <button
+            type="button"
+            :class="
+              cell.buttonClasses +
+              (hasVariantTokens
+                ? ' inline-flex items-center transition-colors'
+                : ' inline-flex items-center bg-blue-500 text-white hover:bg-blue-600 transition-colors')
+            "
+            :style="cell.style"
           >
-            <button
-              type="button"
-              :class="
-                cell.buttonClasses +
-                (hasVariantTokens
-                  ? ' inline-flex items-center transition-colors'
-                  : ' inline-flex items-center bg-blue-500 text-white hover:bg-blue-600 transition-colors')
-              "
-              :style="cell.style"
-            >
-              <UIcon v-if="hasLeadingIcon" :name="iconName" class="shrink-0" />
-              {{ buttonLabel }}
-            </button>
-            <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
-            <span
-              v-if="cell.completeness"
-              class="text-[9px] font-mono"
-              :class="
-                cell.completeness.defined === cell.completeness.total
-                  ? 'text-emerald-500'
-                  : 'text-amber-500'
-              "
-            >
-              {{ cell.completeness.defined }}/{{ cell.completeness.total }}
-            </span>
-          </div>
-        </div>
-
-        <!-- State axis: hold size at the chosen value, vary state projection.
-             The size selector lives in the row header so this column is
-             just the axis label, matching the size axis above. -->
-        <div
-          class="text-[10px] uppercase tracking-wider text-zinc-400 pt-2"
-        >
-          state
-        </div>
-        <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <div
-            v-for="cell in row.stateCells"
-            :key="`state-${cell.label}`"
-            class="flex flex-col justify-end items-center gap-1 min-w-[88px]"
-          >
-            <button
-              type="button"
-              :class="
-                cell.buttonClasses +
-                (hasVariantTokens
-                  ? ' inline-flex items-center transition-colors'
-                  : ' inline-flex items-center bg-blue-500 text-white hover:bg-blue-600 transition-colors')
-              "
-              :style="cell.style"
-            >
-              <UIcon v-if="hasLeadingIcon" :name="iconName" class="shrink-0" />
-              {{ buttonLabel }}
-            </button>
-            <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
-          </div>
+            <UIcon v-if="hasLeadingIcon" :name="iconName" class="shrink-0" />
+            {{ buttonLabel }}
+          </button>
+          <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
         </div>
       </div>
 
