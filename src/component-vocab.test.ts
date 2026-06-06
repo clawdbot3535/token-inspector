@@ -13,6 +13,7 @@ import {
   nuxtSlotsFor,
   NON_PART_SEGMENTS,
   FIGMA_NUXT_PART_ALIAS,
+  SLOT_PAIRS,
 } from "./component-vocab";
 
 describe("component-vocab", () => {
@@ -108,5 +109,18 @@ describe("NON_PART_SEGMENTS / FIGMA_NUXT_PART_ALIAS", () => {
     expect(FIGMA_NUXT_PART_ALIAS.get("row")).toBe("tr");
     expect(FIGMA_NUXT_PART_ALIAS.get("divider")).toBe("separator");
     expect(FIGMA_NUXT_PART_ALIAS.get("check")).toBe("icon");
+  });
+});
+
+describe("SLOT_PAIRS", () => {
+  it("pairs leadingIcon with trailingIcon", () => {
+    expect(SLOT_PAIRS.some(([a, b]) => a === "leadingIcon" && b === "trailingIcon")).toBe(true);
+  });
+  it("every pair is two distinct non-empty slot names", () => {
+    for (const [a, b] of SLOT_PAIRS) {
+      expect(a.length).toBeGreaterThan(0);
+      expect(b.length).toBeGreaterThan(0);
+      expect(a).not.toBe(b);
+    }
   });
 });

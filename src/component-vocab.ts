@@ -152,3 +152,17 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
   ["divider", "separator"],
   ["check", "icon"],
 ]);
+
+/**
+ * Leading/trailing slot counterparts among the grammar-fillable RecipeSlots.
+ * Used by the capability-gap detector: when one half is filled by a Figma token
+ * and the other is a real Nuxt slot but unfilled, that asymmetry is flagged.
+ * Only `leadingIcon`/`trailingIcon` is fillable today (the `leading`/`trailing`
+ * input wrappers are not RecipeSlot values). Extensible. Typed as `string` pairs
+ * (not `RecipeSlot`) on purpose: `slot-mapping.ts` already imports from this
+ * module, so importing `RecipeSlot` here would create a cycle; the values are
+ * only compared against the `string` `NUXT_SLOTS` sets.
+ */
+export const SLOT_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ["leadingIcon", "trailingIcon"],
+];
