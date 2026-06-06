@@ -18,7 +18,7 @@ import {
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
+import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS } from "./component-vocab.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
@@ -85,6 +85,7 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   const componentTokens = new Map<string, ComponentEntry[]>();
   const mappedSecondSegByComponent = new Map<string, Set<string>>();
   const nullTokensByComponent = new Map<string, { seg: string; id: string }[]>();
+  const filledSlotsByComponent = new Map<string, Set<string>>();
   const allComponentPrefixes = new Set<string>();
 
   for (const node of graph.nodes.values()) {
@@ -142,6 +143,10 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       ms.add(mseg);
       mappedSecondSegByComponent.set(prefix, ms);
     }
+    // Record which RecipeSlot this token fills (for capability-gap detection)
+    const fslots = filledSlotsByComponent.get(prefix) ?? new Set<string>();
+    fslots.add(mapping.slot);
+    filledSlotsByComponent.set(prefix, fslots);
     // D2c: an opaque border / border-width on an unframed button variant
     // (solid/ghost/link) is a deviation — Nuxt UI v4 frames only outline/subtle,
     // so the border never renders. Gated on opacity so the transparent
@@ -227,6 +232,35 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
         tokenIds: ids,
         componentName: comp,
       });
+    }
+  }
+
+  // Capability gap: a leading/trailing slot pair where one half is filled by a
+  // Figma token and the counterpart is a real Nuxt slot but unfilled. Surfaces a
+  // Nuxt capability the tokens don't cover (e.g. trailingIcon — `icon-size` is a
+  // shared size the grammar routes only to leadingIcon). Hint severity: nothing
+  // is wrong or dropped. Components with no NUXT_SLOTS entry are skipped.
+  for (const [comp, filled] of filledSlotsByComponent) {
+    const slots = nuxtSlotsFor(comp);
+    if (!slots) continue;
+    for (const [a, b] of SLOT_PAIRS) {
+      for (const [filledSide, gapSide] of [[a, b], [b, a]] as const) {
+        if (filled.has(filledSide) && !filled.has(gapSide) && slots.has(gapSide)) {
+          issues.push({
+            id: `cg-${comp}-${gapSide}`,
+            category: "classification-hint",
+            severity: "hint",
+            kind: "capability-gap",
+            message:
+              `Nuxt UI v4 \`${comp}\` has a \`${gapSide}\` slot, but the Figma tokens only fill ` +
+              `\`${filledSide}\` (via \`icon-size\`). Nuxt sizes both icons from the same value, ` +
+              `so \`${gapSide}\` stays unsized in the recipe — add a trailing token, route ` +
+              `\`icon-size\` to both adapter-side, or ignore if a leading-only icon is intended.`,
+            tokenIds: [],
+            componentName: comp,
+          });
+        }
+      }
     }
   }
 

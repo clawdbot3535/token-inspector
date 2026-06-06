@@ -671,3 +671,45 @@ describe("scanGraph — unsupported-part hint (slot inventory)", () => {
     expect(hit!.message.toLowerCase()).toContain("rename");
   });
 });
+
+describe("scanGraph — capability-gap hint (paired-slot asymmetry)", () => {
+  it("flags trailingIcon when icon-size fills leadingIcon", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const cg = report.issues.filter((i) => i.kind === "capability-gap");
+    expect(cg.map((i) => i.id)).toEqual(["cg-button-trailingIcon"]);
+    expect(cg[0]!.severity).toBe("hint");
+    expect(cg[0]!.componentName).toBe("button");
+    expect(cg[0]!.message).toContain("trailingIcon");
+    expect(cg[0]!.tokenIds).toEqual([]);
+  });
+
+  it("does not flag a capability gap without an icon-size token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#222222" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "capability-gap")).toBeUndefined();
+  });
+
+  it("skips a component with no NUXT_SLOTS entry", () => {
+    const graph = makeGraph([
+      makeNode({ id: "widget-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+    ]);
+    const report = scanGraph(graph, { components: ["widget"] });
+    expect(report.issues.find((i) => i.kind === "capability-gap")).toBeUndefined();
+  });
+
+  it("emits one capability-gap per (component, slot) across multiple icon tokens", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-icon-size-sm", layer: "component", type: "dimension", source: "global", base: "12px" }),
+      makeNode({ id: "button-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(
+      report.issues.filter((i) => i.kind === "capability-gap" && i.id === "cg-button-trailingIcon"),
+    ).toHaveLength(1);
+  });
+});
