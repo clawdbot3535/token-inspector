@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.7.0] — 2026-06-06
+
+Live previews for the core form controls (`textarea`, `badge`, `switch`, `checkbox`, `radio` —
+joining `button`/`input`), **sub-element slot routing**, and the **`capability-gap`** scan hint.
+
+### Added
+
+- **Live previews — `textarea`, `badge`, `switch`, `checkbox`, `radio`.** Each renders in the
+  inspector with the sidebar `Live` pill. `LiveInput` generalises to a `<textarea>`; `LiveBadge`
+  shows a colour×size matrix with a `sm/md` size switch; `LiveSwitch` a token-driven track + a
+  decorative thumb (unchecked/checked); `LiveCheckbox`/`LiveRadio` a token-driven box with a
+  decorative checkmark/dot. The token-driven surfaces (colours, ring, radius, checked state) are
+  faithful; indicators and sizes the grammar doesn't map are drawn decoratively.
+- **Sub-element slot routing.** Figma sub-element tokens (`dropdown-item-*`, `table-th-*`,
+  `nav-item-*`) route to their Nuxt recipe slot by **exact name match** against `NUXT_SLOTS`, as a
+  fallback after the normal mapping so `icon-size` is unchanged. `RecipeSlot` is widened to
+  `string`. Naming mismatches (`check`/`row`/`divider`/`dot`) stay `unsupported-part`-flagged with
+  a Figma rename suggestion (not auto-aliased).
+- **`capability-gap` scan hint.** Flags a Nuxt slot the Figma tokens leave uncovered (e.g.
+  `trailingIcon` when only the leading icon is tokenised) — the inverse of `unsupported-part`,
+  driven by `SLOT_PAIRS`.
+- **`checked` projection.** The preview can render a control's checked appearance from the
+  recipe's `checked:`-prefixed classes. `NUXT_SLOTS` gains `switch`/`radio`, plus a
+  `dot`→`indicator` rename alias.
+
+### Changed
+
+- **`button` preview aligned with `badge`** — the size-axis row is replaced by a recipe-derived
+  `xs/sm/md/lg` size switch + a header completeness score.
+
 ## [0.6.0] — 2026-06-06
 
 A large post-`0.5.0` batch: the scan-area rework, `button` variant-conditional rings with
