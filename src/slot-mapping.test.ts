@@ -362,6 +362,9 @@ describe("sub-element slot extension point (B seam)", () => {
     // nav is inventoried in NUXT_SLOTS; "item" is an exact slot name → routes.
     expect(heuristicSlotMapping("nav-item-bg")?.slot).toBe("item");
   });
+  it("routes switch-thumb-border to the thumb slot (switch inventoried)", () => {
+    expect(heuristicSlotMapping("switch-thumb-border")?.slot).toBe("thumb");
+  });
 });
 
 describe("heuristicSlotMapping — text disambiguation by value type", () => {

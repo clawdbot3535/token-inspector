@@ -119,6 +119,8 @@ export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
     "childLinkLabel", "childLinkLabelExternalIcon", "childLinkDescription", "separator",
     "viewportWrapper", "viewport", "content", "indicator", "arrow",
   ])],
+  ["switch", new Set(["root", "base", "container", "thumb", "icon", "wrapper", "label", "description"])],
+  ["radio", new Set(["root", "fieldset", "legend", "item", "container", "base", "indicator", "wrapper", "label", "description"])],
 ]);
 
 /** The Nuxt UI v4 theme slot names for a Figma component, or undefined if not inventoried. */
@@ -151,6 +153,7 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
   ["row", "tr"],
   ["divider", "separator"],
   ["check", "icon"],
+  ["dot", "indicator"],
 ]);
 
 /**

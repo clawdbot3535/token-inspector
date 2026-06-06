@@ -21,6 +21,7 @@ const STATE_PREFIXES: ReadonlySet<string> = new Set([
   "active",
   "disabled",
   "focus",
+  "checked",
 ]);
 
 /**
@@ -35,7 +36,7 @@ const STATE_PREFIXES: ReadonlySet<string> = new Set([
  *
  * Non-state prefixes (responsive, dark, …) are left untouched on the base.
  */
-export function projectToState(classString: string, state: PreviewState): string {
+export function projectToState(classString: string, state: PreviewState | "checked"): string {
   const baseClasses: string[] = [];
   const stateClasses: string[] = [];
 

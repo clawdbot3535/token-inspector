@@ -39,6 +39,13 @@ describe("projectToState", () => {
     expect(projectToState("", "default")).toBe("");
   });
 
+  it("promotes checked: classes on the checked state and drops them on default", () => {
+    expect(projectToState("bg-[#A] checked:bg-[#B]", "checked")).toContain("bg-[#B]");
+    const def = projectToState("bg-[#A] checked:bg-[#B]", "default");
+    expect(def).not.toContain("bg-[#B]");
+    expect(def).not.toContain("checked:");
+  });
+
   it("exposes the canonical state list", () => {
     expect(PREVIEW_STATES).toEqual([
       "default",

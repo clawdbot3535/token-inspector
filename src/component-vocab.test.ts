@@ -73,6 +73,13 @@ describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
 });
 
 describe("NUXT_SLOTS / nuxtSlotsFor", () => {
+  it("inventories switch and radio slots", () => {
+    expect(nuxtSlotsFor("switch")?.has("thumb")).toBe(true);
+    expect(nuxtSlotsFor("radio")?.has("indicator")).toBe(true);
+  });
+  it("aliases the radio dot to the Nuxt indicator slot", () => {
+    expect(FIGMA_NUXT_PART_ALIAS.get("dot")).toBe("indicator");
+  });
   it("knows chip has only root/base (no label/close)", () => {
     const chip = nuxtSlotsFor("chip");
     expect(chip?.has("base")).toBe(true);
