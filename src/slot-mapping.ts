@@ -26,7 +26,9 @@
 // The same id grammar applies to every component in the standard set
 // (button, badge, input, …); `button` is used as the running example below.
 
-export type RecipeSlot = "base" | "leadingIcon" | "trailingIcon" | "label";
+// A Nuxt UI recipe slot name. Common slots: base, leadingIcon, trailingIcon,
+// label; sub-element slots (item, th, td, …) are routed from NUXT_SLOTS.
+export type RecipeSlot = string;
 export type UtilityType =
   | "padding-x"
   | "padding-y"
