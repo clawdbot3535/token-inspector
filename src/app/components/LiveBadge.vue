@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type CSSProperties } from "vue";
+import { computed, ref, type CSSProperties } from "vue";
 import { buildComponentRecipes } from "@core/recipe-engine.js";
 import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
@@ -12,7 +12,7 @@ interface Props {
   componentName?: string;
   /** Tailwind utility to highlight inside the representative code block. */
   highlightUtility?: string;
-  /** Completeness scores from the scan report; renders an n/m badge per size row. */
+  /** Completeness scores from the scan report; renders an n/m badge for the active size. */
   completeness?: ReadonlyArray<CompletenessScore>;
 }
 
@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   completeness: undefined,
 });
 
-// Smallest → largest, for ordering the size rows. Typed as string[] so a recipe
+// Smallest → largest, for ordering the size switcher. Typed as string[] so a recipe
 // size key that isn't in this list sorts to the front (indexOf -1) without `any`.
 const SIZE_ORDER: readonly string[] = ["xs", "sm", "md", "lg", "xl"];
 
@@ -34,9 +34,8 @@ const badgeRecipe = computed(() => {
 
 const baseClasses = computed<string>(() => badgeRecipe.value?.slots["base"] ?? "");
 
-// Size rows (ordered) and colour columns, derived from the recipe. A single
-// "default" pseudo-key stands in when an axis is absent so a thin badge graph
-// still renders one row / one cell.
+// Sizes (ordered) and colour roles, derived from the recipe. A single "default"
+// pseudo-key stands in when an axis is absent so a thin badge graph still renders.
 const sizes = computed<string[]>(() => {
   const keys = Object.keys(badgeRecipe.value?.variants.size ?? {});
   if (keys.length === 0) return ["default"];
@@ -48,15 +47,17 @@ const colors = computed<string[]>(() => {
   return [...keys].sort();
 });
 
+// The switcher's selected size, resolved through `activeSize` so a graph change can
+// never leave the row pointed at a size the recipe no longer has.
+const selectedSize = ref<string>("md");
+const activeSize = computed<string>(() =>
+  sizes.value.includes(selectedSize.value) ? selectedSize.value : (sizes.value[0] ?? "default"),
+);
+
 interface BadgeCell {
   color: string;
   classes: string;
   style: CSSProperties;
-}
-interface SizeRow {
-  size: string;
-  cells: BadgeCell[];
-  completeness?: CompletenessScore;
 }
 interface HighlightSegment {
   token: string;
@@ -87,24 +88,25 @@ function highlightSegments(classString: string): HighlightSegment[] {
     .map((token) => ({ token, highlight: target !== undefined && token === target }));
 }
 
-const rows = computed<SizeRow[]>(() => {
+// One row: a cell per colour at the active size.
+const cells = computed<BadgeCell[]>(() => {
   if (!badgeRecipe.value) return [];
-  return sizes.value.map((size) => ({
-    size,
-    cells: colors.value.map((color) => {
-      const { classes, style } = extractArbitrary(projectToState(mergedFor(color, size), "default"));
-      return { color, classes, style };
-    }),
-    completeness: cellCompleteness(size),
-  }));
+  return colors.value.map((color) => {
+    const { classes, style } = extractArbitrary(
+      projectToState(mergedFor(color, activeSize.value), "default"),
+    );
+    return { color, classes, style };
+  });
 });
 
-// Representative class string for the code block: first colour × md (else first size).
-const inspectClasses = computed<string>(() => {
-  const size = sizes.value.includes("md") ? "md" : (sizes.value[0] ?? "default");
-  const color = colors.value[0] ?? "default";
-  return mergedFor(color, size);
-});
+const activeCompleteness = computed<CompletenessScore | undefined>(() =>
+  cellCompleteness(activeSize.value),
+);
+
+// Representative class string for the code block: first colour × the active size.
+const inspectClasses = computed<string>(() =>
+  mergedFor(colors.value[0] ?? "default", activeSize.value),
+);
 const segments = computed<HighlightSegment[]>(() => highlightSegments(inspectClasses.value));
 
 const { copy, wasJustCopied } = useCopyToClipboard();
@@ -119,9 +121,43 @@ const { copy, wasJustCopied } = useCopyToClipboard();
 
     <template v-else>
       <div class="flex items-center gap-3">
-        <span class="text-[10px] uppercase tracking-wider text-zinc-400">
-          colour × size
+        <span class="text-[10px] uppercase tracking-wider text-zinc-400">colour</span>
+
+        <!-- Size switcher — shown only when there is more than one size. -->
+        <div
+          v-if="sizes.length > 1"
+          class="inline-flex rounded border border-zinc-300 dark:border-zinc-700 text-[10px] overflow-hidden"
+          :title="`Preview size — currently ${activeSize}`"
+        >
+          <button
+            v-for="s in sizes"
+            :key="s"
+            type="button"
+            data-testid="badge-size-switch"
+            class="px-1.5 py-0.5 transition-colors"
+            :class="
+              activeSize === s
+                ? 'bg-primary text-inverted'
+                : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            "
+            @click="selectedSize = s"
+          >
+            {{ s }}
+          </button>
+        </div>
+
+        <span
+          v-if="activeCompleteness"
+          class="text-[9px] font-mono"
+          :class="
+            activeCompleteness.defined === activeCompleteness.total
+              ? 'text-emerald-500'
+              : 'text-amber-500'
+          "
+        >
+          {{ activeCompleteness.defined }}/{{ activeCompleteness.total }}
         </span>
+
         <button
           type="button"
           class="ml-auto text-xs px-2 py-0.5 rounded border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -133,37 +169,16 @@ const { copy, wasJustCopied } = useCopyToClipboard();
         </button>
       </div>
 
-      <div class="grid grid-cols-[56px_1fr] gap-y-4 gap-x-4 items-start">
-        <template v-for="row in rows" :key="`size-${row.size}`">
-          <div
-            data-testid="badge-size-label"
-            class="text-[10px] uppercase tracking-wider text-zinc-400 pt-1.5 flex flex-col gap-0.5"
-          >
-            <span>{{ row.size }}</span>
-            <span
-              v-if="row.completeness"
-              class="font-mono"
-              :class="
-                row.completeness.defined === row.completeness.total
-                  ? 'text-emerald-500'
-                  : 'text-amber-500'
-              "
-            >
-              {{ row.completeness.defined }}/{{ row.completeness.total }}
-            </span>
-          </div>
-          <div class="flex flex-wrap gap-2 items-center">
-            <span
-              v-for="cell in row.cells"
-              :key="`badge-${row.size}-${cell.color}`"
-              data-testid="badge-cell"
-              class="inline-flex items-center"
-              :class="cell.classes"
-              :style="cell.style"
-              :title="`${cell.color} · ${row.size}`"
-            >{{ cell.color }}</span>
-          </div>
-        </template>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span
+          v-for="cell in cells"
+          :key="`badge-${cell.color}`"
+          data-testid="badge-cell"
+          class="inline-flex items-center"
+          :class="cell.classes"
+          :style="cell.style"
+          :title="`${cell.color} · ${activeSize}`"
+        >{{ cell.color }}</span>
       </div>
 
       <code
