@@ -35,6 +35,10 @@ const props = withDefaults(defineProps<Props>(), {
   completeness: undefined,
 });
 
+// textarea is input as a multi-line element: same recipe pipeline, different
+// rendered tag and no icons. Derive the element kind from the component name.
+const multiline = computed(() => props.componentName === "textarea");
+
 // Inputs render the states the recipe actually encodes. `active` (in
 // PREVIEW_STATES) is omitted because inputs have no active token family;
 // `error`/`success` validation colors are dropped by the engine today and
@@ -181,10 +185,20 @@ const { copy, wasJustCopied } = useCopyToClipboard();
               class="absolute left-2 shrink-0 text-zinc-400 pointer-events-none"
               :style="iconStyle"
             />
+            <textarea
+              v-if="multiline"
+              rows="3"
+              placeholder="Placeholder"
+              :aria-label="`${componentName} preview — ${cell.label} state`"
+              :class="[cell.inputClasses, 'w-full']"
+              :style="{ ...cell.style, resize: 'none' }"
+              :disabled="cell.label === 'disabled'"
+            />
             <input
+              v-else
               type="text"
               placeholder="Placeholder"
-              :aria-label="`Input preview — ${cell.label} state`"
+              :aria-label="`${componentName} preview — ${cell.label} state`"
               :class="[cell.inputClasses, 'w-full']"
               :style="cell.style"
               :disabled="cell.label === 'disabled'"

@@ -25,6 +25,22 @@ function inputGraph() {
   return buildGraph(sources);
 }
 
+function textareaGraph() {
+  const global = {
+    textarea: {
+      border: { $value: "#D4D4D8", $type: "color" },
+      "border-hover": { $value: "#A1A1AA", $type: "color" },
+      "border-focus": { $value: "#3B82F6", $type: "color" },
+      "bg-disabled": { $value: "#F4F4F5", $type: "color" },
+      "border-disabled": { $value: "#E4E4E7", $type: "color" },
+      "padding-x": { $value: 6, $type: "number" },
+      "padding-y": { $value: 8, $type: "number" },
+    },
+  };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+
 // UIcon is an app-global auto-import; stub it so mounting needs no Nuxt UI plugin.
 const mountOpts = { global: { stubs: { UIcon: true } } };
 
@@ -63,6 +79,29 @@ describe("LiveInput", () => {
     const dimmed = inputs.filter((i) => i.element.style.opacity === "0.6");
     expect(dimmed).toHaveLength(1);
     expect(dimmed[0]!.element.style.cursor).toBe("not-allowed");
+  });
+
+  it("renders a <textarea> (not <input>) per state for componentName='textarea'", () => {
+    const wrapper = mount(LiveInput, {
+      props: { graph: textareaGraph(), componentName: "textarea" },
+      ...mountOpts,
+    });
+    const areas = wrapper.findAll("textarea");
+    expect(areas.length).toBe(4); // default / hover / focus / disabled
+    expect(wrapper.findAll("input")).toHaveLength(0);
+    const boxShadows = new Set(areas.map((t) => t.element.style.boxShadow));
+    expect(boxShadows.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it("disables resize and reserves no icon padding for textarea (no icon-size token)", () => {
+    const wrapper = mount(LiveInput, {
+      props: { graph: textareaGraph(), componentName: "textarea" },
+      ...mountOpts,
+    });
+    const areas = wrapper.findAll("textarea");
+    expect(areas.length).toBeGreaterThan(0);
+    expect(areas.every((t) => (t.element as HTMLTextAreaElement).style.resize === "none")).toBe(true);
+    expect(areas.every((t) => t.element.style.paddingLeft === "0.375rem")).toBe(true);
   });
 
   it("reserves inline padding on both sides for the leading + trailing icons when an icon-size token exists", () => {
