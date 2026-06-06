@@ -18,6 +18,8 @@ import LiveButton from "./components/LiveButton.vue";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
 import LiveSwitch from "./components/LiveSwitch.vue";
+import LiveCheckbox from "./components/LiveCheckbox.vue";
+import LiveRadio from "./components/LiveRadio.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import { buildTokenTree, buildLayeredTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
@@ -128,7 +130,7 @@ const selectedComponent = ref<string>("button");
 // aren't buttons — confusing. Gate the visual preview on the supported
 // set; other components still get the token tree, OutputSection, and
 // code-preview highlighting, just not the rendered chip.
-const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch"]);
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio"]);
 // input + textarea are the form-field previews (rendered by LiveInput); button
 // is rendered by LiveButton.
 const FIELD_PREVIEW_COMPONENTS: ReadonlySet<string> = new Set(["input", "textarea"]);
@@ -696,6 +698,28 @@ function downloadAll() {
                 :highlight-utility="selectedVueTemplateClasses"
                 :completeness="scanReport.completeness"
               />
+              <LiveCheckbox
+                v-else-if="
+                  previewSupported &&
+                  selectedComponent === 'checkbox' &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
+              />
+              <LiveRadio
+                v-else-if="
+                  previewSupported &&
+                  selectedComponent === 'radio' &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
+              />
               <LiveButton
                 v-else-if="
                   previewSupported &&
@@ -765,6 +789,18 @@ function downloadAll() {
                 :component-name="selectedComponent"
                 :completeness="scanReport.completeness"
               />
+              <LiveCheckbox
+                v-else-if="previewSupported && selectedComponent === 'checkbox'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :completeness="scanReport.completeness"
+              />
+              <LiveRadio
+                v-else-if="previewSupported && selectedComponent === 'radio'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :completeness="scanReport.completeness"
+              />
               <LiveButton
                 v-else-if="previewSupported"
                 :graph="state.graph.value"
@@ -784,8 +820,10 @@ function downloadAll() {
                   Only <code class="font-mono">button</code>,
                   <code class="font-mono">input</code>,
                   <code class="font-mono">textarea</code>,
-                  <code class="font-mono">badge</code> and
-                  <code class="font-mono">switch</code> have a rendered
+                  <code class="font-mono">badge</code>,
+                  <code class="font-mono">switch</code>,
+                  <code class="font-mono">checkbox</code> and
+                  <code class="font-mono">radio</code> have a rendered
                   preview today — other components produce the correct
                   <code class="font-mono">app.config.ts</code> recipe and
                   highlight on click, but the visual chip is button-specific
