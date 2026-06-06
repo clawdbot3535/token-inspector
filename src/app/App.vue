@@ -126,7 +126,11 @@ const selectedComponent = ref<string>("button");
 // aren't buttons — confusing. Gate the visual preview on the supported
 // set; other components still get the token tree, OutputSection, and
 // code-preview highlighting, just not the rendered chip.
-const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input"]);
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea"]);
+// input + textarea are the form-field previews (rendered by LiveInput); button
+// is rendered by LiveButton.
+const FIELD_PREVIEW_COMPONENTS: ReadonlySet<string> = new Set(["input", "textarea"]);
+const isFieldComponent = computed(() => FIELD_PREVIEW_COMPONENTS.has(selectedComponent.value));
 const previewSupported = computed(() =>
   COMPONENTS_WITH_PREVIEW.has(selectedComponent.value),
 );
@@ -659,7 +663,7 @@ function downloadAll() {
               <LiveInput
                 v-if="
                   previewSupported &&
-                  selectedComponent === 'input' &&
+                  isFieldComponent &&
                   selectedNode.id.split('-')[0] === selectedComponent
                 "
                 :graph="state.graph.value"
@@ -719,7 +723,7 @@ function downloadAll() {
                 </div>
               </div>
               <LiveInput
-                v-if="previewSupported && selectedComponent === 'input'"
+                v-if="previewSupported && isFieldComponent"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :leading-icon-name="iconForSelectedComponent"
@@ -741,8 +745,9 @@ function downloadAll() {
                   <code class="font-mono">{{ selectedComponent }}</code>.
                 </div>
                 <div class="text-zinc-500">
-                  Only <code class="font-mono">button</code> and
-                  <code class="font-mono">input</code> have a rendered
+                  Only <code class="font-mono">button</code>,
+                  <code class="font-mono">input</code> and
+                  <code class="font-mono">textarea</code> have a rendered
                   preview today — other components produce the correct
                   <code class="font-mono">app.config.ts</code> recipe and
                   highlight on click, but the visual chip is button-specific
