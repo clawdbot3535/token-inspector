@@ -12,6 +12,9 @@ export default defineConfig({
   // expects. The instance is identical at runtime. Drop the cast once vitest is
   // on vite 6 (vitest >= 3).
   plugins: [vue() as unknown as Plugin],
+  define: {
+    __APP_VERSION__: JSON.stringify("0.0.0-test"),
+  },
   resolve: {
     alias: {
       "@": new URL("./src/app", import.meta.url).pathname,
