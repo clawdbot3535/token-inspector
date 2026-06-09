@@ -24,6 +24,17 @@ const recipe = computed(() => {
 });
 const baseClasses = computed<string>(() => recipe.value?.slots["base"] ?? "");
 
+const SIZE_ORDER: readonly string[] = ["xs", "sm", "md", "lg", "xl"];
+const sizeClasses = computed<string>(() => {
+  const sizes = recipe.value?.variants.size ?? {};
+  const keys = Object.keys(sizes);
+  if (keys.length === 0) return "";
+  const key = keys.includes("md")
+    ? "md"
+    : [...keys].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b))[0]!;
+  return sizes[key]?.["base"] ?? "";
+});
+
 interface Cell { label: string; checked: boolean; classes: string; style: CSSProperties; }
 interface HighlightSegment { token: string; highlight: boolean; }
 
@@ -37,12 +48,15 @@ function highlightSegments(classString: string): HighlightSegment[] {
 
 const cells = computed<Cell[]>(() => {
   if (!recipe.value) return [];
+  const merged = [baseClasses.value, sizeClasses.value].filter((s) => s.length > 0).join(" ");
   return (["default", "checked"] as const).map((state) => {
-    const { classes, style } = extractArbitrary(projectToState(baseClasses.value, state));
+    const { classes, style } = extractArbitrary(projectToState(merged, state));
     return { label: state === "default" ? "unchecked" : "checked", checked: state === "checked", classes, style };
   });
 });
-const inspectClasses = computed<string>(() => baseClasses.value);
+const inspectClasses = computed<string>(() =>
+  [baseClasses.value, sizeClasses.value].filter((s) => s.length > 0).join(" "),
+);
 const segments = computed<HighlightSegment[]>(() => highlightSegments(inspectClasses.value));
 const { copy, wasJustCopied } = useCopyToClipboard();
 </script>

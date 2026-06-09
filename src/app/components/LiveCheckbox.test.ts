@@ -33,4 +33,18 @@ describe("LiveCheckbox", () => {
     expect(bgs[0]).not.toBe(bgs[1]); // unchecked #FFFFFF vs checked #4F63D2, both inline (JIT-safe)
     expect(bgs.every((b) => b !== "")).toBe(true);
   });
+  it("sizes the box from the size-md token", () => {
+    const global = {
+      checkbox: {
+        bg: { $value: "#FFFFFF", $type: "color" },
+        "bg-checked": { $value: "#4F63D2", $type: "color" },
+        "size-md": { $value: 18, $type: "number" },
+      },
+    };
+    const sources: SourceFile[] = [{ name: "global", data: global }];
+    const wrapper = mount(LiveCheckbox, { props: { graph: buildGraph(sources) }, ...mountOpts });
+    const box = wrapper.find('[data-testid="checkbox-box"]');
+    expect((box.element as HTMLElement).style.width).toBe("18px");
+    expect((box.element as HTMLElement).style.height).toBe("18px");
+  });
 });

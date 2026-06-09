@@ -34,4 +34,18 @@ describe("LiveRadio", () => {
     // radio-radius (9999) resolves to an inline borderRadius (round).
     expect((boxes[0]!.element as HTMLElement).style.borderRadius).not.toBe("");
   });
+  it("sizes the box from the size-md token", () => {
+    const global = {
+      radio: {
+        bg: { $value: "#FFFFFF", $type: "color" },
+        "bg-checked": { $value: "#4F63D2", $type: "color" },
+        "size-md": { $value: 18, $type: "number" },
+      },
+    };
+    const sources: SourceFile[] = [{ name: "global", data: global }];
+    const wrapper = mount(LiveRadio, { props: { graph: buildGraph(sources) }, ...mountOpts });
+    const box = wrapper.find('[data-testid="radio-box"]');
+    expect((box.element as HTMLElement).style.width).toBe("18px");
+    expect((box.element as HTMLElement).style.height).toBe("18px");
+  });
 });
