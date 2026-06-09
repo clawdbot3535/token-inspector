@@ -37,4 +37,28 @@ describe("LiveSwitch", () => {
     expect(bgs[0]).not.toBe(bgs[1]);
     expect(bgs.every((b) => b !== "")).toBe(true);
   });
+
+  it("drives the thumb from thumb tokens (size + colour)", () => {
+    const global = {
+      switch: {
+        bg: { $value: "#E4E4E7", $type: "color" },
+        "bg-checked": { $value: "#4F63D2", $type: "color" },
+        "width-md": { $value: 36, $type: "number" },
+        "height-md": { $value: 20, $type: "number" },
+        thumb: {
+          color: { $value: "#FFF1AA", $type: "color" },
+          "size-md": { $value: 16, $type: "number" },
+        },
+      },
+    };
+    const sources: SourceFile[] = [{ name: "global", data: global }];
+    const wrapper = mount(LiveSwitch, { props: { graph: buildGraph(sources) }, ...mountOpts });
+    const thumb = wrapper.find('[data-testid="switch-thumb"]');
+    const style = (thumb.element as HTMLElement).style;
+    expect(style.width).toBe("16px");
+    expect(style.height).toBe("16px");
+    // bare `color` maps as text-color; the preview promotes it to the thumb's
+    // background (the thumb is a shape, not text).
+    expect(style.backgroundColor).not.toBe("");
+  });
 });

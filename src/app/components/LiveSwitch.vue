@@ -34,12 +34,24 @@ const activeSize = computed<string>(() =>
   sizes.value.includes(selectedSize.value) ? selectedSize.value : (sizes.value[0] ?? "default"),
 );
 
-interface Cell { label: string; classes: string; style: CSSProperties; }
+interface Cell { label: string; classes: string; style: CSSProperties; thumbClasses: string; thumbStyle: CSSProperties; }
 interface HighlightSegment { token: string; highlight: boolean; }
 
 function mergedForActiveSize(): string {
   const sizeClasses = switchRecipe.value?.variants.size?.[activeSize.value]?.["base"] ?? "";
   return [baseClasses.value, sizeClasses].filter((s) => s.length > 0).join(" ").trim();
+}
+function thumbFor(state: "default" | "checked"): { classes: string; style: CSSProperties } {
+  const slotCls = switchRecipe.value?.slots["thumb"] ?? "";
+  const sizeCls = switchRecipe.value?.variants.size?.[activeSize.value]?.["thumb"] ?? "";
+  const merged = [slotCls, sizeCls].filter((s) => s.length > 0).join(" ");
+  const { classes, style } = extractArbitrary(projectToState(merged, state));
+  // The thumb is a shape, not text: a bare `color` token maps as text-color
+  // (CSS `color`), but visually it is the knob's fill — promote it.
+  if (style.color !== undefined && style.backgroundColor === undefined) {
+    return { classes, style: { ...style, backgroundColor: style.color } };
+  }
+  return { classes, style };
 }
 function cellCompleteness(sizeKey: string): CompletenessScore | undefined {
   return props.completeness?.find((c) => c.component === props.componentName && c.variantKey === sizeKey);
@@ -54,7 +66,8 @@ const cells = computed<Cell[]>(() => {
   const merged = mergedForActiveSize();
   return (["default", "checked"] as const).map((state) => {
     const { classes, style } = extractArbitrary(projectToState(merged, state));
-    return { label: state === "default" ? "unchecked" : "checked", classes, style };
+    const thumb = thumbFor(state);
+    return { label: state === "default" ? "unchecked" : "checked", classes, style, thumbClasses: thumb.classes, thumbStyle: thumb.style };
   });
 });
 const activeCompleteness = computed<CompletenessScore | undefined>(() => cellCompleteness(activeSize.value));
@@ -113,6 +126,8 @@ const { copy, wasJustCopied } = useCopyToClipboard();
             <span
               data-testid="switch-thumb"
               class="block h-[70%] aspect-square rounded-full bg-white shadow-sm mx-0.5"
+              :class="cell.thumbClasses"
+              :style="cell.thumbStyle"
             />
           </span>
           <span class="text-[10px] text-zinc-500 font-mono">{{ cell.label }}</span>
