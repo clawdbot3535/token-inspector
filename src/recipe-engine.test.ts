@@ -912,3 +912,19 @@ describe("buildComponentRecipes — ring-framed border emits ring (D2)", () => {
     expect(base).not.toContain("border-[");
   });
 });
+
+describe("buildComponentRecipes — bare size utility (size-[..] emit)", () => {
+  it("emits a size-[..] class for a bare component size token", () => {
+    const graph = makeGraph([
+      makeNode({
+        id: "checkbox-size-md",
+        layer: "component",
+        type: "number",
+        source: "global",
+        base: "18px",
+      }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["checkbox"] });
+    expect(recipes["checkbox"]?.variants.size?.["md"]?.["base"]).toContain("size-[18px]");
+  });
+});

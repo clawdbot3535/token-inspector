@@ -628,6 +628,22 @@ describe("heuristicSlotMapping — prop-driven states (capability)", () => {
   });
 });
 
+describe("heuristicSlotMapping — bare size utility", () => {
+  it("maps checkbox-size-md to a base size variant", () => {
+    expect(heuristicSlotMapping("checkbox-size-md")).toMatchObject({
+      slot: "base", utilityType: "size", variantAxis: "size", variantKey: "md",
+    });
+  });
+  it("routes switch-thumb-size-md to the thumb slot as a size variant", () => {
+    expect(heuristicSlotMapping("switch-thumb-size-md")).toMatchObject({
+      slot: "thumb", utilityType: "size", variantAxis: "size", variantKey: "md",
+    });
+  });
+  it("does not shadow icon-size with the bare size rule", () => {
+    expect(heuristicSlotMapping("button-icon-size")?.utilityType).toBe("icon-size");
+  });
+});
+
 describe("sub-element slot routing (exact-match NUXT_SLOTS, fallback)", () => {
   it("routes dropdown-item-* to the item slot", () => {
     const m = heuristicSlotMapping("dropdown-item-bg");

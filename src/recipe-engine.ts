@@ -78,6 +78,7 @@ const COLOR_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
 const ARBITRARY_VALUE_TYPES: ReadonlySet<UtilityType> = new Set<UtilityType>([
   "height",
   "width",
+  "size",
   "border-width",
   "ring-width",
   "line-height",
@@ -358,6 +359,7 @@ export function shadowIdFor(utilityType: UtilityType): string {
       return "color-temp";
     case "height":
     case "width":
+    case "size":
     case "border-width":
     case "ring-width":
     case "line-height":
@@ -444,6 +446,7 @@ export function prefixForUtility(utilityType: UtilityType): string {
     case "gap":
       return "gap-";
     case "icon-size":
+    case "size":
       return "size-";
     case "bg-color":
       return "bg-";

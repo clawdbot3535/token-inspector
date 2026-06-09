@@ -37,6 +37,7 @@ export type UtilityType =
   | "text-size"
   | "gap"
   | "icon-size"
+  | "size"
   | "bg-color"
   | "text-color"
   | "border-color"
@@ -254,6 +255,10 @@ const HEURISTIC_RULES: ReadonlyArray<{
   {
     match: (u) => u === "icon-size" || u === "icon",
     build: (ctx) => buildEntry("leadingIcon", "icon-size", ctx),
+  },
+  {
+    match: (u) => u === "size",
+    build: (ctx) => buildEntry("base", "size", ctx),
   },
   // ── Color utilities ───────────────────────────────────────────────────
   // Background — order matters: `bg-*` rules sit ahead of generic `text`
