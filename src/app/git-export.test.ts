@@ -35,6 +35,17 @@ describe("commitFiles — GitHub", () => {
     expect((bodies.patch as { sha: string }).sha).toBe("commit999");
   });
 
+  it("throws a clear, actionable error when the target repo is empty (409 on ref read)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL) => {
+      if (String(input).endsWith("/git/ref/heads/main")) return new Response("Git Repository is empty.", { status: 409 });
+      return new Response("{}", { status: 200 });
+    }));
+    const err = await commitFiles({ host: "github", owner: "o", repo: "r", branch: "main", dir: "" }, FILES, "supersecret", "m").catch((e: Error) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toMatch(/empty/i);
+    expect((err as Error).message).not.toContain("supersecret");
+  });
+
   it("rejects with a token-free message on 401", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("x", { status: 401 })));
     const err = await commitFiles({ host: "github", owner: "o", repo: "r", branch: "main", dir: "" }, FILES, "supersecret", "m").catch((e: Error) => e);

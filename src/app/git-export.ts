@@ -24,9 +24,14 @@ async function commitGitHub(target: GitRef, files: readonly ExportFile[], token:
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
   const branchPath = `heads/${target.branch.split("/").map(encodeURIComponent).join("/")}`;
 
-  const ref = await need<{ object: { sha: string } }>(await fetch(`${base}/ref/${branchPath}`, { headers }), "GitHub", "read branch ref");
+  const refRes = await fetch(`${base}/ref/${branchPath}`, { headers });
+  if (refRes.status === 409) {
+    throw new Error(`GitHub: the repository is empty. Add an initial commit first (e.g. create a README via "Add file", or check "Initialize this repository with a README" when creating it), then commit again.`);
+  }
+  const ref = await need<{ object: { sha: string } }>(refRes, "GitHub", "read branch ref");
   const baseSha = ref.object.sha;
   const baseCommit = await need<{ tree: { sha: string } }>(await fetch(`${base}/commits/${baseSha}`, { headers }), "GitHub", "read base commit");
+  const baseTree = baseCommit.tree.sha;
 
   const tree: { path: string; mode: "100644"; type: "blob"; sha: string }[] = [];
   for (const f of files) {
@@ -38,7 +43,7 @@ async function commitGitHub(target: GitRef, files: readonly ExportFile[], token:
   }
 
   const newTree = await need<{ sha: string }>(
-    await fetch(`${base}/trees`, { method: "POST", headers, body: JSON.stringify({ base_tree: baseCommit.tree.sha, tree }) }),
+    await fetch(`${base}/trees`, { method: "POST", headers, body: JSON.stringify({ base_tree: baseTree, tree }) }),
     "GitHub", "create tree",
   );
   const newCommit = await need<{ sha: string; html_url: string }>(
