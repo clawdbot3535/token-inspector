@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0] — 2026-06-09
+
+The **git workflow round-trip** — load Figma tokens straight from a repo, commit the generated
+Nuxt output back.
+
+### Added
+
+- **Load from Git** (`git-import.ts`) — paste a public GitHub/GitLab directory URL and the
+  inspector fetches every `*.tokens.json` (+ `figma-mapping.json`) in it via the host REST API
+  (token-less), feeding the same `loadSources` pipeline as drag-and-drop. `parseGitUrl(url)` +
+  `fetchTokenFiles(ref)`; a repo-URL field + **Load from Git** button in the empty state.
+- **Commit to Git** (`git-export.ts`) — a header **Commit…** panel writes the generated
+  `tokens.css` + `app.config.ts` back to a target repo in **one atomic commit**: GitHub via the
+  Git Data API (ref → blobs → tree → commit → ref), GitLab via the Commits API (`actions[]`). A
+  confirm step gates the write. The write PAT is held in `sessionStorage` only (never
+  `localStorage`), is never logged, and is never written into committed content. Committing to an
+  empty repo surfaces a clear "add an initial commit first" error — the Git Data API cannot
+  bootstrap an empty repository.
+
+### Notes
+
+- Import is public and token-less; export needs a write token — GitHub fine-grained
+  **Contents: Read and write** (or classic `repo` / `public_repo`), GitLab `write_repository`.
+
 ## [0.7.0] — 2026-06-06
 
 Live previews for the core form controls (`textarea`, `badge`, `switch`, `checkbox`, `radio` —

@@ -189,6 +189,20 @@ Drop any combination of these files (drag-and-drop or file picker):
 The naming convention matches Figma's default DTCG export, so the typical
 workflow is: export from Figma → drop the whole zip → done.
 
+### Load and commit from Git
+
+Beyond drag-and-drop, the inspector reads and writes Git directly:
+
+- **Load from Git** — paste a public GitHub/GitLab directory URL (e.g.
+  `github.com/owner/repo/tree/main/tokens`) and the inspector fetches every `*.tokens.json`
+  (+ `figma-mapping.json`) in that folder via the host REST API. Token-less, public repos only.
+- **Commit to Git** — once a graph is loaded, the header **Commit…** panel writes the generated
+  `tokens.css` + `app.config.ts` back to a target repo in one atomic commit (GitHub Git Data API /
+  GitLab Commits API), behind a confirm step. Needs a write token (GitHub fine-grained
+  **Contents: Read and write**, or classic `repo` / `public_repo`; GitLab `write_repository`) held
+  in `sessionStorage` only. The target repo must already have one commit — the Git Data API can't
+  bootstrap an empty repo, so initialise it with a README first.
+
 ## Repository layout
 
 ```
@@ -262,10 +276,14 @@ rename suggestions.
 **v0.7.0** then added live previews for the core form controls (`textarea`/`badge`/`switch`/
 `checkbox`/`radio`, joining `button`/`input`), **sub-element slot routing** (`dropdown-item`/
 `table-th`/`nav-item` → their Nuxt slot by exact match), and the **`capability-gap`** scan hint
-(an uncovered Nuxt slot like `trailingIcon`). Still deferred: the `color`/`size` utility grammar
-gap, the `icon-size`→`trailingIcon` routing fix, rebuilding the aggregate `component-looks-custom`
-flag, the `custom/<name>` layer, a typo detector, and the remaining component recipes. See
-`CHANGELOG.md`.
+(an uncovered Nuxt slot like `trailingIcon`).
+
+**v0.8.0** closes the **git workflow round-trip**: **Load from Git** imports Figma tokens straight
+from a public GitHub/GitLab repo URL (token-less), and **Commit to Git** writes the generated
+`tokens.css` + `app.config.ts` back to a repo in one atomic commit (write PAT kept in
+`sessionStorage`). Still deferred: the `color`/`size` utility grammar gap, the
+`icon-size`→`trailingIcon` routing fix, the aggregate `component-looks-custom` flag, the
+`custom/<name>` layer, a typo detector, and the remaining component recipes. See `CHANGELOG.md`.
 
 ## Roadmap
 
@@ -281,9 +299,8 @@ flag, the `custom/<name>` layer, a typo detector, and the remaining component re
 | **v0.5.0** | ✅ released | **`input` recipe + `LiveInput`, cycle-B deviation work, sidebar layer sections.** `input` recipe golden-pinned + bespoke `LiveInput` preview (leading/trailing icons, JIT-safe); `Live` pill in the sidebar; D1 — bare `text` colors classified by value type so aliased tokens emit `var(--…)` again; D2/D2b — `border`→`ring` for ring-framed components (`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`) via `RING_FRAMED_COMPONENTS`; D3 — `validation-color-via-prop` scan warning for dropped `error`/`success` border tokens; sidebar regrouped into collapsible `Components`/`Semantic`/`Primitives` layer sections (`buildLayeredTree`), redundant `Component` filter chip removed |
 | **v0.6.0** | ✅ released | **Variant-conditional rings, width semantics, scan rework, capability hints.** Scan-area rework (`ScanView` Issues/Readiness/Forecast tabs + severity filter + per-component grouping); **D2c** — `button` variant-conditional rings (`RING_FRAMED_VARIANTS`) + `border-width`/`ring-width` utility types + `border-on-unframed-variant` hint; **D2e** — `border-width`=resting / `ring-width`=focus, resting ring-width paired to its ring-colour (no stray ring on `solid`/`ghost`/`link`); **prop-driven states** — `input`/`textarea` `active`→`highlight` prop + `state-via-prop` warning; drop fully-transparent colour emissions (`color-opacity.ts`); **Nuxt slot inventory** (`NUXT_SLOTS`) + `unsupported-part` hint (`NON_PART_SEGMENTS` + `FIGMA_NUXT_PART_ALIAS` rename suggestions) |
 | **v0.7.0** | ✅ released | **Live previews for the core form controls + sub-element routing + capability-gap.** Live previews for `textarea`/`badge`/`switch`/`checkbox`/`radio` (joining `button`/`input`) — token-driven surfaces + decorative indicators where the grammar doesn't map; `badge` size switch; `button` preview aligned (size switch + header score); **sub-element slot routing** (`dropdown-item`/`table-th`/`nav-item` → their Nuxt slot by exact match, as a fallback after the normal map; `RecipeSlot`→`string`); **`capability-gap`** scan hint (`SLOT_PAIRS`; flags an uncovered Nuxt slot like `trailingIcon`); `checked` projection; `NUXT_SLOTS` += `switch`/`radio` + `dot`→`indicator` alias |
-| **Next** | 🔭 planned | **`color`/`size` grammar gap** — recognise the bare `color`/`size` utility names so `switch-thumb-color`/`checkbox-size` map (token-driven indicators + box sizes); **icon-routing fix** (`icon-size`→`trailingIcon`, the capability-gap's real fix); rebuild the aggregate `component-looks-custom` flag on `NUXT_SLOTS` + `NON_PART_SEGMENTS`; `custom/<name>` component layer (divergent components emitted standalone); typo / "did-you-mean" utility detector (e.g. `letter-spaching`); remaining component recipes (`card`, `dropdown`, `modal`, …) + bespoke previews; `compoundVariants` emit path; fonts `@theme{--font-*}` pipeline |
-| **Inspector read-side** | 🔭 planned | **"Load from URL"** — fetch the committed `*.tokens.json` from a raw GitHub URL instead of the manual drag (the read side of the git workflow; own brainstorm round) |
-| **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
+| **v0.8.0** | ✅ released | **Git workflow round-trip — import + export.** **Load from Git** (`git-import.ts`) — fetch `*.tokens.json` (+ `figma-mapping.json`) from a public GitHub/GitLab repo directory URL (token-less REST listing → raw → `loadSources`), alongside drag-and-drop; **Commit to Git** (`git-export.ts`) — write the generated `tokens.css` + `app.config.ts` back to a repo in one atomic commit (GitHub Git Data API / GitLab Commits API) behind a header `Commit…` panel + confirm step, write PAT held in `sessionStorage` only; empty-repo commits surface a clear "initialise first" error |
+| **Next** | 🔭 planned | **`color`/`size` grammar gap** — recognise the bare `color`/`size` utility names so `switch-thumb-color`/`checkbox-size` map (token-driven indicators + box sizes); **icon-routing fix** (`icon-size`→`trailingIcon`, the capability-gap's real fix); rebuild the aggregate `component-looks-custom` flag on `NUXT_SLOTS` + `NON_PART_SEGMENTS`; `custom/<name>` component layer (divergent components emitted standalone); typo / "did-you-mean" utility detector (e.g. `letter-spaching`); remaining component recipes (`card`, `dropdown`, `modal`, …) + bespoke previews; `compoundVariants` emit path; fonts `@theme{--font-*}` pipeline || **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
 Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 A snapshot project analysis (architecture, verified findings, prioritised recommendations)
@@ -294,7 +311,8 @@ that informs the backlog lives in [`docs/PROJECT-ANALYSIS.md`](docs/PROJECT-ANAL
 Tokens come from the **[`figma-token-export`](https://github.com/clawdbot3535/token-export)**
 Figma plugin (separate repo): it reads local Figma variables via the free Plugin API (no
 Enterprise) and commits the W3C-DTCG `*.tokens.json` files to a GitHub repo, versioned. The
-inspector ingests those files (drag-drop / zip today; URL fetch planned — see the roadmap). This
+inspector ingests those files (drag-drop / zip, or directly from a public GitHub/GitLab repo URL —
+see "Load and commit from Git" above). This
 replaces the abandoned Figma REST API + Personal Access Token approach, which is Enterprise-gated.
 
 ## License
