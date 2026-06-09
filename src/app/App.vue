@@ -41,8 +41,8 @@ import {
   matchMapping,
   type FigmaMappingFile,
 } from "./figma-mapping.js";
-import { parseGitUrl, fetchTokenFiles } from "./git-import.js";
 import CommitPanel from "./components/CommitPanel.vue";
+import GitLoader from "./components/GitLoader.vue";
 
 const appVersion = __APP_VERSION__;
 
@@ -53,13 +53,6 @@ const pastedFileUrl = ref<string | null>(
     ? localStorage.getItem("figma-file-url")
     : null,
 );
-
-const repoUrl = ref<string>(
-  typeof localStorage !== "undefined"
-    ? (localStorage.getItem("figma-tokens-repo-url") ?? "")
-    : "",
-);
-const repoLoading = ref(false);
 
 const showCommitPanel = ref(false);
 
@@ -412,26 +405,6 @@ async function handleFiles(files: FileList | readonly File[] | null) {
   }
 }
 
-async function loadFromRepo() {
-  const ref_ = parseGitUrl(repoUrl.value);
-  if (!ref_) {
-    state.loadError.value = "Unrecognised GitHub/GitLab URL.";
-    return;
-  }
-  repoLoading.value = true;
-  try {
-    const files = await fetchTokenFiles(ref_);
-    await handleFiles(files);
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem("figma-tokens-repo-url", repoUrl.value.trim());
-    }
-  } catch (e) {
-    state.loadError.value = e instanceof Error ? e.message : String(e);
-  } finally {
-    repoLoading.value = false;
-  }
-}
-
 function onDrop(e: DragEvent) {
   e.preventDefault();
   handleFiles(e.dataTransfer?.files ?? null);
@@ -570,21 +543,10 @@ function downloadAll() {
               Or pick files…
               <input type="file" multiple accept=".json,.zip" class="hidden" @change="onPick" />
             </label>
-            <div class="mt-4 flex gap-2 items-center">
-              <input
-                v-model="repoUrl"
-                type="text"
-                placeholder="GitHub / GitLab folder URL…"
-                class="flex-1 text-xs px-2 py-1.5 rounded border border-default bg-default focus:outline-none focus:border-primary"
-                @keydown.enter="loadFromRepo"
-              />
-              <button
-                data-testid="repo-load"
-                :disabled="repoLoading || repoUrl.trim().length === 0"
-                class="px-3 py-1.5 text-xs rounded-md bg-elevated border border-default hover:bg-elevated/80 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                @click="loadFromRepo"
-              >{{ repoLoading ? "Loading…" : "Load from Git" }}</button>
-            </div>
+            <GitLoader
+              @files="handleFiles"
+              @error="(m: string) => (state.loadError.value = m)"
+            />
             <p v-if="state.loadError.value" class="mt-4 text-xs text-error">
               {{ state.loadError.value }}
             </p>
