@@ -22,7 +22,7 @@ async function need<T>(res: Response, host: "GitHub" | "GitLab", ctx: string): P
 async function commitGitHub(target: GitRef, files: readonly ExportFile[], token: string, message: string): Promise<CommitResult> {
   const base = `${GH_API}/repos/${target.owner}/${target.repo}/git`;
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
-  const branchPath = `heads/${encodeURIComponent(target.branch)}`;
+  const branchPath = `heads/${target.branch.split("/").map(encodeURIComponent).join("/")}`;
 
   const ref = await need<{ object: { sha: string } }>(await fetch(`${base}/ref/${branchPath}`, { headers }), "GitHub", "read branch ref");
   const baseSha = ref.object.sha;

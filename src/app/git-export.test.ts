@@ -67,7 +67,7 @@ describe("commitFiles — GitLab", () => {
   });
 
   it("rejects when the commit call is not OK", async () => {
-    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
       const url = String(input);
       if (url.includes("/repository/files/")) return new Response("{}", { status: 404 });
       return new Response("nope", { status: 404 });
