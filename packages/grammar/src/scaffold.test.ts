@@ -59,6 +59,89 @@ describe("scaffold: unknown component throws", () => {
   });
 });
 
+describe("scaffold: alias-semantic valueStrategy", () => {
+  it("emits DTCG alias when resolver returns a name", () => {
+    const tree = scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+      aliasResolver: () => "color.bg.muted",
+    });
+    const json = JSON.parse(JSON.stringify(tree)) as Record<string, unknown>;
+    const button = json["button"] as Record<string, { $value: unknown }>;
+    // Every leaf $value should be an alias string
+    for (const leaf of Object.values(button)) {
+      expect(typeof leaf.$value).toBe("string");
+      expect(leaf.$value).toMatch(/^\{.+\}$/);
+    }
+  });
+
+  it("emits the exact alias string from the resolver", () => {
+    const tree = scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+      aliasResolver: (ctx) => (ctx.utility === "bg" ? "color.bg.muted" : null),
+    });
+    const json = JSON.parse(JSON.stringify(tree)) as Record<string, unknown>;
+    const button = json["button"] as Record<string, { $value: unknown }>;
+    // bg base token should be aliased
+    expect(button["bg"]?.$value).toBe("{color.bg.muted}");
+  });
+
+  it("falls back to raw placeholder when resolver returns null", () => {
+    const tree = scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+      aliasResolver: () => null,
+    });
+    const json = JSON.parse(JSON.stringify(tree)) as Record<string, unknown>;
+    const button = json["button"] as Record<string, { $value: unknown }>;
+    // All placeholders — color utilities get #000000
+    for (const leaf of Object.values(button)) {
+      expect([0, "#000000"]).toContain(leaf.$value);
+    }
+  });
+
+  it("falls back to raw placeholder when no resolver provided", () => {
+    const tree = scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+    });
+    const json = JSON.parse(JSON.stringify(tree)) as Record<string, unknown>;
+    const button = json["button"] as Record<string, { $value: unknown }>;
+    for (const leaf of Object.values(button)) {
+      expect([0, "#000000"]).toContain(leaf.$value);
+    }
+  });
+
+  it("aliasResolver receives correct ctx fields", () => {
+    const contexts: import("./scaffold.js").AliasCtx[] = [];
+    scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+      aliasResolver: (ctx) => { contexts.push(ctx); return null; },
+    });
+    expect(contexts.length).toBeGreaterThan(0);
+    for (const ctx of contexts) {
+      expect(ctx.component).toBe("button");
+      expect(typeof ctx.utility).toBe("string");
+      // state is string or null
+      expect(ctx.state === null || typeof ctx.state === "string").toBe(true);
+    }
+  });
+
+  it("default (no valueStrategy) path is byte-identical to placeholder", () => {
+    const treeDefault = scaffold(profile, "button");
+    const treePlaceholder = scaffold(profile, "button", { valueStrategy: "placeholder" });
+    expect(JSON.stringify(treeDefault)).toBe(JSON.stringify(treePlaceholder));
+  });
+
+  it("alias-semantic output is JSON-serializable and 0 unmapped", () => {
+    const tree = scaffold(profile, "button", {
+      valueStrategy: "alias-semantic",
+      aliasResolver: () => "color.bg.muted",
+    });
+    const json = JSON.stringify(tree);
+    const ids = flattenDtcg(JSON.parse(json));
+    const unmapped = ids.filter((id) => getSlotMapping(id) === null);
+    expect(unmapped).toEqual([]);
+  });
+});
+
 describe("flattenDtcg: basic invariants", () => {
   it("flattens a simple tree to lowercase dash-joined IDs", () => {
     const tree = {

@@ -4,6 +4,14 @@
 import type { DtcgNode, DtcgTree } from "./dtcg.js";
 import type { ComponentProfile, Profile } from "./profile.js";
 
+/** Context passed to aliasResolver for each emitted token leaf. */
+export interface AliasCtx {
+  component: string;
+  part: string | null;
+  utility: string;
+  state: string | null;
+}
+
 export interface ScaffoldOpts {
   /** Override which states to emit (default: component profile's states). */
   states?: string[];
@@ -11,8 +19,14 @@ export interface ScaffoldOpts {
   sizes?: string[];
   /** Override which parts to emit (default: component profile's parts). */
   parts?: string[];
-  /** Value strategy (currently only "placeholder" is implemented). */
+  /** Value strategy (currently "placeholder" or "alias-semantic"). */
   valueStrategy?: "placeholder" | "alias-semantic";
+  /**
+   * Called for every leaf when valueStrategy === "alias-semantic".
+   * Return a DTCG token reference name (e.g. "color.bg.muted") to emit an alias,
+   * or null/undefined to fall back to the placeholder value.
+   */
+  aliasResolver?: (ctx: AliasCtx) => string | null;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -23,11 +37,11 @@ function isColorUtility(utility: string): boolean {
   return COLOR_UTILITIES.has(utility);
 }
 
-function makeLeaf(utility: string): DtcgNode {
+function makeLeaf(utility: string, alias?: string | null): DtcgNode {
   if (isColorUtility(utility)) {
-    return { $type: "color", $value: "#000000" };
+    return { $type: "color", $value: alias ? `{${alias}}` : "#000000" };
   }
-  return { $type: "number", $value: 0 };
+  return { $type: "number", $value: alias ? `{${alias}}` : 0 };
 }
 
 /**
@@ -66,32 +80,34 @@ function placeLeaf(tree: DtcgTree, segments: string[], leaf: DtcgNode): void {
  * IMPORTANT: utility is treated as ONE segment (may contain dashes like "icon-size").
  * We never re-split utilities; they nest as single keys.
  */
+type SegmentEmission = { segs: string[]; state: string | null };
+
 function emitSegmentSets(
   component: string,
   part: string | null,
   spec: { utility: string; states?: boolean; sized?: boolean; variants?: boolean },
   profile: ComponentProfile,
   opts: Required<Pick<ScaffoldOpts, "states" | "sizes">>,
-): string[][] {
-  const sets: string[][] = [];
+): SegmentEmission[] {
+  const sets: SegmentEmission[] = [];
   const { utility } = spec;
 
   const partSeg: string[] = part ? [part] : [];
 
-  // Helper: push a segment set
-  const push = (...segs: string[]) => sets.push(segs);
+  // Helper: push a segment set with an optional state
+  const push = (state: string | null, ...segs: string[]) => sets.push({ segs, state });
 
   // Base
-  push(component, ...partSeg, utility);
+  push(null, component, ...partSeg, utility);
 
   // Per variant (+ per state within variant)
   if (spec.variants && profile.variants.length > 0) {
     for (const v of profile.variants) {
-      push(component, v, ...partSeg, utility);
+      push(null, component, v, ...partSeg, utility);
 
       if (spec.states) {
         for (const s of opts.states) {
-          push(component, v, ...partSeg, utility, s);
+          push(s, component, v, ...partSeg, utility, s);
         }
       }
     }
@@ -100,14 +116,14 @@ function emitSegmentSets(
   // Per state (base, no variant)
   if (spec.states) {
     for (const s of opts.states) {
-      push(component, ...partSeg, utility, s);
+      push(s, component, ...partSeg, utility, s);
     }
   }
 
   // Per size
   if (spec.sized) {
     for (const sz of opts.sizes) {
-      push(component, ...partSeg, utility, sz);
+      push(null, component, ...partSeg, utility, sz);
     }
   }
 
@@ -144,7 +160,7 @@ export function scaffold(
     const partsToUse: (string | null)[] = specParts.map((p) => p as string | null);
 
     for (const part of partsToUse) {
-      const segSets = emitSegmentSets(
+      const emissions = emitSegmentSets(
         component,
         part as string | null,
         spec,
@@ -152,8 +168,12 @@ export function scaffold(
         { states: effectiveStates, sizes: effectiveSizes },
       );
 
-      for (const segs of segSets) {
-        placeLeaf(tree, segs, makeLeaf(spec.utility));
+      for (const { segs, state } of emissions) {
+        const alias =
+          opts?.valueStrategy === "alias-semantic"
+            ? (opts.aliasResolver?.({ component, part: part as string | null, utility: spec.utility, state }) ?? null)
+            : null;
+        placeLeaf(tree, segs, makeLeaf(spec.utility, alias));
       }
     }
   }
