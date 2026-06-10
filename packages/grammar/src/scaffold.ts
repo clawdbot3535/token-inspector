@@ -142,11 +142,6 @@ export function scaffold(
     // Which parts does this utility apply to?
     const specParts = spec.parts ?? (effectiveParts.length > 0 ? effectiveParts : [null as unknown as string]);
     const partsToUse: (string | null)[] = specParts.map((p) => p as string | null);
-    if (specParts === effectiveParts && effectiveParts.length === 0) {
-      // No parts configured on component → emit at base (no part segment)
-      partsToUse.length = 0;
-      partsToUse.push(null);
-    }
 
     for (const part of partsToUse) {
       const segSets = emitSegmentSets(
