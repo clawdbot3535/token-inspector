@@ -5,7 +5,7 @@
 // importable from browser-side code (Inspector UI in PR 4b) without
 // requiring node types under tsconfig.app.json.
 
-import type { SlotMappingOverride } from "./slot-mapping.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 
 export interface SlotMappingFile {
   components?: Record<string, { defaultSize?: string }>;

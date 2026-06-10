@@ -17,8 +17,7 @@ import {
   utilityPrefix,
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
-import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "./component-vocab.js";
+import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
 import { isOpaqueColor } from "./color-opacity.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.

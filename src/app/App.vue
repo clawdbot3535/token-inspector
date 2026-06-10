@@ -28,7 +28,7 @@ import SummaryPanel from "./components/SummaryPanel.vue";
 import OutputSection from "./components/OutputSection.vue";
 import { useClassifications } from "./classifications.js";
 import { resolveTokenToValue } from "@core/resolve-token.js";
-import { getSlotMapping } from "@core/slot-mapping.js";
+import { getSlotMapping } from "@tg/grammar";
 import { utilityForMapping } from "@core/recipe-engine.js";
 import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
 import type { GraphLayer } from "@core/token-graph.js";

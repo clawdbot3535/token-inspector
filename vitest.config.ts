@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "packages/**/*.test.ts"],
     environment: "node",
     coverage: {
       provider: "v8",
@@ -30,7 +30,7 @@ export default defineConfig({
       // Measure the source we ship; exclude generated tables, type-only
       // contracts, entrypoints and test files. No threshold gate yet — the
       // UI layer is only partially covered (see PROJECT-ANALYSIS.md).
-      include: ["src/**/*.{ts,vue}"],
+      include: ["src/**/*.{ts,vue}", "packages/grammar/src/**/*.ts"],
       exclude: [
         "src/**/*.test.ts",
         "src/**/*.d.ts",

@@ -16,8 +16,8 @@ import {
   type RecipeSlot,
   type UtilityType,
   type VariantAxis,
-} from "./slot-mapping.js";
-import { SLOT_MIRROR } from "./component-vocab.js";
+  SLOT_MIRROR,
+} from "@tg/grammar";
 
 /**
  * Decide what to emit inside the arbitrary-value brackets for a color

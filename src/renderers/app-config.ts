@@ -15,7 +15,7 @@ import {
   buildComponentRecipes,
   type ComponentRecipe,
 } from "../recipe-engine.js";
-import type { SlotMappingOverride } from "../slot-mapping.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 
 export interface AppConfigRendererOptions {
   slotMappingOverride?: SlotMappingOverride;
