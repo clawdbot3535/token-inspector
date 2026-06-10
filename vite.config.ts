@@ -28,4 +28,12 @@ export default defineConfig({
       "@core": new URL("./src", import.meta.url).pathname,
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        inspector: new URL("./index.html", import.meta.url).pathname,
+        creator: new URL("./apps/creator/index.html", import.meta.url).pathname,
+      },
+    },
+  },
 });
