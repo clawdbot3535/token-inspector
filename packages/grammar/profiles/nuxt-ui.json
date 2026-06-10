@@ -113,6 +113,111 @@
           "parts": ["thumb"]
         }
       ]
+    },
+    "card": {
+      "parts": [],
+      "states": [],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "border" },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "text-color" },
+        { "utility": "padding" }
+      ]
+    },
+    "modal": {
+      "parts": [],
+      "states": [],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "border" },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "overlay-bg" }
+      ]
+    },
+    "kbd": {
+      "parts": [],
+      "states": [],
+      "sizes": ["xs", "sm", "md"],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "border" },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "text-color" },
+        { "utility": "font-weight" },
+        { "utility": "text",      "sized": true },
+        { "utility": "padding-x", "sized": true },
+        { "utility": "padding-y", "sized": true }
+      ]
+    },
+    "chip": {
+      "parts": [],
+      "states": [],
+      "sizes": ["xs", "sm", "md", "lg", "xl"],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "border" },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "size", "sized": true }
+      ]
+    },
+    "nav": {
+      "parts": [],
+      "states": ["hover", "active", "disabled", "focus"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",        "states": true },
+        { "utility": "border" },
+        { "utility": "text-color", "states": true },
+        { "utility": "radius" }
+      ]
+    },
+    "dropdown": {
+      "parts": [],
+      "states": ["hover", "focus", "disabled"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",        "states": true },
+        { "utility": "border" },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "text-color", "states": true }
+      ]
+    },
+    "table": {
+      "parts": [],
+      "states": ["hover"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",        "states": true },
+        { "utility": "border" },
+        { "utility": "text-color" },
+        { "utility": "text" }
+      ]
+    },
+    "progress": {
+      "parts": [],
+      "states": [],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "radius" },
+        { "utility": "height" }
+      ]
     }
   }
 }
