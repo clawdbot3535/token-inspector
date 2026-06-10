@@ -673,17 +673,15 @@ describe("scanGraph — unsupported-part hint (slot inventory)", () => {
 });
 
 describe("scanGraph — capability-gap hint (paired-slot asymmetry)", () => {
-  it("flags trailingIcon when icon-size fills leadingIcon", () => {
+  // UPDATED: icon-size fills leadingIcon which now mirrors to trailingIcon — no gap should fire.
+  it("does NOT flag trailingIcon when icon-size fills leadingIcon (mirror suppresses it)", () => {
     const graph = makeGraph([
       makeNode({ id: "button-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#111111" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
-    const cg = report.issues.filter((i) => i.kind === "capability-gap");
-    expect(cg.map((i) => i.id)).toEqual(["cg-button-trailingIcon"]);
-    expect(cg[0]!.severity).toBe("hint");
-    expect(cg[0]!.componentName).toBe("button");
-    expect(cg[0]!.message).toContain("trailingIcon");
-    expect(cg[0]!.tokenIds).toEqual([]);
+    const gaps = report.issues.filter((i) => i.kind === "capability-gap");
+    expect(gaps.some((g) => /trailingIcon/.test(g.message ?? ""))).toBe(false);
   });
 
   it("does not flag a capability gap without an icon-size token", () => {
@@ -708,8 +706,31 @@ describe("scanGraph — capability-gap hint (paired-slot asymmetry)", () => {
       makeNode({ id: "button-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
     ]);
     const report = scanGraph(graph, { components: ["button"] });
+    // With mirror: leadingIcon fills trailingIcon too — no trailingIcon gap
     expect(
       report.issues.filter((i) => i.kind === "capability-gap" && i.id === "cg-button-trailingIcon"),
-    ).toHaveLength(1);
+    ).toHaveLength(0);
+  });
+
+  it("does not flag a trailingIcon capability-gap when icon-size fills leadingIcon (mirrored)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#333333" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const gaps = report.issues.filter((i) => i.kind === "capability-gap");
+    expect(gaps.some((g) => /trailingIcon/.test(g.message ?? ""))).toBe(false);
+  });
+
+  it("still flags the reverse direction (explicit trailing token, no leading)", () => {
+    // "button-trailingIcon-icon-size-md" routes to trailingIcon via sub-element routing.
+    // No leadingIcon token present → mirror is one-way (source→partner only) → leadingIcon gap fires.
+    const graph = makeGraph([
+      makeNode({ id: "button-trailingIcon-icon-size-md", layer: "component", type: "dimension", source: "global", base: "16px" }),
+      makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#444444" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const gaps = report.issues.filter((i) => i.kind === "capability-gap");
+    expect(gaps.some((g) => /leadingIcon/.test(g.message ?? ""))).toBe(true);
   });
 });

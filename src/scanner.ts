@@ -18,7 +18,7 @@ import {
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
 import { getSlotMapping } from "./slot-mapping.js";
-import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS } from "./component-vocab.js";
+import { KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "./component-vocab.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
@@ -146,6 +146,9 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     // Record which RecipeSlot this token fills (for capability-gap detection)
     const fslots = filledSlotsByComponent.get(prefix) ?? new Set<string>();
     fslots.add(mapping.slot);
+    for (const [from, to] of SLOT_MIRROR) {
+      if (mapping.slot === from) fslots.add(to);
+    }
     filledSlotsByComponent.set(prefix, fslots);
     // D2c: an opaque border / border-width on an unframed button variant
     // (solid/ghost/link) is a deviation — Nuxt UI v4 frames only outline/subtle,
