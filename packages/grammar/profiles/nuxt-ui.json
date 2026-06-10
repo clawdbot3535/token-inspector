@@ -1,0 +1,118 @@
+{
+  "name": "nuxt-ui",
+  "components": {
+    "button": {
+      "parts": [],
+      "states": ["hover", "active", "disabled", "focus"],
+      "sizes": ["xs", "sm", "md", "lg", "xl"],
+      "variants": ["solid", "outline", "ghost", "link", "subtle", "soft"],
+      "utilities": [
+        { "utility": "bg",         "variants": true, "states": true },
+        { "utility": "text-color", "variants": true, "states": true },
+        { "utility": "border",     "variants": true, "states": true },
+        { "utility": "ring",       "variants": true },
+        { "utility": "radius",     "sized": true },
+        { "utility": "padding-x",  "sized": true },
+        { "utility": "padding-y",  "sized": true },
+        { "utility": "text",       "sized": true },
+        { "utility": "icon-size",  "sized": true },
+        { "utility": "gap",        "sized": true },
+        { "utility": "font-weight" }
+      ]
+    },
+    "badge": {
+      "parts": [],
+      "states": [],
+      "sizes": ["xs", "sm", "md", "lg"],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg" },
+        { "utility": "text-color" },
+        { "utility": "border" },
+        { "utility": "radius",     "sized": true },
+        { "utility": "text",       "sized": true },
+        { "utility": "padding-x",  "sized": true },
+        { "utility": "padding-y",  "sized": true },
+        { "utility": "font-weight" }
+      ]
+    },
+    "input": {
+      "parts": [],
+      "states": ["hover", "focus", "disabled"],
+      "sizes": ["xs", "sm", "md", "lg", "xl"],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",         "states": true },
+        { "utility": "border",     "states": true },
+        { "utility": "ring",       "states": true },
+        { "utility": "text-color" },
+        { "utility": "placeholder" },
+        { "utility": "radius",     "sized": true },
+        { "utility": "padding-x",  "sized": true },
+        { "utility": "padding-y",  "sized": true },
+        { "utility": "text",       "sized": true }
+      ]
+    },
+    "textarea": {
+      "parts": [],
+      "states": ["hover", "focus", "disabled"],
+      "sizes": ["xs", "sm", "md", "lg", "xl"],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",         "states": true },
+        { "utility": "border",     "states": true },
+        { "utility": "ring",       "states": true },
+        { "utility": "text-color" },
+        { "utility": "placeholder" },
+        { "utility": "radius",     "sized": true },
+        { "utility": "padding-x",  "sized": true },
+        { "utility": "padding-y",  "sized": true },
+        { "utility": "text",       "sized": true }
+      ]
+    },
+    "checkbox": {
+      "parts": [],
+      "states": ["hover", "disabled", "checked", "focus"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",     "states": true },
+        { "utility": "border", "states": true },
+        { "utility": "ring" },
+        { "utility": "radius" },
+        { "utility": "size" }
+      ]
+    },
+    "radio": {
+      "parts": [],
+      "states": ["hover", "disabled", "checked", "focus"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",     "states": true },
+        { "utility": "border", "states": true },
+        { "utility": "ring" },
+        { "utility": "size" }
+      ]
+    },
+    "switch": {
+      "parts": [],
+      "states": ["checked", "disabled"],
+      "sizes": [],
+      "variants": [],
+      "utilities": [
+        { "utility": "bg",     "states": true },
+        { "utility": "border", "states": true },
+        { "utility": "ring" },
+        {
+          "utility": "size",
+          "parts": ["thumb"]
+        },
+        {
+          "utility": "bg",
+          "parts": ["thumb"]
+        }
+      ]
+    }
+  }
+}
