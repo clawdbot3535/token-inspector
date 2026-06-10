@@ -140,10 +140,13 @@ describe("App gates", () => {
     expect(wrapper.find('[data-testid="export-url"]').exists()).toBe(false);
 
     // ── Gate 3: toggle commit panel ───────────────────────────────────────
-    await wrapper.find('[data-testid="commit-open"]').trigger("click");
+    const commitOpen = wrapper.find('[data-testid="commit-open"]');
+    expect(commitOpen.attributes("aria-expanded")).toBe("false");
+    await commitOpen.trigger("click");
     await flushPromises();
 
     // CommitPanel is now rendered → export-url input visible
     expect(wrapper.find('[data-testid="export-url"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="commit-open"]').attributes("aria-expanded")).toBe("true");
   });
 });

@@ -28,7 +28,8 @@ const hintCount = computed(() =>
   <button
     type="button"
     class="w-full flex items-baseline gap-3 px-3 py-1.5 text-xs font-mono border-b border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-    :class="scanViewActive ? 'bg-zinc-100 dark:bg-zinc-800' : ''"
+    :class="scanViewActive ? 'bg-zinc-100 dark:bg-zinc-800 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700' : ''"
+    :aria-pressed="scanViewActive"
     @click="emit('open-scan')"
   >
     <span class="text-zinc-500">Scan:</span>

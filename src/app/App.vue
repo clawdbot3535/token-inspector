@@ -451,7 +451,9 @@ function downloadAll() {
             {{ nodeCount }} nodes
             <button
               v-if="issueCount > 0"
-              class="text-warning hover:underline"
+              class="text-warning hover:underline rounded px-1"
+              :class="state.view.value === 'scan' ? 'bg-zinc-100 dark:bg-zinc-800 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700' : ''"
+              :aria-pressed="state.view.value === 'scan'"
               @click="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
             >
               · {{ issueCount }} issue{{ issueCount === 1 ? "" : "s" }}
@@ -495,7 +497,9 @@ function downloadAll() {
             v-if="state.graph.value"
             type="button"
             data-testid="commit-open"
-            class="text-xs px-2 py-1 rounded border border-default hover:bg-elevated/80 transition-colors"
+            class="text-xs px-2 py-1 rounded border border-default transition-colors"
+            :class="showCommitPanel ? 'bg-elevated' : 'hover:bg-elevated/80'"
+            :aria-expanded="showCommitPanel"
             @click="showCommitPanel = !showCommitPanel"
           >Commit…</button>
           <UButton
