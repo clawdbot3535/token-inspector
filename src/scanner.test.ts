@@ -734,3 +734,35 @@ describe("scanGraph — capability-gap hint (paired-slot asymmetry)", () => {
     expect(gaps.some((g) => /leadingIcon/.test(g.message ?? ""))).toBe(true);
   });
 });
+
+describe("scanGraph — component-looks-custom hint (part-based divergence flag)", () => {
+  it("flags a component with a genuinely-foreign part as looks-custom", () => {
+    // `close` is not a chip Nuxt slot, not a NON_PART word, and has no rename alias.
+    const graph = makeGraph([
+      makeNode({ id: "chip-close-bg", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const clc = report.issues.filter((i) => i.kind === "component-looks-custom");
+    expect(clc).toHaveLength(1);
+    expect(clc[0]!.componentName).toBe("chip");
+    expect(clc[0]!.message).toContain("close");
+  });
+
+  it("does NOT flag looks-custom for an aliasable mismatch (dot → indicator)", () => {
+    // `dot` IS in FIGMA_NUXT_PART_ALIAS → rename candidate, not custom.
+    const graph = makeGraph([
+      makeNode({ id: "radio-dot-color", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["radio"] });
+    expect(report.issues.filter((i) => i.kind === "component-looks-custom")).toHaveLength(0);
+  });
+
+  it("does NOT flag a fully-mapped component as looks-custom", () => {
+    // button-bg maps cleanly → no null tokens → no foreign parts.
+    const graph = makeGraph([
+      makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#4F63D2" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(report.issues.filter((i) => i.kind === "component-looks-custom")).toHaveLength(0);
+  });
+});

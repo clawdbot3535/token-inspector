@@ -266,6 +266,40 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     }
   }
 
+  // component-looks-custom: a per-component rollup of genuinely-foreign parts — a
+  // Figma part-segment that is not a Nuxt slot, not a NON_PART word, AND not a
+  // rename-able alias (so not a typo, but truly foreign). ≥1 such part ⇒ the
+  // component is likely custom (emit as `custom/<name>`, Stage C). Hint severity.
+  // Part-based, deliberately NOT share-based (unmapped share over-fires on standard
+  // components whose gaps are naming/grammar/prop, not divergence).
+  for (const [comp, nullToks] of nullTokensByComponent) {
+    const slots = nuxtSlotsFor(comp);
+    if (!slots) continue;
+    const mapped = mappedSecondSegByComponent.get(comp) ?? new Set<string>();
+    const foreign = new Map<string, string[]>();
+    for (const { seg, id } of nullToks) {
+      if (mapped.has(seg) || slots.has(seg) || NON_PART_SEGMENTS.has(seg)) continue;
+      if (FIGMA_NUXT_PART_ALIAS.has(seg)) continue; // rename candidate, not custom
+      const ids = foreign.get(seg) ?? [];
+      ids.push(id);
+      foreign.set(seg, ids);
+    }
+    if (foreign.size === 0) continue;
+    const parts = [...foreign.keys()];
+    issues.push({
+      id: `clc-${comp}`,
+      category: "classification-hint",
+      severity: "hint",
+      kind: "component-looks-custom",
+      message:
+        `\`${comp}\` has ${parts.length} part${parts.length > 1 ? "s" : ""} with no Nuxt UI ` +
+        `\`${comp}\` slot and no rename match (${parts.join(", ")}). It is likely a custom ` +
+        `component — consider emitting it as \`custom/${comp}\` rather than \`ui.${comp}\`.`,
+      tokenIds: [...foreign.values()].flat(),
+      componentName: comp,
+    });
+  }
+
   // ─── 3. Per-component analysis ────────────────────────────────────────────
   const completeness: CompletenessScore[] = [];
 
