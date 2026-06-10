@@ -22,6 +22,18 @@ describe("scaffold: nuxt-ui profile — 0 unmapped tokens per component", () => 
   }
 });
 
+describe("scaffold: output is a serializable DTCG file (no cycles / leaf-branch collisions)", () => {
+  for (const component of Object.keys(profile.components)) {
+    it(`${component}: JSON-serializes and round-trips to the same token IDs`, () => {
+      const tree = scaffold(profile, component);
+      const json = JSON.stringify(tree); // throws on a circular structure
+      const ids = flattenDtcg(tree);
+      const reparsedIds = flattenDtcg(JSON.parse(json));
+      expect(reparsedIds.sort()).toEqual([...ids].sort());
+    });
+  }
+});
+
 describe("scaffold: loadProfile validates structure", () => {
   it("throws on missing name", () => {
     expect(() => loadProfile({ components: {} })).toThrow("name");

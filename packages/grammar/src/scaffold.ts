@@ -31,22 +31,22 @@ function makeLeaf(utility: string): DtcgNode {
 }
 
 /**
- * Set a value at `segments` path in the tree, creating intermediate nodes as needed.
- * The segments list must not be re-split — utilities like "icon-size" are one segment.
+ * Place a leaf under `{ component: { restKey: leaf } }`, where restKey is every
+ * ID segment after the component joined by "-". This two-level shape keeps the
+ * component as the top group (so buildGraph assigns the component layer) while
+ * every token is a flat sibling key — which avoids the "a node is both a leaf
+ * AND a branch" collision (e.g. `bg` for `switch-bg` vs a parent of
+ * `switch-bg-checked`) that an all-segments-nested tree would create, and the
+ * shared-leaf cycle that came with it. Each leaf is fresh, so the tree is
+ * acyclic and JSON-serializable. buildGraph still derives the same dash-joined
+ * ID (`switch` + `bg-checked` → `switch-bg-checked`).
  */
-function setPath(tree: DtcgTree, segments: string[], leaf: DtcgNode): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let node: any = tree;
-  for (let i = 0; i < segments.length - 1; i++) {
-    const seg = segments[i]!;
-    if (node[seg] === undefined) node[seg] = {};
-    node = node[seg];
-  }
-  const last = segments[segments.length - 1]!;
-  // Only set if not already occupied (avoid overwriting subtree with leaf)
-  if (node[last] === undefined) {
-    node[last] = leaf;
-  }
+function placeLeaf(tree: DtcgTree, segments: string[], leaf: DtcgNode): void {
+  const component = segments[0]!;
+  const restKey = segments.slice(1).join("-");
+  const group: DtcgTree = (tree[component] as DtcgTree | undefined) ?? {};
+  tree[component] = group;
+  if (group[restKey] === undefined) group[restKey] = leaf;
 }
 
 // ── Core emitter ─────────────────────────────────────────────────────────────
@@ -152,9 +152,8 @@ export function scaffold(
         { states: effectiveStates, sizes: effectiveSizes },
       );
 
-      const leaf = makeLeaf(spec.utility);
       for (const segs of segSets) {
-        setPath(tree, segs, leaf);
+        placeLeaf(tree, segs, makeLeaf(spec.utility));
       }
     }
   }
