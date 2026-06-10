@@ -8,6 +8,6 @@
       "@core/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "apps/creator/**/*.ts", "apps/creator/**/*.vue"],
+  "exclude": ["src/**/*.test.ts", "apps/creator/**/*.test.ts"]
 }

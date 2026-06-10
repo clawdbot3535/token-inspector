@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts", "packages/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "packages/**/*.test.ts", "apps/**/*.test.ts"],
     environment: "node",
     coverage: {
       provider: "v8",
