@@ -45,6 +45,7 @@ import CommitPanel from "./components/CommitPanel.vue";
 import GitLoader from "./components/GitLoader.vue";
 
 const appVersion = __APP_VERSION__;
+const unpushed = __APP_UNPUSHED__;
 
 const builtInMapping = ref<FigmaMappingFile>({ components: [] });
 const droppedMapping = ref<FigmaMappingFile | null>(null);
@@ -142,6 +143,17 @@ const isFieldComponent = computed(() => FIELD_PREVIEW_COMPONENTS.has(selectedCom
 const previewSupported = computed(() =>
   COMPONENTS_WITH_PREVIEW.has(selectedComponent.value),
 );
+
+// Live filter chip state
+const liveOnly = ref(false);
+/** Count of COMPONENTS_WITH_PREVIEW names present in the loaded component tree. */
+const liveCount = computed(() => {
+  const componentSection = sections.value.find((s) => s.layer === "component");
+  if (!componentSection) return COMPONENTS_WITH_PREVIEW.size;
+  return componentSection.tree.filter(
+    (node) => node.kind === "group" && COMPONENTS_WITH_PREVIEW.has(node.label),
+  ).length;
+});
 
 const selectedClassification = computed(() => {
   const id = state.selection.value;
@@ -442,8 +454,13 @@ function downloadAll() {
           <UIcon name="i-lucide-layers" class="text-primary size-5" />
           <h1 class="text-sm font-semibold">Token Inspector</h1>
           <span
-            class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-elevated text-muted border border-default"
-            :title="`Token Inspector v${appVersion}`"
+            class="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+            :class="unpushed === 0
+              ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-800'
+              : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-800'"
+            :title="unpushed === 0
+              ? `Token Inspector v${appVersion}`
+              : `Token Inspector v${appVersion} · ${unpushed} unpushed`"
           >v{{ appVersion }}</span>
         </div>
         <div class="flex items-center gap-3 text-xs text-muted">
@@ -592,11 +609,28 @@ function downloadAll() {
                 icon="i-lucide-search"
                 size="xs"
               />
-              <FilterChips
-                :model-value="state.filters.value.classification"
-                :summary="summary"
-                @update:model-value="(v) => (state.filters.value = { ...state.filters.value, classification: v })"
-              />
+              <div class="flex flex-wrap items-center gap-1">
+                <FilterChips
+                  :model-value="state.filters.value.classification"
+                  :summary="summary"
+                  @update:model-value="(v) => (state.filters.value = { ...state.filters.value, classification: v })"
+                />
+                <button
+                  type="button"
+                  data-testid="live-filter"
+                  :aria-pressed="liveOnly"
+                  :class="[
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                    liveOnly
+                      ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
+                      : 'bg-transparent text-zinc-700 border-zinc-300 hover:bg-zinc-100 dark:text-zinc-300 dark:border-zinc-700 dark:hover:bg-zinc-800',
+                  ]"
+                  @click="liveOnly = !liveOnly"
+                >
+                  <span>Live</span>
+                  <span class="text-[10px] font-mono opacity-70">{{ liveCount }}</span>
+                </button>
+              </div>
             </div>
             <div
               class="px-2 py-1 border-b border-default flex items-center justify-between text-[10px] text-zinc-500"
@@ -640,6 +674,7 @@ function downloadAll() {
                   :expanded-paths="effectiveExpandedPaths"
                   :kind-of="kindOf"
                   :preview-components="COMPONENTS_WITH_PREVIEW"
+                  :live-only="section.layer === 'component' && liveOnly"
                   @select="(id: string) => (state.selection.value = id)"
                   @toggle="toggleExpanded"
                   @select-component="(name: string) => {

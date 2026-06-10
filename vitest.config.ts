@@ -14,6 +14,7 @@ export default defineConfig({
   plugins: [vue() as unknown as Plugin],
   define: {
     __APP_VERSION__: JSON.stringify("0.0.0-test"),
+    __APP_UNPUSHED__: JSON.stringify(0),
   },
   resolve: {
     alias: {

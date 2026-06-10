@@ -3,12 +3,31 @@ import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 import ui from "@nuxt/ui/vite";
 import pkg from "./package.json" with { type: "json" };
+import { execSync } from "node:child_process";
+
+function countUnpushedCommits(): number {
+  try {
+    return (
+      parseInt(
+        execSync("git rev-list --count origin/main..HEAD", {
+          stdio: ["ignore", "pipe", "ignore"],
+        })
+          .toString()
+          .trim(),
+        10,
+      ) || 0
+    );
+  } catch {
+    return 0;
+  }
+}
 
 // 100% client-side SPA: no SSR, no API routes. Static-deployable to any
 // host (GitHub Pages, Vercel static, S3+CloudFront).
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_UNPUSHED__: JSON.stringify(countUnpushedCommits()),
   },
   plugins: [
     vue(),

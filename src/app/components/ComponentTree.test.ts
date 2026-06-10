@@ -41,3 +41,38 @@ describe("ComponentTree — Live preview pill", () => {
     expect(wrapper.findAll("span").filter((s) => s.text() === "Live")).toHaveLength(0);
   });
 });
+
+describe("ComponentTree — liveOnly filter", () => {
+  it("hides non-preview component groups when liveOnly is true", () => {
+    const wrapper = mount(ComponentTree, {
+      props: {
+        nodes: groupNodes(),
+        previewComponents: new Set(["button"]),
+        liveOnly: true,
+        ...baseProps,
+      },
+    });
+
+    // Only the "button" group (which is in previewComponents) should be rendered.
+    const groupButtons = wrapper.findAll("button");
+    const labels = groupButtons.map((b) => b.text());
+    expect(labels.some((t) => t.includes("button"))).toBe(true);
+    expect(labels.some((t) => t.includes("card"))).toBe(false);
+  });
+
+  it("shows all component groups when liveOnly is false", () => {
+    const wrapper = mount(ComponentTree, {
+      props: {
+        nodes: groupNodes(),
+        previewComponents: new Set(["button"]),
+        liveOnly: false,
+        ...baseProps,
+      },
+    });
+
+    const groupButtons = wrapper.findAll("button");
+    const labels = groupButtons.map((b) => b.text());
+    expect(labels.some((t) => t.includes("button"))).toBe(true);
+    expect(labels.some((t) => t.includes("card"))).toBe(true);
+  });
+});

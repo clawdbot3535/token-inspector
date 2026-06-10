@@ -25,9 +25,14 @@ interface Props {
    * which components the middle pane can visually preview.
    */
   previewComponents?: ReadonlySet<string>;
+  /**
+   * When true, top-level groups (depth 0) whose component is NOT in
+   * previewComponents are hidden. Non-top-level nodes are unaffected.
+   */
+  liveOnly?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { depth: 0 });
+const props = withDefaults(defineProps<Props>(), { depth: 0, liveOnly: false });
 
 /**
  * A top-level group (depth 0) maps to a component; show the "Live" pill when
@@ -38,6 +43,17 @@ function hasPreview(path: string): boolean {
   if (props.depth !== 0) return false;
   const component = path.split("/")[0] ?? path;
   return props.previewComponents?.has(component) ?? false;
+}
+
+/**
+ * Returns true when a node should be rendered. Top-level groups are hidden
+ * when liveOnly is active and the component has no live preview. All other
+ * nodes (leaves, deeper groups) are always visible.
+ */
+function isVisible(node: TreeNode): boolean {
+  if (!props.liveOnly || props.depth !== 0) return true;
+  if (node.kind !== "group") return true;
+  return hasPreview(node.path);
 }
 
 const emit = defineEmits<{
@@ -66,7 +82,7 @@ function indentPx(): string {
   <div>
     <template v-for="node in nodes" :key="node.kind === 'leaf' ? node.id : node.path">
       <!-- Group: a collapsible header with descendant count. -->
-      <template v-if="node.kind === 'group'">
+      <template v-if="node.kind === 'group' && isVisible(node)">
         <button
           type="button"
           class="w-full text-left flex items-center gap-1 px-2 py-0.5 hover:bg-elevated transition-colors text-zinc-500"
@@ -95,6 +111,7 @@ function indentPx(): string {
           :depth="depth + 1"
           :kind-of="kindOf"
           :preview-components="previewComponents"
+          :live-only="liveOnly"
           @select="(id: string) => emit('select', id)"
           @toggle="(p: string) => emit('toggle', p)"
           @select-component="(name: string) => emit('select-component', name)"
@@ -103,7 +120,7 @@ function indentPx(): string {
 
       <!-- Leaf: clickable token row with classification badge. -->
       <button
-        v-else
+        v-else-if="node.kind === 'leaf'"
         type="button"
         class="w-full text-left px-2 py-0.5 hover:bg-elevated transition-colors flex items-center gap-2"
         :class="{
