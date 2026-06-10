@@ -29,6 +29,7 @@ exports[`buildComponentRecipes — input characterisation (cycle A baseline) > p
     "size": {
       "md": {
         "leadingIcon": "size-4",
+        "trailingIcon": "size-4",
       },
     },
     "variant": {

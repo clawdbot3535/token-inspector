@@ -169,3 +169,11 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
 export const SLOT_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["leadingIcon", "trailingIcon"],
 ];
+
+/** Slots whose classes mirror to a partner slot when the partner has no own
+ *  tokens. Figma defines icon utilities once (`icon-size`) for ANY icon;
+ *  Nuxt's theme sizes leading AND trailing alike. Consumed by the recipe
+ *  engine (post-build copy) and the scanner (filled-slot recording). */
+export const SLOT_MIRROR: ReadonlyArray<readonly [string, string]> = [
+  ["leadingIcon", "trailingIcon"],
+];

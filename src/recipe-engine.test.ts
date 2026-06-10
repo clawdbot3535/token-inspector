@@ -928,3 +928,55 @@ describe("buildComponentRecipes — bare size utility (size-[..] emit)", () => {
     expect(recipes["checkbox"]?.variants.size?.["md"]?.["base"]).toContain("size-[18px]");
   });
 });
+
+describe("buildComponentRecipes — SLOT_MIRROR: leadingIcon → trailingIcon", () => {
+  it("mirrors leadingIcon classes to trailingIcon when trailingIcon has no own tokens", () => {
+    // button-icon-size routes via normal path → slot: leadingIcon, utilityType: icon-size
+    // $value: 16 (number) → 16px → Tailwind size-4 (scale match via spacing 4 = 1rem = 16px)
+    const graph = buildGraph([
+      { name: "global", data: { button: { "icon-size": { $value: 16, $type: "number" } } } },
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    expect(recipes["button"]?.slots["leadingIcon"]).toContain("size-4");
+    expect(recipes["button"]?.slots["trailingIcon"]).toBe(
+      recipes["button"]?.slots["leadingIcon"],
+    );
+  });
+
+  it("keeps explicit trailingIcon tokens instead of the mirror (own tokens win)", () => {
+    // buildGraph normalises token IDs to lowercase so camelCase slot names
+    // (trailingIcon) can't be round-tripped through the raw-token parser.
+    // Use makeGraph + slotMappingOverride to inject a pre-routed trailingIcon
+    // token — this exercises the own-token-wins guard in the mirror loop.
+    const graph = makeGraph([
+      makeNode({ id: "button-icon-size", layer: "component", type: "number", source: "global", base: "16px" }),
+      makeNode({ id: "button-trailing-size", layer: "component", type: "number", source: "global", base: "20px" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, {
+      components: ["button"],
+      slotMappingOverride: {
+        "button-trailing-size": {
+          slot: "trailingIcon",
+          utilityType: "size",
+          variantAxis: null,
+          variantKey: null,
+        },
+      },
+    });
+    // trailingIcon has own token (size-[20px]); mirror must NOT overwrite it with size-4
+    expect(recipes["button"]?.slots["trailingIcon"]).toContain("size-[20px]");
+    expect(recipes["button"]?.slots["trailingIcon"]).not.toContain("size-4");
+  });
+
+  it("mirrors inside size-variant buckets too", () => {
+    // button-icon-size-md: size suffix → variantAxis: size, variantKey: md, slot: leadingIcon
+    // $value: 16 → size-4 in md bucket; mirror must copy to trailingIcon in same bucket
+    const graph = buildGraph([
+      { name: "global", data: { button: { "icon-size-md": { $value: 16, $type: "number" } } } },
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["button"] });
+    const md = recipes["button"]?.variants.size?.["md"];
+    expect(md?.["leadingIcon"]).toContain("size-4");
+    expect(md?.["trailingIcon"]).toBe(md?.["leadingIcon"]);
+  });
+});

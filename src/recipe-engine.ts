@@ -17,6 +17,7 @@ import {
   type UtilityType,
   type VariantAxis,
 } from "./slot-mapping.js";
+import { SLOT_MIRROR } from "./component-vocab.js";
 
 /**
  * Decide what to emit inside the arbitrary-value brackets for a color
@@ -321,6 +322,23 @@ export function buildComponentRecipes(
       if (variantKey === null) continue;
       const variantBucket = (axis[variantKey] ??= {});
       variantBucket[parsed.slot] = classString;
+    }
+  }
+
+  // Mirror icon classes to the partner slot (Figma defines icon-size once for
+  // ANY icon; Nuxt sizes leading AND trailing alike). Own tokens win per bucket.
+  for (const recipe of Object.values(out)) {
+    for (const [from, to] of SLOT_MIRROR) {
+      if (recipe.slots[from as RecipeSlot] !== undefined && recipe.slots[to as RecipeSlot] === undefined) {
+        recipe.slots[to as RecipeSlot] = recipe.slots[from as RecipeSlot]!;
+      }
+      for (const axis of Object.values(recipe.variants)) {
+        for (const variantBucket of Object.values(axis)) {
+          if (variantBucket[from as RecipeSlot] !== undefined && variantBucket[to as RecipeSlot] === undefined) {
+            variantBucket[to as RecipeSlot] = variantBucket[from as RecipeSlot]!;
+          }
+        }
+      }
     }
   }
 
