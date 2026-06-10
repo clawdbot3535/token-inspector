@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.9.0] — 2026-06-10
+
+Grammar + preview fidelity (`size` utility, icon slot mirror), a leaner `App.vue` with gate
+tests, and visible toggle states.
+
+### Added
+
+- **Bare `size` utility.** The grammar now maps the bare `size` token word (Tailwind `size-N` =
+  width+height): `checkbox-size-{sm,md}`, `radio-size-{sm,md}` → `variants.size.{k}.base`,
+  `switch-thumb-size-md` → `variants.size.md.thumb`; the recipe engine emits `size-[18px]`-style
+  arbitrary classes. Component-null count on the real export: 79 → 74 (the remaining size nulls
+  are naming-mismatch/typography cases, not grammar gaps).
+- **Token-driven preview sizing.** `LiveCheckbox`/`LiveRadio` boxes take their dimensions from the
+  recipe's size variant (static `size-5` stays as the token-less fallback); `LiveSwitch`'s thumb is
+  now token-driven for size AND colour (a bare `color` on the thumb is promoted to the knob's
+  background — it is a shape, not text).
+- **Icon slot mirror (`SLOT_MIRROR`).** Figma defines `icon-size` once for ANY icon; recipes now
+  mirror `leadingIcon` classes to `trailingIcon` (own trailing tokens win, per bucket), and the
+  scanner counts the mirrored slot as filled — the `capability-gap` hint no longer misreports
+  `trailingIcon` for `button`/`input`/`badge`. One shared constant drives both consumers.
+- **`App.vue` gate smoke test** — mounts the real app, loads a token file through the real
+  `handleFiles` path, and pins the loader/commit-panel reachability gates (the placement-bug class).
+
+### Changed
+
+- **`App.vue` slimmed 1047 → 905 lines:** the commit panel and the git loader are now
+  `CommitPanel.vue` / `GitLoader.vue` with their own component tests (behaviour byte-identical;
+  PAT handling unchanged: sessionStorage only).
+- **Visible toggle states + ARIA:** the scan-view switch (header status strip and the issues
+  button) shows a pressed treatment with `aria-pressed`; the `Commit…` panel toggle shows its open
+  state with `aria-expanded`.
+
 ## [0.8.0] — 2026-06-09
 
 The **git workflow round-trip** — load Figma tokens straight from a repo, commit the generated
