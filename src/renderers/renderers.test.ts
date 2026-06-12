@@ -1,7 +1,34 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
 import { buildGraph } from "../build-graph.js";
-import type { SourceFile } from "../token-graph.js";
+import type { SourceFile, SourceLayer } from "../token-graph.js";
 import { appConfigRenderer } from "./app-config.js";
+import { customComponentsRenderer } from "./custom-components.js";
+
+function realGraph() {
+  const dir = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../components",
+  );
+  const files: ReadonlyArray<{ name: SourceLayer; file: string }> = [
+    { name: "color", file: "color.tokens.json" },
+    { name: "dimension", file: "dimension.tokens.json" },
+    { name: "typography", file: "typography.tokens.json" },
+    { name: "light", file: "light.tokens.json" },
+    { name: "dark", file: "dark.tokens.json" },
+    { name: "global", file: "global.tokens.json" },
+  ];
+  const sources: SourceFile[] = files.map((s) => ({
+    name: s.name,
+    data: JSON.parse(readFileSync(resolve(dir, s.file), "utf8")) as Record<
+      string,
+      unknown
+    >,
+  }));
+  return buildGraph(sources);
+}
 
 const sources: SourceFile[] = [
   {
@@ -271,5 +298,23 @@ describe("renderer immutability", () => {
     const a = appConfigRenderer.render(g);
     const b = appConfigRenderer.render(g);
     expect(a.text).toBe(b.text);
+  });
+});
+
+describe("customComponentsRenderer", () => {
+  it("emits a recipe const per flagged component with sub-element slots", () => {
+    const out = customComponentsRenderer.render(realGraph(), {
+      customParts: new Map([["chip", ["label", "close"]]]),
+    });
+    expect(out.text).toContain("export const chipRecipe");
+    expect(out.text).toContain("label:");
+    expect(out.text).toContain("close:");
+    expect(out.text).toContain("variants:");
+    expect(out.text).toMatch(/NOT Nuxt UI overrides/);
+  });
+
+  it("returns empty text when nothing is flagged", () => {
+    const out = customComponentsRenderer.render(realGraph(), { customParts: new Map() });
+    expect(out.text).toBe("");
   });
 });
