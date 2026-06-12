@@ -49,7 +49,7 @@ function emitCustomRecipe(lb: LineBuilder, name: string, recipe: ComponentRecipe
   const slotEntries = Object.entries(recipe.slots);
   if (slotEntries.length > 0) {
     lb.push("  slots: {");
-    for (const [slot, classes] of slotEntries) {
+    for (const [slot, classes] of slotEntries.sort(([a], [b]) => a.localeCompare(b))) {
       lb.push(`    ${slot}: ${JSON.stringify(classes)},`);
     }
     lb.push("  },");
