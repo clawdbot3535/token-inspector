@@ -467,6 +467,7 @@ function downloadAll() {
     ...(customParts.value.size > 0
       ? [{
           name: customComponentsRenderer.id,
+          // defaultSizeByComponent is unavailable in the browser (no slot-mapping.json); download matches CLI output unless a defaultSizeByComponent override is active. Matches appConfigRenderer's web behaviour.
           data: customComponentsRenderer.render(g, { customParts: customParts.value }).text,
         }]
       : []),

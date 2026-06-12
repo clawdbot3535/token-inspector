@@ -812,7 +812,7 @@ function computeForecast(
  */
 export function customPartsByComponent(
   report: { issues: ReadonlyArray<ScanIssue> },
-): Map<string, string[]> {
+): ReadonlyMap<string, readonly string[]> {
   const out = new Map<string, string[]>();
   for (const i of report.issues) {
     if (i.kind !== "component-looks-custom") continue;

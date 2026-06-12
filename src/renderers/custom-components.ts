@@ -69,7 +69,7 @@ function emitCustomRecipe(lb: LineBuilder, name: string, recipe: ComponentRecipe
         const slotMap = axisMap[variantKey];
         if (slotMap === undefined) continue;
         lb.push(`      ${variantKey}: {`);
-        for (const [slot, classes] of Object.entries(slotMap)) {
+        for (const [slot, classes] of Object.entries(slotMap).sort(([a], [b]) => a.localeCompare(b))) {
           lb.push(`        ${slot}: ${JSON.stringify(classes)},`);
         }
         lb.push("      },");
