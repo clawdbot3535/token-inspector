@@ -1,5 +1,33 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
-import { normalizeTrailingColorRole } from "./custom-recipe-engine.js";
+import { normalizeTrailingColorRole, buildCustomRecipes } from "./custom-recipe-engine.js";
+import { buildGraph } from "./build-graph.js";
+import type { SourceFile, SourceLayer } from "./token-graph.js";
+
+function realGraph() {
+  const dir = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../components",
+  );
+  const files: ReadonlyArray<{ name: SourceLayer; file: string }> = [
+    { name: "color", file: "color.tokens.json" },
+    { name: "dimension", file: "dimension.tokens.json" },
+    { name: "typography", file: "typography.tokens.json" },
+    { name: "light", file: "light.tokens.json" },
+    { name: "dark", file: "dark.tokens.json" },
+    { name: "global", file: "global.tokens.json" },
+  ];
+  const sources: SourceFile[] = files.map((s) => ({
+    name: s.name,
+    data: JSON.parse(readFileSync(resolve(dir, s.file), "utf8")) as Record<
+      string,
+      unknown
+    >,
+  }));
+  return buildGraph(sources);
+}
 
 describe("normalizeTrailingColorRole", () => {
   it("moves a trailing color-role to the 2nd segment", () => {
@@ -18,5 +46,36 @@ describe("normalizeTrailingColorRole", () => {
   });
   it("leaves short ids untouched", () => {
     expect(normalizeTrailingColorRole("chip-bg")).toBe("chip-bg");
+  });
+});
+
+describe("buildCustomRecipes", () => {
+  it("returns {} when no components are flagged", () => {
+    expect(buildCustomRecipes(realGraph(), new Map())).toEqual({});
+  });
+
+  it("builds a full-fidelity chip recipe with sub-element slots + color variants", () => {
+    const recipes = buildCustomRecipes(
+      realGraph(),
+      new Map([["chip", ["label", "close"]]]),
+    );
+    const chip = recipes["chip"];
+    expect(chip).toBeDefined();
+    expect(chip!.slots.base).toBeTypeOf("string");
+    expect(chip!.slots.label).toBeTypeOf("string");
+    expect(chip!.slots.label).toMatch(/text-\[/);
+    // icon-size resolves via the spacing scale (size-3), not arbitrary size-[..]
+    expect(chip!.slots.close).toMatch(/size-/); // icon-size routed to close
+    expect(chip!.variants.color?.error?.base).toBeTypeOf("string");
+    expect(chip!.variants.color?.error?.label).toMatch(/text-\[/);
+    expect(chip!.variants.color?.success?.base).toBeTypeOf("string");
+  });
+
+  it("only builds the flagged components", () => {
+    const recipes = buildCustomRecipes(
+      realGraph(),
+      new Map([["chip", ["label", "close"]]]),
+    );
+    expect(Object.keys(recipes)).toEqual(["chip"]);
   });
 });
