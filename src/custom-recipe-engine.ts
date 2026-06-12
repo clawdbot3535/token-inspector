@@ -13,6 +13,7 @@ import {
   buildComponentRecipes,
   type ComponentRecipe,
 } from "./recipe-engine.js";
+import { resolveTokenToValue } from "./resolve-token.js";
 
 /**
  * The grammar recognizes a color-role only as the 2nd segment
@@ -105,4 +106,70 @@ export function stripOverlayPrefix(tokenId: string): {
   if (mode !== "light" && mode !== "dark") return { logicalId: tokenId, mode: null };
   const logicalId = [parts[0], ...parts.slice(3)].join("-");
   return { logicalId, mode };
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * A genuine overlay override is one whose resolved value differs from its base
+ * counterpart's. Conservative: if the base id has no node / cannot resolve,
+ * treat the overlay token as genuine (never silently drop on uncertainty); if
+ * the overlay token itself cannot resolve, it is not emittable → not genuine.
+ */
+function isGenuineOverlay(overlayId: string, logicalId: string, graph: TokenGraph): boolean {
+  const ov = resolveTokenToValue(overlayId, graph);
+  if ("error" in ov) return false;
+  const base = resolveTokenToValue(logicalId, graph);
+  if ("error" in base) return true; // no/unresolvable base → genuine
+  return base.value !== ov.value;
+}
+
+/**
+ * Build sparse `<component>Overlay<Mode>` delta recipes from `overlay-light` /
+ * `overlay-dark` tokens. Reuses the buildCustomRecipes delegation: per
+ * (component, mode) we override each genuine overlay token to the slot/variant
+ * its logical (prefix-stripped) id maps to, null everything else, and let
+ * buildComponentRecipes assemble — so only this mode's genuine overrides are
+ * emitted, valued from the real overlay nodes. Identical-to-base tokens and
+ * sub-element overlay tokens (stripOverlayPrefix mode === null) are dropped.
+ */
+export function buildOverlayRecipes(graph: TokenGraph): Record<string, ComponentRecipe> {
+  const pairs = new Set<string>(); // `${component}|${mode}`
+  for (const node of graph.nodes.values()) {
+    if (node.layer !== "component") continue;
+    const { mode } = stripOverlayPrefix(node.id);
+    if (mode === null) continue;
+    pairs.add(`${node.id.split("-")[0]}|${mode}`);
+  }
+
+  const out: Record<string, ComponentRecipe> = {};
+  for (const pair of pairs) {
+    const [component, mode] = pair.split("|") as [string, OverlayMode];
+    const override: Record<string, ReturnType<typeof getSlotMapping>> = {};
+    for (const node of graph.nodes.values()) {
+      if (node.layer !== "component") continue;
+      if (node.id.split("-")[0] !== component) continue;
+      const { logicalId, mode: m } = stripOverlayPrefix(node.id);
+      if (m === mode && isGenuineOverlay(node.id, logicalId, graph)) {
+        override[node.id] = getSlotMapping(logicalId, undefined, node.type);
+      } else {
+        override[node.id] = null; // base, other mode, identical, or sub-element → skip
+      }
+    }
+    const built = buildComponentRecipes(graph, {
+      components: [component],
+      slotMappingOverride: override as SlotMappingOverride,
+    });
+    const recipe = built[component];
+    if (
+      recipe !== undefined &&
+      (Object.keys(recipe.slots).length > 0 ||
+        Object.values(recipe.variants).some((axis) => axis !== undefined && Object.keys(axis).length > 0))
+    ) {
+      out[`${component}Overlay${capitalize(mode)}`] = recipe;
+    }
+  }
+  return out;
 }

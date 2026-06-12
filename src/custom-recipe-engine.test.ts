@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
-import { normalizeTrailingColorRole, buildCustomRecipes, stripOverlayPrefix } from "./custom-recipe-engine.js";
+import { normalizeTrailingColorRole, buildCustomRecipes, stripOverlayPrefix, buildOverlayRecipes } from "./custom-recipe-engine.js";
 import { buildGraph } from "./build-graph.js";
-import type { SourceFile, SourceLayer } from "./token-graph.js";
+import type { SourceFile, SourceLayer, TokenNode, TokenGraph, GraphLayer, TokenType } from "./token-graph.js";
 
 function realGraph() {
   const dir = resolve(
@@ -108,5 +108,75 @@ describe("stripOverlayPrefix", () => {
   });
   it("is a no-op when there is no property segment after the mode", () => {
     expect(stripOverlayPrefix("x-overlay-dark")).toEqual({ logicalId: "x-overlay-dark", mode: null });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildOverlayRecipes
+// ---------------------------------------------------------------------------
+
+function ovNode(
+  id: string,
+  base: string,
+  layer: GraphLayer = "component",
+  type: TokenType = "color",
+  source: SourceLayer = "global",
+): TokenNode {
+  return {
+    id,
+    path: id.split("-"),
+    type,
+    layer,
+    themes: [],
+    cssValue: { base },
+    rawValue: { base },
+    alias: {},
+    source,
+  };
+}
+
+function ovGraph(nodes: TokenNode[]): TokenGraph {
+  return {
+    nodes: new Map(nodes.map((n) => [n.id, n])),
+    aliasIndex: new Map(),
+    reverseAliases: new Map(),
+    issues: [],
+    sources: [],
+    meta: { builtAt: "2026-06-12T00:00:00Z", builderVersion: "test" },
+  };
+}
+
+describe("buildOverlayRecipes", () => {
+  it("emits a sparse dark recipe with only the genuine override", () => {
+    const graph = ovGraph([
+      ovNode("button-solid-bg", "#5667A7"),
+      ovNode("button-overlay-dark-solid-bg", "#FAFAFA"),   // genuine — differs from base
+      ovNode("button-ghost-bg", "#111111"),
+      ovNode("button-overlay-dark-ghost-bg", "#111111"),   // identical to base — dropped
+    ]);
+    const recipes = buildOverlayRecipes(graph);
+    expect(recipes["buttonOverlayDark"]).toBeDefined();
+    // getSlotMapping("button-solid-bg") → variantAxis:"variant", variantKey:"solid"
+    expect(recipes["buttonOverlayDark"].variants.variant?.solid?.base).toMatch(/bg-\[/);
+    expect(recipes["buttonOverlayDark"].variants.variant?.ghost).toBeUndefined();
+    expect(recipes["buttonOverlayLight"]).toBeUndefined();
+  });
+
+  it("treats an overlay token with no base counterpart as genuine", () => {
+    const graph = ovGraph([
+      ovNode("badge-overlay-light-accent-bg", "#5667A7"),
+    ]);
+    const recipes = buildOverlayRecipes(graph);
+    expect(recipes["badgeOverlayLight"]?.variants.color?.accent?.base).toMatch(/bg-\[/);
+  });
+
+  it("defers sub-element overlay tokens (nav-item-overlay-*) — emits nothing", () => {
+    const graph = ovGraph([ ovNode("nav-item-overlay-dark-ghost-bg", "#FAFAFA") ]);
+    expect(buildOverlayRecipes(graph)).toEqual({});
+  });
+
+  it("returns {} for a graph with no overlay tokens", () => {
+    const graph = ovGraph([ ovNode("button-solid-bg", "#5667A7") ]);
+    expect(buildOverlayRecipes(graph)).toEqual({});
   });
 });
