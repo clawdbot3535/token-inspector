@@ -36,8 +36,8 @@ export function normalizeTrailingColorRole(tokenId: string): string {
 }
 
 export interface BuildCustomRecipesOptions {
-  defaultSizeByComponent?: Readonly<Record<string, string>>;
-  remBase?: number;
+  readonly defaultSizeByComponent?: Readonly<Record<string, string>>;
+  readonly remBase?: number;
 }
 
 /**
@@ -63,6 +63,7 @@ export function buildCustomRecipes(
 
     for (const node of graph.nodes.values()) {
       if (node.layer !== "component") continue;
+      // Filter uses the first "-"-segment for EXACT equality, so "nav" and "navbar" never cross-contaminate.
       const prefix = node.id.split("-")[0];
       if (prefix !== component) continue;
       const normId = normalizeTrailingColorRole(node.id);
@@ -71,6 +72,7 @@ export function buildCustomRecipes(
 
     const built = buildComponentRecipes(graph, {
       components: [component],
+      // Cast is safe: Record<string, SlotMappingEntry | null> satisfies the Readonly target. A null entry explicitly skips that token in buildComponentRecipes (no class emitted).
       slotMappingOverride: override as SlotMappingOverride,
       defaultSizeByComponent: options.defaultSizeByComponent,
       remBase: options.remBase,

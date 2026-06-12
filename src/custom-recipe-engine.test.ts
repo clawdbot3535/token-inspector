@@ -64,8 +64,9 @@ describe("buildCustomRecipes", () => {
     expect(chip!.slots.base).toBeTypeOf("string");
     expect(chip!.slots.label).toBeTypeOf("string");
     expect(chip!.slots.label).toMatch(/text-\[/);
-    // icon-size resolves via the spacing scale (size-3), not arbitrary size-[..]
-    expect(chip!.slots.close).toMatch(/size-/); // icon-size routed to close
+    // icon-size resolves via the spacing scale (size-3), NOT arbitrary size-[..] (JIT-class guard)
+    expect(chip!.slots.close).toMatch(/\bsize-\d/);
+    expect(chip!.slots.close).not.toMatch(/size-\[/);
     expect(chip!.variants.color?.error?.base).toBeTypeOf("string");
     expect(chip!.variants.color?.error?.label).toMatch(/text-\[/);
     expect(chip!.variants.color?.success?.base).toBeTypeOf("string");
