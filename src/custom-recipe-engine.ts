@@ -83,3 +83,25 @@ export function buildCustomRecipes(
 
   return out;
 }
+
+export type OverlayMode = "light" | "dark";
+
+/**
+ * Detects an `overlay-light`/`overlay-dark` segment in the 2nd position
+ * (immediately after the component name) and returns the logical base id with
+ * the segment removed plus the detected mode. A no-op (mode `null`) when the
+ * segment is absent or sits after a sub-element (e.g. `nav-item-overlay-*`,
+ * which is deferred until variant-after-sub-element mapping lands) — there
+ * `parts[1]` is the sub-element, not `"overlay"`.
+ */
+export function stripOverlayPrefix(tokenId: string): {
+  logicalId: string;
+  mode: OverlayMode | null;
+} {
+  const parts = tokenId.split("-");
+  if (parts[1] !== "overlay") return { logicalId: tokenId, mode: null };
+  const mode = parts[2];
+  if (mode !== "light" && mode !== "dark") return { logicalId: tokenId, mode: null };
+  const logicalId = [parts[0], ...parts.slice(3)].join("-");
+  return { logicalId, mode };
+}

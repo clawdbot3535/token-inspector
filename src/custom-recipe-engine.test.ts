@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
-import { normalizeTrailingColorRole, buildCustomRecipes } from "./custom-recipe-engine.js";
+import { normalizeTrailingColorRole, buildCustomRecipes, stripOverlayPrefix } from "./custom-recipe-engine.js";
 import { buildGraph } from "./build-graph.js";
 import type { SourceFile, SourceLayer } from "./token-graph.js";
 
@@ -78,5 +78,32 @@ describe("buildCustomRecipes", () => {
       new Map([["chip", ["label", "close"]]]),
     );
     expect(Object.keys(recipes)).toEqual(["chip"]);
+  });
+});
+
+describe("stripOverlayPrefix", () => {
+  it("strips a 2nd-segment overlay-dark and reports the mode", () => {
+    expect(stripOverlayPrefix("button-overlay-dark-solid-bg")).toEqual({
+      logicalId: "button-solid-bg",
+      mode: "dark",
+    });
+  });
+  it("strips a 2nd-segment overlay-light", () => {
+    expect(stripOverlayPrefix("badge-overlay-light-accent-bg")).toEqual({
+      logicalId: "badge-accent-bg",
+      mode: "light",
+    });
+  });
+  it("is a no-op when overlay sits after a sub-element (deferred nav case)", () => {
+    expect(stripOverlayPrefix("nav-item-overlay-dark-ghost-bg")).toEqual({
+      logicalId: "nav-item-overlay-dark-ghost-bg",
+      mode: null,
+    });
+  });
+  it("is a no-op for a non-overlay token", () => {
+    expect(stripOverlayPrefix("button-solid-bg")).toEqual({
+      logicalId: "button-solid-bg",
+      mode: null,
+    });
   });
 });
