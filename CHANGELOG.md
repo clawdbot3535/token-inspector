@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.11.0] — 2026-06-12
+
+Stage C — components that look custom now emit their **full anatomy** to a dedicated
+`custom-components.ts` artifact instead of a misleading, half-empty `ui.<name>` override.
+
+### Added
+
+- **`custom-components.ts` output.** Components the scanner flags `component-looks-custom`
+  (only `chip` today) are routed out of `app.config.ts`'s `ui:` block and into a new
+  `custom-components.ts` artifact, as dependency-free `export const <name>Recipe = { slots, variants }
+  as const` objects the dev team hand-implements via `tv()`. The recipe captures the component's
+  **full anatomy** — including the sub-element slots (`label`, `close`) and the colour-role
+  variants the old pipeline silently dropped. For `chip` this means `slots.base/label/close` plus
+  `variants.color.{error,success}` with both `base` and `label` entries, where before `ui.chip`
+  emitted only a single `base` slot and discarded the rest. A matching output tab appears in the
+  Inspector (shown only when something is flagged) and the file joins the download bundle.
+- **Trailing colour-role reconstruction.** `normalizeTrailingColorRole` rewrites Figma's trailing
+  colour-role naming (`chip-bg-error`) to the 2nd-segment form (`chip-error-bg`) the grammar
+  understands, so these tokens — dropped as a "Figma-fix" in the normal pipeline — become proper
+  `variants.color` entries in the custom recipe.
+
+### Changed
+
+- **`app.config.ts` no longer mis-applies custom components.** A flagged component is replaced in
+  the `ui:` block with a one-line pointer comment (`// chip: looks custom → see custom-components.ts`)
+  rather than a recipe block — Nuxt UI no longer receives a `ui.chip` override that would partially
+  land on its own, differently-shaped component.
+- **Grammar gains a permissive `extraSlots` routing hook.** `heuristicSlotMapping` accepts an optional
+  `extraSlots` set so foreign sub-element segments route to their own slots; the custom builder
+  delegates all recipe assembly to the existing `buildComponentRecipes` via a per-token override
+  (keyed by the original id), inheriting ring-pairing, size defaulting, and icon-mirror unchanged.
+  Default behaviour is byte-identical — the standard `ui.*` recipes are untouched.
+
+### Known limitations
+
+- `chip-close-icon-color` (utility word `icon-color` — no heuristic rule) and `chip-border-focus-ring`
+  remain unmapped and are intentionally dropped, exactly as they were before. The custom recipe still
+  captures the close **size** and all label/base content.
+
 ## [0.10.0] — 2026-06-12
 
 A scan that flags components which look hand-built, a sidebar that narrows to the live previews,
