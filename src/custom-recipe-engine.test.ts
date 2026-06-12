@@ -147,7 +147,7 @@ function ovGraph(nodes: TokenNode[]): TokenGraph {
 }
 
 describe("buildOverlayRecipes", () => {
-  it("emits a sparse dark recipe with only the genuine override", () => {
+  it("emits a sparse dark recipe with only the genuine override, omitting the identical and the absent-light recipes", () => {
     const graph = ovGraph([
       ovNode("button-solid-bg", "#5667A7"),
       ovNode("button-overlay-dark-solid-bg", "#FAFAFA"),   // genuine — differs from base

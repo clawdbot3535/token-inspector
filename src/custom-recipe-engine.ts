@@ -119,6 +119,7 @@ function capitalize(s: string): string {
  * the overlay token itself cannot resolve, it is not emittable → not genuine.
  */
 function isGenuineOverlay(overlayId: string, logicalId: string, graph: TokenGraph): boolean {
+  // Compares base-mode (un-themed) values — overlay tokens are flat literals in this corpus.
   const ov = resolveTokenToValue(overlayId, graph);
   if ("error" in ov) return false;
   const base = resolveTokenToValue(logicalId, graph);
@@ -146,7 +147,9 @@ export function buildOverlayRecipes(graph: TokenGraph): Record<string, Component
 
   const out: Record<string, ComponentRecipe> = {};
   for (const pair of pairs) {
-    const [component, mode] = pair.split("|") as [string, OverlayMode];
+    const sep = pair.indexOf("|");
+    const component = pair.slice(0, sep);
+    const mode = pair.slice(sep + 1) as OverlayMode;
     const override: Record<string, ReturnType<typeof getSlotMapping>> = {};
     for (const node of graph.nodes.values()) {
       if (node.layer !== "component") continue;
