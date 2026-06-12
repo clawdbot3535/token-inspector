@@ -110,8 +110,7 @@ const rendered = useRenderedOutput(
   computed(() => scanReport.value.completeness),
   customParts,
 );
-// Render the custom-components.ts artifact once; gate the tab and download on
-// its text being non-empty (covers overlay-only graphs with no flagged parts).
+// Browser render omits defaultSizeByComponent (no slot-mapping.json in the browser) — matches the other web renders. Drives both tab visibility and download.
 const customOutputText = computed(() => {
   const g = state.graph.value;
   if (!g) return "";
