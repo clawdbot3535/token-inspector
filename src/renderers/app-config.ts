@@ -26,6 +26,12 @@ export interface AppConfigRendererOptions {
    * When absent, no comments are emitted (graceful fallback).
    */
   completeness?: ReadonlyArray<CompletenessScore>;
+  /**
+   * Components flagged `component-looks-custom`. These are routed out of the
+   * `ui:` block (they would mis-apply to Nuxt's own component) and emitted to
+   * custom-components.ts instead. Each leaves a one-line pointer comment.
+   */
+  customComponents?: ReadonlySet<string>;
 }
 
 interface AppConfigRenderer extends TextRenderer {
@@ -86,6 +92,10 @@ export const appConfigRenderer: AppConfigRenderer = {
     }
     lb.push("    },");
     for (const component of COMPONENT_ALLOW_LIST) {
+      if (options?.customComponents?.has(component)) {
+        lb.push(`    // ${component}: looks custom → see custom-components.ts`);
+        continue;
+      }
       const recipe = recipes[component];
       if (recipe !== undefined) {
         const componentCompleteness = options?.completeness?.filter(

@@ -301,6 +301,21 @@ describe("renderer immutability", () => {
   });
 });
 
+describe("appConfigRenderer custom routing", () => {
+  it("omits a flagged component from ui: and leaves a pointer comment", () => {
+    const withCustom = appConfigRenderer.render(realGraph(), {
+      customComponents: new Set(["chip"]),
+    }).text;
+    expect(withCustom).not.toMatch(/^\s{4}chip: \{/m);
+    expect(withCustom).toContain("// chip: looks custom → see custom-components.ts");
+  });
+
+  it("is unchanged when no customComponents are passed (regression)", () => {
+    const baseline = appConfigRenderer.render(realGraph()).text;
+    expect(baseline).toMatch(/^\s{4}chip: \{/m);
+  });
+});
+
 describe("customComponentsRenderer", () => {
   it("emits a recipe const per flagged component with sub-element slots", () => {
     const out = customComponentsRenderer.render(realGraph(), {
