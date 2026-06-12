@@ -8,6 +8,7 @@ import {
   KNOWN_VARIANT_NAMES,
   SIZE_KEYS,
   NON_TYPO_WORDS,
+  NUXT_SLOTS,
 } from "./component-vocab.js";
 
 /**
@@ -64,6 +65,8 @@ const KNOWN_VOCAB: ReadonlySet<string> = new Set<string>([
   ...KNOWN_VARIANT_NAMES,
   ...SIZE_KEYS,
   ...NON_TYPO_WORDS,
+  // Nuxt slot names are legitimate vocabulary, never typos (e.g. `trailing`).
+  ...[...NUXT_SLOTS.values()].flatMap((slots) => [...slots]),
 ]);
 
 export interface VocabSuggestion {

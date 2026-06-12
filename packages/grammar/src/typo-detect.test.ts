@@ -76,4 +76,13 @@ describe("suggestVocabWord", () => {
   it("does not flag legit collision words (`loading` state)", () => {
     expect(suggestVocabWord("loading")).toBeNull();
   });
+
+  it("suggests for additional misspellings", () => {
+    expect(suggestVocabWord("widht")).toEqual({ word: "width", distance: 1 });
+    expect(suggestVocabWord("succss")?.word).toBe("success");
+  });
+
+  it("does not flag a Nuxt slot name (`trailing`)", () => {
+    expect(suggestVocabWord("trailing", 2)).toBeNull();
+  });
 });

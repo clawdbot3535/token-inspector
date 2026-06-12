@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { scanGraph, customPartsByComponent, detectPossibleTypos } from "./scanner.js";
+import { scanGraph, customPartsByComponent } from "./scanner.js";
+import { detectPossibleTypos } from "./data-quality.js";
 import type {
   TokenGraph,
   TokenNode,
@@ -855,5 +856,14 @@ describe("detectPossibleTypos", () => {
     ]);
     const report = scanGraph(graph, { components: [] });
     expect(report.issues.some((i) => i.kind === "possible-typo")).toBe(true);
+  });
+
+  it("flags the spaching->spacing real-world typo", () => {
+    const graph = makeGraph([
+      makeNode({ id: "badge-letter-spaching", layer: "component", type: "dimension", source: "global", base: "0.5px" }),
+    ]);
+    const issues = detectPossibleTypos(graph);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.message).toContain("spacing");
   });
 });
