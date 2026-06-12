@@ -68,4 +68,12 @@ describe("suggestVocabWord", () => {
     expect(suggestVocabWord("xxradius")).toBeNull(); // distance 2, default max 1
     expect(suggestVocabWord("xxradius", 2)?.word).toBe("radius");
   });
+
+  it("does not flag legit collision words (rounded-full's `full`)", () => {
+    expect(suggestVocabWord("full")).toBeNull();
+  });
+
+  it("does not flag legit collision words (`loading` state)", () => {
+    expect(suggestVocabWord("loading")).toBeNull();
+  });
 });

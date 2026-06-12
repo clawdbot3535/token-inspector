@@ -7,6 +7,7 @@ import {
   NON_PART_SEGMENTS,
   KNOWN_VARIANT_NAMES,
   SIZE_KEYS,
+  NON_TYPO_WORDS,
 } from "./component-vocab.js";
 
 /**
@@ -62,6 +63,7 @@ const KNOWN_VOCAB: ReadonlySet<string> = new Set<string>([
   ...NON_PART_SEGMENTS,
   ...KNOWN_VARIANT_NAMES,
   ...SIZE_KEYS,
+  ...NON_TYPO_WORDS,
 ]);
 
 export interface VocabSuggestion {

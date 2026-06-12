@@ -19,6 +19,18 @@ export const KNOWN_VARIANT_NAMES: ReadonlySet<string> = new Set([
 export const SIZE_KEYS: ReadonlySet<string> = new Set(["xs", "sm", "md", "lg", "xl", "2xl"]);
 
 /**
+ * Legitimate token-name words that coincidentally sit within one edit of a
+ * value-bearing vocab word, so the typo detector must NOT flag them. Seeded from
+ * observed false positives; extend as new collisions surface.
+ * - `full`    — `rounded-full` (Tailwind radius keyword), one edit from `fill`.
+ * - `loading` — loading-state tokens (e.g. `color-state-loading-bg`), one edit from `leading`.
+ */
+export const NON_TYPO_WORDS: ReadonlySet<string> = new Set<string>([
+  "full",
+  "loading",
+]);
+
+/**
  * Components whose Nuxt UI v4 frame is a Tailwind `ring` (not a CSS border):
  * their `border-*` tokens emit `ring-*` utilities. Limited to frames expressed
  * on the base slot.
