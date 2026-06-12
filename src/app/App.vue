@@ -30,7 +30,8 @@ import { useClassifications } from "./classifications.js";
 import { resolveTokenToValue } from "@core/resolve-token.js";
 import { getSlotMapping } from "@tg/grammar";
 import { utilityForMapping } from "@core/recipe-engine.js";
-import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
+import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
+import { customPartsByComponent } from "@core/scanner.js";
 import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
@@ -99,11 +100,21 @@ const rightPane = useResizablePane({
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const scanReport = useScanReport(state.graph);
+// Components the scanner flagged `component-looks-custom` — routed out of the
+// app.config.ts ui: block and into the custom-components.ts tab/download.
+const customParts = computed(() => customPartsByComponent(scanReport.value));
 // Thread the scan completeness into the rendered app.config.ts so the
 // on-screen preview matches the CLI output (and the download below).
 const rendered = useRenderedOutput(
   state,
   computed(() => scanReport.value.completeness),
+  customParts,
+);
+// The custom-components.ts tab is only reachable when a component is flagged.
+const outputTabs = computed(() =>
+  customParts.value.size > 0
+    ? (["tokens.css", "app.config.ts", "custom-components.ts"] as const)
+    : (["tokens.css", "app.config.ts"] as const),
 );
 // Mount the rendered tokens.css into <head> so live previews can resolve
 // `var(--<token-id>)` references emitted by the recipe-engine.
@@ -430,17 +441,28 @@ function onPick(e: Event) {
 function downloadAll() {
   const g = state.graph.value;
   if (!g) return;
-  const entries = defaultRenderers.map((r) => ({
-    name: r.id,
-    // app.config.ts must carry the same completeness comments the CLI emits;
-    // the generic registry render(g) drops them. tokens.css ignores options.
-    data:
-      r.id === appConfigRenderer.id
-        ? appConfigRenderer.render(g, {
-            completeness: scanReport.value.completeness,
-          }).text
-        : r.render(g).text,
-  }));
+  const entries = [
+    ...defaultRenderers.map((r) => ({
+      name: r.id,
+      // app.config.ts must carry the same completeness comments the CLI emits,
+      // and route flagged components out of its ui: block; the generic registry
+      // render(g) drops both. tokens.css ignores options.
+      data:
+        r.id === appConfigRenderer.id
+          ? appConfigRenderer.render(g, {
+              completeness: scanReport.value.completeness,
+              customComponents: new Set(customParts.value.keys()),
+            }).text
+          : r.render(g).text,
+    })),
+    // custom-components.ts is only emitted when a component is flagged custom.
+    ...(customParts.value.size > 0
+      ? [{
+          name: customComponentsRenderer.id,
+          data: customComponentsRenderer.render(g, { customParts: customParts.value }).text,
+        }]
+      : []),
+  ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }
 </script>
@@ -907,7 +929,7 @@ function downloadAll() {
             <ResizeHandle side="left" @pointerdown="rightPane.onPointerDown" />
             <div class="flex border-b border-default overflow-x-auto">
               <button
-                v-for="tab in (['tokens.css', 'app.config.ts'] as const)"
+                v-for="tab in outputTabs"
                 :key="tab"
                 class="px-3 py-2 text-xs border-r border-default whitespace-nowrap"
                 :class="{
@@ -925,6 +947,10 @@ function downloadAll() {
                   v-if="tab === 'app.config.ts'"
                   class="ml-1 text-[9px] text-muted/60 font-normal"
                 >app.config.ts (or merge with existing)</span>
+                <span
+                  v-if="tab === 'custom-components.ts'"
+                  class="ml-1 text-[9px] text-muted/60 font-normal"
+                >hand-built (not a Nuxt override)</span>
               </button>
             </div>
             <CodePreview

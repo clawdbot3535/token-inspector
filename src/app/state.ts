@@ -11,10 +11,10 @@ import type {
   TokenType,
 } from "@core/token-graph.js";
 import type { RenderedText, CompletenessScore } from "@core/token-graph.js";
-import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
+import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "scan";
-export type OutputTab = "tokens.css" | "app.config.ts";
+export type OutputTab = "tokens.css" | "app.config.ts" | "custom-components.ts";
 export type ClassificationFilter =
   | "all"
   | "tailwind-default"
@@ -66,12 +66,21 @@ export function createAppState(): AppState {
 export function useRenderedOutput(
   state: AppState,
   completeness?: Ref<ReadonlyArray<CompletenessScore> | undefined>,
+  customParts?: Ref<ReadonlyMap<string, ReadonlyArray<string>> | undefined>,
 ) {
   return computed<RenderedText | null>(() => {
     const g = state.graph.value;
     if (!g) return null;
     if (state.outputTab.value === appConfigRenderer.id) {
-      return appConfigRenderer.render(g, { completeness: completeness?.value });
+      return appConfigRenderer.render(g, {
+        completeness: completeness?.value,
+        customComponents: customParts?.value
+          ? new Set(customParts.value.keys())
+          : undefined,
+      });
+    }
+    if (state.outputTab.value === customComponentsRenderer.id) {
+      return customComponentsRenderer.render(g, { customParts: customParts?.value });
     }
     const renderer = defaultRenderers.find((r) => r.id === state.outputTab.value);
     return renderer ? renderer.render(g) : null;
