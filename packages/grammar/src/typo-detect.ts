@@ -3,6 +3,12 @@
 // graph traversal and frequency guard; this file answers the narrow question
 // "is this one segment a likely misspelling of a value-bearing vocab word?".
 
+import {
+  NON_PART_SEGMENTS,
+  KNOWN_VARIANT_NAMES,
+  SIZE_KEYS,
+} from "./component-vocab.js";
+
 /**
  * Damerau-Levenshtein edit distance (optimal string alignment variant). A single
  * transposition of two ADJACENT characters costs 1 edit, so `height`↔`heigth` is
@@ -40,4 +46,56 @@ export function damerauLevenshtein(a: string, b: string): number {
     }
   }
   return d[al]![bl]!;
+}
+
+/** Value-bearing words worth suggesting toward (length >= 4 only — short words
+ *  like `bg`/`gap` are too collision-prone to be useful targets). */
+const SUGGESTION_TARGETS: readonly string[] = [
+  // Set deduplicates any word present in both sources — keep it: scoring a
+  // target twice would mask a genuine tie in suggestVocabWord.
+  ...new Set<string>([...NON_PART_SEGMENTS, ...KNOWN_VARIANT_NAMES]),
+].filter((w) => w.length >= 4);
+
+/** Every word the grammar already recognises — never suggested-against (a
+ *  correctly-spelled vocab word is not a typo). */
+const KNOWN_VOCAB: ReadonlySet<string> = new Set<string>([
+  ...NON_PART_SEGMENTS,
+  ...KNOWN_VARIANT_NAMES,
+  ...SIZE_KEYS,
+]);
+
+export interface VocabSuggestion {
+  /** The nearest value-bearing vocabulary word. */
+  word: string;
+  /** Damerau-Levenshtein distance from the input segment. */
+  distance: number;
+}
+
+/**
+ * The unique nearest value-bearing vocabulary word to `segment` within
+ * `maxDistance`, or null when: the segment is itself known vocabulary, no target
+ * is in range, or two targets tie for nearest (ambiguous → no suggestion).
+ */
+export function suggestVocabWord(
+  segment: string,
+  maxDistance = 1,
+): VocabSuggestion | null {
+  if (KNOWN_VOCAB.has(segment)) return null;
+
+  let best: string | null = null;
+  let bestDist = Infinity;
+  let tie = false;
+  for (const target of SUGGESTION_TARGETS) {
+    const dist = damerauLevenshtein(segment, target);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = target;
+      tie = false;
+    } else if (dist === bestDist) {
+      tie = true;
+    }
+  }
+
+  if (best === null || bestDist > maxDistance || tie) return null;
+  return { word: best, distance: bestDist };
 }

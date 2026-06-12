@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { damerauLevenshtein } from "./typo-detect.js";
+import { damerauLevenshtein, suggestVocabWord } from "./typo-detect.js";
 
 describe("damerauLevenshtein", () => {
   it("is 0 for identical strings", () => {
@@ -34,5 +34,38 @@ describe("damerauLevenshtein", () => {
 
   it("scores unrelated words as large", () => {
     expect(damerauLevenshtein("primary", "shadow")).toBeGreaterThan(2);
+  });
+});
+
+describe("suggestVocabWord", () => {
+  it("suggests the transposed property word", () => {
+    expect(suggestVocabWord("heigth")).toEqual({ word: "height", distance: 1 });
+  });
+
+  it("suggests for a misspelled variant", () => {
+    expect(suggestVocabWord("outilne")?.word).toBe("outline");
+  });
+
+  it("suggests for a misspelled color role", () => {
+    expect(suggestVocabWord("eror")).toEqual({ word: "error", distance: 1 });
+  });
+
+  it("returns null for a correctly-spelled vocab word", () => {
+    expect(suggestVocabWord("height")).toBeNull();
+    expect(suggestVocabWord("outline")).toBeNull();
+  });
+
+  it("returns null for an unrelated word", () => {
+    expect(suggestVocabWord("zzzzzz")).toBeNull();
+  });
+
+  it("returns null on an ambiguous tie", () => {
+    // `lint` is distance 1 from BOTH `line` (property) and `link` (variant).
+    expect(suggestVocabWord("lint")).toBeNull();
+  });
+
+  it("respects maxDistance", () => {
+    expect(suggestVocabWord("xxradius")).toBeNull(); // distance 2, default max 1
+    expect(suggestVocabWord("xxradius", 2)?.word).toBe("radius");
   });
 });
