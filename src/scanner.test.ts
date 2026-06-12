@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanGraph, customPartsByComponent } from "./scanner.js";
+import { scanGraph, customPartsByComponent, detectPossibleTypos } from "./scanner.js";
 import type {
   TokenGraph,
   TokenNode,
@@ -797,5 +797,63 @@ describe("scanGraph — component-looks-custom hint (part-based divergence flag)
     const report = scanGraph(graph, { components: ["button"] });
     const flagged = report.issues.find((i) => i.kind === "component-looks-custom" && i.componentName === "button");
     expect(flagged).toBeUndefined();
+  });
+});
+
+describe("detectPossibleTypos", () => {
+  it("flags a one-off misspelled segment with a suggestion", () => {
+    // `heading` recurs (freq 3) so it is treated as intentional vocab; only the
+    // one-off `heigth` on heading-2 is flagged.
+    const graph = makeGraph([
+      makeNode({ id: "typography-heading-1-line-height", layer: "semantic", type: "dimension", source: "global", base: "40px" }),
+      makeNode({ id: "typography-heading-2-line-heigth", layer: "semantic", type: "dimension", source: "global", base: "32px" }),
+      makeNode({ id: "typography-heading-3-line-height", layer: "semantic", type: "dimension", source: "global", base: "28px" }),
+    ]);
+    const issues = detectPossibleTypos(graph);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({
+      kind: "possible-typo",
+      severity: "warning",
+      category: "data-quality",
+      tokenIds: ["typography-heading-2-line-heigth"],
+    });
+    expect(issues[0]!.message).toContain("height");
+  });
+
+  it("does not flag `heading` as `leading` when it recurs (frequency guard)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "typography-heading-1-font-size", layer: "semantic", type: "dimension", source: "global", base: "32px" }),
+      makeNode({ id: "typography-heading-2-font-size", layer: "semantic", type: "dimension", source: "global", base: "28px" }),
+      makeNode({ id: "typography-heading-3-font-size", layer: "semantic", type: "dimension", source: "global", base: "24px" }),
+    ]);
+    expect(detectPossibleTypos(graph)).toHaveLength(0);
+  });
+
+  it("ignores correctly-spelled, numeric and short segments", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-padding-x-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "color-primary-500", layer: "primitive", type: "color", source: "global", base: "#abc" }),
+    ]);
+    expect(detectPossibleTypos(graph)).toHaveLength(0);
+  });
+
+  it("notes when the corrected token already exists", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-border-radius", layer: "component", type: "dimension", source: "global", base: "4px" }),
+      makeNode({ id: "input-border-raduis", layer: "component", type: "dimension", source: "global", base: "4px" }),
+    ]);
+    const issues = detectPossibleTypos(graph);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.message).toContain("already exists");
+  });
+
+  it("scanGraph surfaces possible-typo issues", () => {
+    const graph = makeGraph([
+      makeNode({ id: "typography-heading-1-line-height", layer: "semantic", type: "dimension", source: "global", base: "40px" }),
+      makeNode({ id: "typography-heading-2-line-heigth", layer: "semantic", type: "dimension", source: "global", base: "32px" }),
+      makeNode({ id: "typography-heading-3-line-height", layer: "semantic", type: "dimension", source: "global", base: "28px" }),
+    ]);
+    const report = scanGraph(graph, { components: [] });
+    expect(report.issues.some((i) => i.kind === "possible-typo")).toBe(true);
   });
 });
