@@ -172,6 +172,8 @@ export interface ScanIssue {
   tokenIds: readonly string[];
   /** Component name when the issue is component-scoped. */
   componentName?: string;
+  /** For component-looks-custom: the foreign part-segments (sub-element slots). */
+  customParts?: readonly string[];
   /** Variant key (e.g. "sm") when the issue is variant-scoped. */
   variantKey?: string;
 }

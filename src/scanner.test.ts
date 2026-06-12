@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanGraph } from "./scanner.js";
+import { scanGraph, customPartsByComponent } from "./scanner.js";
 import type {
   TokenGraph,
   TokenNode,
@@ -764,5 +764,26 @@ describe("scanGraph — component-looks-custom hint (part-based divergence flag)
     ]);
     const report = scanGraph(graph, { components: ["button"] });
     expect(report.issues.filter((i) => i.kind === "component-looks-custom")).toHaveLength(0);
+  });
+
+  it("component-looks-custom issue carries its foreign parts", () => {
+    const graph = makeGraph([
+      makeNode({ id: "chip-label-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+      makeNode({ id: "chip-close-bg", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const clc = report.issues.find((i) => i.kind === "component-looks-custom" && i.componentName === "chip");
+    expect(clc).toBeDefined();
+    expect(clc!.customParts).toEqual(expect.arrayContaining(["label", "close"]));
+  });
+
+  it("customPartsByComponent derives a component→parts map from a report", () => {
+    const graph = makeGraph([
+      makeNode({ id: "chip-label-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+      makeNode({ id: "chip-close-bg", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const map = customPartsByComponent(report);
+    expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
   });
 });

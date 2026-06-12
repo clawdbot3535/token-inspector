@@ -297,6 +297,7 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
         `component — consider emitting it as \`custom/${comp}\` rather than \`ui.${comp}\`.`,
       tokenIds: [...foreign.values()].flat(),
       componentName: comp,
+      customParts: parts,
     });
   }
 
@@ -803,4 +804,20 @@ function computeForecast(
     components,
     unmappedComponentPrefixes,
   };
+}
+
+/**
+ * Derive a component → foreign-parts map from a scan report. Drives the
+ * custom-components renderer (Stage C). Empty when nothing is flagged.
+ */
+export function customPartsByComponent(
+  report: { issues: ReadonlyArray<ScanIssue> },
+): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const i of report.issues) {
+    if (i.kind !== "component-looks-custom") continue;
+    if (i.componentName === undefined || i.customParts === undefined) continue;
+    out.set(i.componentName, [...i.customParts]);
+  }
+  return out;
 }
