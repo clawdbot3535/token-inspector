@@ -786,4 +786,16 @@ describe("scanGraph — component-looks-custom hint (part-based divergence flag)
     const map = customPartsByComponent(report);
     expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
   });
+
+  it("does not flag a normal component as custom just because it has overlay tokens", () => {
+    // overlay is a context/structuring segment (e.g. button-overlay-dark-solid-bg),
+    // not a foreign Nuxt slot — NON_PART_SEGMENTS must include it.
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-bg", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+      makeNode({ id: "button-overlay-dark-solid-bg", layer: "component", type: "color", source: "global", base: "#FAFAFA" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const flagged = report.issues.find((i) => i.kind === "component-looks-custom" && i.componentName === "button");
+    expect(flagged).toBeUndefined();
+  });
 });

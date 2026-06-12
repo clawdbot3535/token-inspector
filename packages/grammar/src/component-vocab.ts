@@ -140,7 +140,7 @@ export const NON_PART_SEGMENTS: ReadonlySet<string> = new Set<string>([
   "size", "min", "max", "height", "width", "radius", "gap", "offset", "spacing", "padding",
   "font", "letter", "line", "text", "tracking", "leading", "weight", "family",
   "border", "bg", "ring", "placeholder", "underline", "color",
-  "fill", "stroke", "resize", "shadow",
+  "fill", "stroke", "resize", "shadow", "overlay",
 ]);
 
 /**

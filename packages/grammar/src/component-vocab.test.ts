@@ -108,9 +108,12 @@ describe("NON_PART_SEGMENTS / FIGMA_NUXT_PART_ALIAS", () => {
     }
   });
   it("does not list genuine part nouns as non-parts", () => {
-    for (const p of ["label", "close", "overlay", "row", "divider", "check", "item", "icon"]) {
+    for (const p of ["label", "close", "row", "divider", "check", "item", "icon"]) {
       expect(NON_PART_SEGMENTS.has(p)).toBe(false);
     }
+  });
+  it("treats `overlay` as a non-part structuring segment", () => {
+    expect(NON_PART_SEGMENTS.has("overlay")).toBe(true);
   });
   it("aliases Figma part names to Nuxt slot names", () => {
     expect(FIGMA_NUXT_PART_ALIAS.get("row")).toBe("tr");
