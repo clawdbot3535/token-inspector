@@ -312,7 +312,11 @@ describe("appConfigRenderer custom routing", () => {
 
   it("is unchanged when no customComponents are passed (regression)", () => {
     const baseline = appConfigRenderer.render(realGraph()).text;
-    expect(baseline).toMatch(/^\s{4}chip: \{/m);
+    const noOption = appConfigRenderer.render(realGraph(), {}).text;
+    const emptySet = appConfigRenderer.render(realGraph(), { customComponents: new Set() }).text;
+    expect(baseline).toMatch(/^\s{4}chip: \{/m); // chip still emitted
+    expect(noOption).toBe(baseline);
+    expect(emptySet).toBe(baseline);
   });
 });
 
