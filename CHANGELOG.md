@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.10.0] — 2026-06-12
+
+A scan that flags components which look hand-built, a sidebar that narrows to the live previews,
+a version badge that knows whether `main` is pushed, and the grammar lifted out of `src/` into its
+own workspace package.
+
+### Added
+
+- **`component-looks-custom` divergence flag.** The scanner now compares each component's emitted
+  parts against the Nuxt UI slot inventory (`nuxtSlotsFor`, minus `NON_PART_SEGMENTS` and the
+  `FIGMA_NUXT_PART_ALIAS` renames). When a component is carried by *foreign* parts — slots Nuxt UI
+  has no place for — it raises a `component-looks-custom` hint rather than silently mismapping. The
+  discriminator is the share of foreign parts, not unmapped tokens, so adapter-incompleteness no
+  longer reads as a custom component. On the real export it fires for `chip` only.
+- **Live filter chip.** A `Live {n}` toggle in the sidebar filter row narrows the component-layer
+  tree to the components that actually have an interactive preview (`liveOnly` prop + an
+  `isVisible` predicate on `ComponentTree`). The count reflects how many of those are present in
+  the loaded graph.
+- **Push-state version badge.** The header version badge is now emerald when `main` is in sync with
+  `origin/main` and amber when commits are unpushed, driven by a build-time `__APP_UNPUSHED__`
+  count (`origin/main..HEAD`, wrapped in try/catch so a detached or upstream-less checkout never
+  breaks the build).
+
+### Changed
+
+- **Grammar extracted into the `@tg/grammar` workspace package.** The component vocabulary and the
+  ~450-line slot-mapping engine moved out of `src/` into `packages/grammar`; the inspector core
+  (`scanner.ts`, `recipe-engine.ts`, `slot-mapping-loader.ts`, the renderers, and `App.vue`) now
+  consumes them as a published workspace dependency. Behaviour is byte-identical — this is a
+  module-boundary refactor, not a logic change.
+
 ## [0.9.0] — 2026-06-10
 
 Grammar + preview fidelity (`size` utility, icon slot mirror), a leaner `App.vue` with gate
