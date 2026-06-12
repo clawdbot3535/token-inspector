@@ -352,6 +352,7 @@ describe("customComponentsRenderer overlay recipes", () => {
   });
 
   it("emits an overlay recipe const for a graph with genuine overlay tokens", () => {
+    // as never: ovGraphR's `as const` return is narrower than TokenGraph; cast through for the test.
     const graph = ovGraphR([
       ovN("button-solid-bg", "#5667A7"),
       ovN("button-overlay-dark-solid-bg", "#FAFAFA"),

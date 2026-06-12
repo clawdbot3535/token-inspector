@@ -1,6 +1,7 @@
-// Renders custom-components.ts — recipe objects for components the scanner
-// flagged `component-looks-custom`. These are NOT Nuxt UI overrides; the dev
-// team hand-implements each component and applies the recipe via tv().
+// Renders custom-components.ts — recipe objects for two categories of Nuxt UI
+// incompatibility: components flagged `component-looks-custom` (foreign parts
+// Nuxt has no slot for) and overlay-surface overrides (component appearance on
+// a dark/light overlay — no Nuxt prop exists). Apply recipes via tv().
 
 import type { TextRenderer, TokenGraph, RenderedText } from "../token-graph.js";
 import type { ComponentRecipe } from "../recipe-engine.js";
