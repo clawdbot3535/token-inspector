@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.12.0] — 2026-06-12
+
+Overlay-surface recipes — when the export carries `overlay-light`/`overlay-dark` component tokens,
+the inspector emits the genuine ones as sparse delta recipes instead of dropping them as unmappable.
+
+### Added
+
+- **`overlay-light` / `overlay-dark` recipes.** The latest Figma export ships component tokens for a
+  component's appearance on a dark/light **overlay surface** (e.g. `button-overlay-dark-solid-bg` =
+  a solid button rendered on a dark scrim → white). This is orthogonal to page dark-mode
+  (`overlay-dark` ≠ `overlay-light`, both exist at once) and Nuxt UI has no `surface` prop for it.
+  The inspector now recognises the segment, **drops the tokens identical to their base** (≈90 of
+  ≈239 on the real export), and emits the genuine overrides as **sparse delta** objects —
+  `export const <component>Overlay{Dark,Light}Recipe = { … } as const` — in `custom-components.ts`,
+  to be merged onto the base recipe via `tv()`. In scope this release: `button` and `badge`. The
+  artifact + its Inspector output tab now appear whenever the render is non-empty (overlay-only
+  graphs included), not only when a component is flagged custom.
+- **Conservative dedup.** A token counts as a genuine override only when its resolved value differs
+  from its base counterpart's; when the base is absent or unresolvable it is kept (never silently
+  dropped).
+
+### Changed
+
+- **`overlay` is a non-part structuring segment.** Added `overlay` to the grammar's
+  `NON_PART_SEGMENTS` so the `component-looks-custom` divergence detector no longer mistakes the
+  overlay context segment for a foreign part — `button` and `badge` stay normal `ui.*` overrides in
+  `app.config.ts` instead of being misrouted to `custom-components.ts`. (`chip` still flags correctly
+  on its real foreign parts `label`/`close`.)
+
+### Known boundaries
+
+- `nav-item-overlay-*` is deferred: its stripped logical id (`nav-item-…-ghost-bg`) needs
+  variant-after-sub-element mapping, which is not yet implemented. `nav` overlay recipes follow once
+  that lands.
+- The recipe reuse is delegated to the existing `buildComponentRecipes` via a per-token override
+  (keyed by the original id), so ring-pairing, size defaulting, and icon-mirror behave unchanged.
+
 ## [0.11.0] — 2026-06-12
 
 Stage C — components that look custom now emit their **full anatomy** to a dedicated
