@@ -81,11 +81,11 @@ const appConfigRendered = appConfigRenderer.render(graph, {
 writeOut("css/tokens.css", cssRendered.text);
 writeOut("nuxt/app.config.ts", appConfigRendered.text);
 
-if (customParts.size > 0) {
-  const customRendered = customComponentsRenderer.render(graph, {
-    customParts,
-    defaultSizeByComponent: slotMapping.defaultSizeByComponent,
-  });
+const customRendered = customComponentsRenderer.render(graph, {
+  customParts,
+  defaultSizeByComponent: slotMapping.defaultSizeByComponent,
+});
+if (customRendered.text.trim().length > 0) {
   writeOut("nuxt/custom-components.ts", customRendered.text);
 }
 

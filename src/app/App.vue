@@ -110,9 +110,16 @@ const rendered = useRenderedOutput(
   computed(() => scanReport.value.completeness),
   customParts,
 );
-// The custom-components.ts tab is only reachable when a component is flagged.
+// Render the custom-components.ts artifact once; gate the tab and download on
+// its text being non-empty (covers overlay-only graphs with no flagged parts).
+const customOutputText = computed(() => {
+  const g = state.graph.value;
+  if (!g) return "";
+  return customComponentsRenderer.render(g, { customParts: customParts.value }).text;
+});
+// The custom-components.ts tab is only reachable when the rendered text is non-empty.
 const outputTabs = computed(() =>
-  customParts.value.size > 0
+  customOutputText.value.trim().length > 0
     ? (["tokens.css", "app.config.ts", "custom-components.ts"] as const)
     : (["tokens.css", "app.config.ts"] as const),
 );
@@ -463,12 +470,12 @@ function downloadAll() {
             }).text
           : r.render(g).text,
     })),
-    // custom-components.ts is only emitted when a component is flagged custom.
-    ...(customParts.value.size > 0
+    // custom-components.ts is only emitted when the rendered text is non-empty.
+    ...(customOutputText.value.trim().length > 0
       ? [{
           name: customComponentsRenderer.id,
           // defaultSizeByComponent is unavailable in the browser (no slot-mapping.json); download matches CLI output unless a defaultSizeByComponent override is active. Matches appConfigRenderer's web behaviour.
-          data: customComponentsRenderer.render(g, { customParts: customParts.value }).text,
+          data: customOutputText.value,
         }]
       : []),
   ];
