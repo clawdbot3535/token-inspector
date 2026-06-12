@@ -1,4 +1,5 @@
 export { appConfigRenderer } from "./app-config.js";
+export { customComponentsRenderer } from "./custom-components.js";
 export { LineBuilder } from "./line-builder.js";
 export { tokensCssRenderer } from "./tokens-css.js";
 

@@ -10,8 +10,9 @@ import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
+import { customComponentsRenderer } from "../src/renderers/custom-components.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
-import { scanGraph } from "../src/scanner.ts";
+import { scanGraph, customPartsByComponent } from "../src/scanner.ts";
 import type {
   ScanIssue,
   ScanSeverity,
@@ -64,15 +65,29 @@ const graph = buildGraph(sources);
 // `// Incomplete in Figma` comments in app.config.ts.
 const scanReport = scanGraph(graph, { components: COMPONENT_ALLOW_LIST });
 
+// Components the scanner flagged `component-looks-custom`. These are routed
+// OUT of app.config.ts (a pointer comment replaces their ui: block) and INTO
+// output/nuxt/custom-components.ts as hand-built recipes.
+const customParts = customPartsByComponent(scanReport);
+
 const cssRendered = tokensCssRenderer.render(graph);
 const appConfigRendered = appConfigRenderer.render(graph, {
   slotMappingOverride: slotMapping.overrides,
   defaultSizeByComponent: slotMapping.defaultSizeByComponent,
   completeness: scanReport.completeness,
+  customComponents: new Set(customParts.keys()),
 });
 
 writeOut("css/tokens.css", cssRendered.text);
 writeOut("nuxt/app.config.ts", appConfigRendered.text);
+
+if (customParts.size > 0) {
+  const customRendered = customComponentsRenderer.render(graph, {
+    customParts,
+    defaultSizeByComponent: slotMapping.defaultSizeByComponent,
+  });
+  writeOut("nuxt/custom-components.ts", customRendered.text);
+}
 
 // ─── Scan report summary ──────────────────────────────────────────────────
 // Group by severity for a stable CI-friendly digest. Errors block the
