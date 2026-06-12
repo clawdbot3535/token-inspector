@@ -106,4 +106,7 @@ describe("stripOverlayPrefix", () => {
       mode: null,
     });
   });
+  it("is a no-op when there is no property segment after the mode", () => {
+    expect(stripOverlayPrefix("x-overlay-dark")).toEqual({ logicalId: "x-overlay-dark", mode: null });
+  });
 });

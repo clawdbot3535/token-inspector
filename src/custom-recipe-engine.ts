@@ -99,6 +99,7 @@ export function stripOverlayPrefix(tokenId: string): {
   mode: OverlayMode | null;
 } {
   const parts = tokenId.split("-");
+  if (parts.length < 4) return { logicalId: tokenId, mode: null };
   if (parts[1] !== "overlay") return { logicalId: tokenId, mode: null };
   const mode = parts[2];
   if (mode !== "light" && mode !== "dark") return { logicalId: tokenId, mode: null };
