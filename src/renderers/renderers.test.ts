@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
 import { buildGraph } from "../build-graph.js";
-import type { SourceFile, SourceLayer } from "../token-graph.js";
+import type { SourceFile, SourceLayer, TokenNode } from "../token-graph.js";
 import { appConfigRenderer } from "./app-config.js";
 import { customComponentsRenderer } from "./custom-components.js";
 
@@ -329,11 +329,40 @@ describe("customComponentsRenderer", () => {
     expect(out.text).toContain("label:");
     expect(out.text).toContain("close:");
     expect(out.text).toContain("variants:");
-    expect(out.text).toMatch(/NOT Nuxt UI overrides/);
+    expect(out.text).toMatch(/Nuxt UI cannot express/i);
   });
 
   it("returns empty text when nothing is flagged", () => {
     const out = customComponentsRenderer.render(realGraph(), { customParts: new Map() });
     expect(out.text).toBe("");
+  });
+});
+
+describe("customComponentsRenderer overlay recipes", () => {
+  function ovGraphR(nodes: TokenNode[]) {
+    return {
+      nodes: new Map(nodes.map((n) => [n.id, n])),
+      aliasIndex: new Map(), reverseAliases: new Map(), issues: [], sources: [],
+      meta: { builtAt: "2026-06-12T00:00:00Z", builderVersion: "test" },
+    } as const;
+  }
+  const ovN = (id: string, base: string): TokenNode => ({
+    id, path: id.split("-"), type: "color", layer: "component", themes: [],
+    cssValue: { base }, rawValue: { base }, alias: {}, source: "global",
+  });
+
+  it("emits an overlay recipe const for a graph with genuine overlay tokens", () => {
+    const graph = ovGraphR([
+      ovN("button-solid-bg", "#5667A7"),
+      ovN("button-overlay-dark-solid-bg", "#FAFAFA"),
+    ]) as never;
+    const out = customComponentsRenderer.render(graph, {});
+    expect(out.text).toContain("export const buttonOverlayDarkRecipe");
+    expect(out.text).toMatch(/Nuxt UI cannot express/i);
+  });
+
+  it("still returns empty text for a graph with neither custom nor overlay output", () => {
+    const graph = ovGraphR([ovN("button-solid-bg", "#5667A7")]) as never;
+    expect(customComponentsRenderer.render(graph, {}).text).toBe("");
   });
 });
