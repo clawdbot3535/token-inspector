@@ -669,3 +669,29 @@ describe("sub-element slot routing (exact-match NUXT_SLOTS, fallback)", () => {
     expect(m?.slot).not.toBe("item");
   });
 });
+
+describe("extraSlots (custom sub-element routing)", () => {
+  it("routes a foreign sub-element segment to its own slot when passed in extraSlots", () => {
+    const m = heuristicSlotMapping("chip-label-text", "color", new Set(["label", "close"]));
+    expect(m).not.toBeNull();
+    expect(m!.slot).toBe("label");
+    expect(m!.utilityType).toBe("text-color");
+  });
+
+  it("routes a close-icon size to the close slot", () => {
+    const m = heuristicSlotMapping("chip-close-icon-size", undefined, new Set(["label", "close"]));
+    expect(m).not.toBeNull();
+    // icon-size normally routes to "leadingIcon"; the slotPrefix override in matchParsed replaces the slot when a named sub-element prefix (close) is found.
+    expect(m!.slot).toBe("close");
+    expect(m!.utilityType).toBe("icon-size");
+  });
+
+  it("is regression-free: without extraSlots a foreign part stays null", () => {
+    expect(heuristicSlotMapping("chip-label-text", "color")).toBeNull();
+  });
+
+  it("getSlotMapping threads extraSlots through", () => {
+    const m = getSlotMapping("chip-label-text", undefined, "color", new Set(["label"]));
+    expect(m?.slot).toBe("label");
+  });
+});

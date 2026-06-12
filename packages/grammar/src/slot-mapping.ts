@@ -408,6 +408,9 @@ export function heuristicSlotMapping(
   tokenId: string,
   // TokenType in practice (e.g. "color"); typed as string to keep this module a pure id-based classifier with no domain-type coupling.
   valueType?: string,
+  // Custom-component sub-element segments to treat as routable slots (in
+  // addition to the component's Nuxt slots). Empty/omitted → today's behaviour.
+  extraSlots?: ReadonlySet<string>,
 ): SlotMappingEntry | null {
   const parsed = parseSegments(tokenId);
   if (!parsed) return null;
@@ -417,11 +420,15 @@ export function heuristicSlotMapping(
   const normal = matchParsed(parsed, valueType);
   if (normal) return normal;
 
-  // 2) Fallback: route a leading segment that EXACTLY matches a Nuxt slot of
-  //    this component (from NUXT_SLOTS). No aliasing — naming mismatches stay
-  //    null and are surfaced by the unsupported-part hint.
-  const slots = nuxtSlotsFor(parsed.component);
-  if (slots) {
+  // 2) Fallback: route a leading segment that EXACTLY matches a routable slot of
+  //    this component — its Nuxt slots, plus any custom extraSlots. No aliasing —
+  //    naming mismatches stay null and are surfaced by the unsupported-part hint.
+  const nuxt = nuxtSlotsFor(parsed.component);
+  const slots =
+    extraSlots && extraSlots.size > 0
+      ? new Set<string>([...(nuxt ?? []), ...extraSlots])
+      : nuxt;
+  if (slots && slots.size > 0) {
     const routed = parseSegments(tokenId, slots);
     if (routed && routed.slotPrefix !== null) {
       const m = matchParsed(routed, valueType);
@@ -434,14 +441,16 @@ export function heuristicSlotMapping(
 /**
  * Merge heuristic with override. Override entries are keyed by token id;
  * a `null` override explicitly skips a token even if the heuristic would match.
+ * @param extraSlots Custom sub-element slots forwarded to the heuristic for routing.
  */
 export function getSlotMapping(
   tokenId: string,
   override?: SlotMappingOverride,
   valueType?: string,
+  extraSlots?: ReadonlySet<string>,
 ): SlotMappingEntry | null {
   if (override && Object.prototype.hasOwnProperty.call(override, tokenId)) {
     return override[tokenId] ?? null;
   }
-  return heuristicSlotMapping(tokenId, valueType);
+  return heuristicSlotMapping(tokenId, valueType, extraSlots);
 }
