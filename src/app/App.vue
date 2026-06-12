@@ -116,6 +116,14 @@ const outputTabs = computed(() =>
     ? (["tokens.css", "app.config.ts", "custom-components.ts"] as const)
     : (["tokens.css", "app.config.ts"] as const),
 );
+// If the active tab disappears (e.g. loading a token set with no flagged
+// components while custom-components.ts is selected), fall back to a visible
+// tab — otherwise the preview pane renders blank with no active tab.
+watch(outputTabs, (tabs) => {
+  if (!(tabs as readonly string[]).includes(state.outputTab.value)) {
+    state.outputTab.value = "tokens.css";
+  }
+});
 // Mount the rendered tokens.css into <head> so live previews can resolve
 // `var(--<token-id>)` references emitted by the recipe-engine.
 useInjectedTokensCss(state.graph);
