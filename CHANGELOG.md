@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.13.0] — 2026-06-12
+
+Typo / did-you-mean detector — a designer who misspells a token segment (`line-heigth`,
+`badge-letter-spaching`) now gets a concrete "did you mean `height`?" warning instead of the token
+silently falling to a NULL mapping.
+
+### Added
+
+- **`possible-typo` scanner pass.** A new graph-wide `data-quality` detector (`detectPossibleTypos`
+  in `src/data-quality.ts`) splits every token id on `-` and flags a segment that sits within one
+  Damerau-Levenshtein edit of a value-bearing vocabulary word (property/dimension words, variants,
+  color roles, states), emitting a `warning` with the reconstructed corrected id ("did you mean
+  `typography-heading-2-line-height`?") and a note when that corrected token already exists. It
+  surfaces in both the CLI scan digest and the web ScanView with no UI change — both render
+  arbitrary issue kinds, filtered by severity.
+- **`damerauLevenshtein` + `suggestVocabWord`** pure helpers in
+  `packages/grammar/src/typo-detect.ts`. Damerau (optimal string alignment) scores an adjacent
+  transposition as one edit, so `heigth`↔`height` is distance 1 (plain Levenshtein would score 2).
+  `suggestVocabWord` returns the unique nearest vocabulary word, or null on an ambiguous tie.
+
+### Changed
+
+- **Frequency guard (the keystone against false positives).** A segment occurring on ≥ 3 distinct
+  tokens is treated as intentional vocabulary and skipped — this is what stops `heading` (one edit
+  from `leading`) being flagged, with no hand-maintained typography word list. Only genuine one-off
+  typos surface.
+- **`NON_TYPO_WORDS`** (in `component-vocab.ts`) — a curated skip-set for legitimate one-off words
+  that collide with a value word but are too rare for the frequency guard: `full` (`rounded-full` ↔
+  `fill`) and `loading` (`color-state-loading-bg` ↔ `leading`). Nuxt slot names (`NUXT_SLOTS`
+  values, e.g. `trailing`) and size keys are likewise never flagged. On the real fixture the
+  detector yields 2 true positives (`spaching`→`spacing`, `heigth`→`height`) and 0 false positives.
+
+### Known boundaries
+
+- Structural data bugs like `textarea-ring-width 2` (a duplicate-key / whitespace-in-segment Figma
+  artifact) are out of scope — that is not a spelling typo and belongs to `duplicate-id` / a future
+  whitespace-segment check.
+- A *systematic* misspelling repeated on ≥ 3 tokens is intentionally not flagged — it stays
+  consistent and still emits a value; the detector targets the inconsistent one-off that diverges
+  from its siblings.
+
 ## [0.12.0] — 2026-06-12
 
 Overlay-surface recipes — when the export carries `overlay-light`/`overlay-dark` component tokens,
