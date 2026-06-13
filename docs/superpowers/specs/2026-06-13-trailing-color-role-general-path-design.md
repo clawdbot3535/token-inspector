@@ -37,6 +37,8 @@ Shared principle: **a color-role may be named trailing; normalise it to the 2nd 
 
 The function (currently `src/custom-recipe-engine.ts:26`, pure, depends only on `COLOR_ROLE_KEYS`) moves into `packages/grammar/src/slot-mapping.ts` (co-located with its only caller, `heuristicSlotMapping`) and is exported from the grammar package's public entry. `src/custom-recipe-engine.ts` imports it from `@tg/grammar` instead of defining it; its existing call (`custom-recipe-engine.ts:70`) stays correct (normalisation is idempotent) and becomes redundant — left in place to keep the custom path's change footprint nil.
 
+**Implementation refinement (found during execution):** the move is *not* verbatim — promoting it to the general path exposed a latent collision the custom path never hit. `default` is both a `COLOR_ROLE_KEY` and the trailing "default state" suffix (the only overlap between `COLOR_ROLE_KEYS` and `STATE_KEYS`). General-path tokens like `button-solid-text-default` regressed to NULL because the naive move pulled the trailing `default` to the 2nd position, flipping its meaning from state to color. Fix: a `STATE_KEYS` guard — `if (STATE_KEYS.has(last)) return tokenId;` — keeps a trailing state word a state, moving only genuine color-roles (`error`/`success`/…). The grammar's own tests caught the regression immediately.
+
 ### Part 2 — Apply it at the entry of `heuristicSlotMapping`
 
 In `heuristicSlotMapping` (`slot-mapping.ts:407`), normalise the id once and parse the normalised id in **both** passes:
