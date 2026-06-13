@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.17.0] — 2026-06-14
+
+Reclassify layout / typography primitives (Bucket E) — the export's type-scale and layout tokens
+(`typography-*`, `container-*`, `page-*`, `grid-*`, `stack-*`, `section-*`) stop reading as "unmapped
+components" and are reported honestly as theme/CSS primitives.
+
+### Added
+
+- **`NON_COMPONENT_PREFIXES`** (in `@tg/grammar`) — the six top-level prefixes that are layout /
+  type-scale primitives, not Nuxt components (`typography`, `container`, `page`, `grid`, `stack`,
+  `section`). They are authored in the `global` source, so `buildGraph` classifies them as
+  component-layer; this set lets the scanner tell them apart from genuine components.
+- **`OutputForecast.nonComponentPrefixes`.** The scan forecast (`computeForecast`) now splits the
+  not-in-`COMPONENT_ALLOW_LIST` prefixes into `nonComponentPrefixes` (the known primitives) and
+  `unmappedComponentPrefixes` (genuine unsupported components — e.g. `sidebar`, which stays flagged
+  because it really is a component awaiting a custom emit). `ScanView` renders an honest
+  "Layout/typography primitives (theme/CSS, not `ui.*` recipes): …" line beside the "Unmapped:" one.
+  Real-export split: non-component = `container, grid, page, section, stack, typography`; unmapped =
+  `sidebar`.
+
+### Known boundaries
+
+- **Suppress-the-noise scope only.** These tokens stay component-layer (`classifyToken` still skips
+  them, so no CSS is emitted) and remain under the Components UI tab. Emitting them as `@theme` CSS
+  custom properties (with canonical Tailwind names) is deferred to the separate fonts-pipeline
+  effort — reclassifying to the `primitive` layer would have emitted raw, non-canonical
+  `--typography-*` / `--grid-*` vars.
+- `NON_COMPONENT_PREFIXES` is a closed set matched to the current export; a future primitive family
+  would read as an unmapped component until added — a visible, self-correcting signal.
+
 ## [0.16.0] — 2026-06-13
 
 Accordion as a Nuxt-native component (Bucket D) — the new export's `accordion-item-*` tokens now map
