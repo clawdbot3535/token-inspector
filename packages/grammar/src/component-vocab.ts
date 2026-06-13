@@ -145,6 +145,16 @@ export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined
 }
 
 /**
+ * Top-level token prefixes that are layout / type-scale primitives, not Nuxt
+ * UI components. They land in the component layer (authored in the `global`
+ * source) but belong to the theme/CSS layer — the scan forecast reports them as
+ * non-component primitives, not as "unmapped components".
+ */
+export const NON_COMPONENT_PREFIXES: ReadonlySet<string> = new Set<string>([
+  "typography", "container", "page", "grid", "stack", "section",
+]);
+
+/**
  * 2nd segments that are NEVER a sub-element part — utility / state / dimension
  * words. Excluded from the unsupported-part detector: the "mapped 2nd segment"
  * trick alone misses utility words that, for a given component, appear only in

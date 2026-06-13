@@ -12,6 +12,7 @@ import {
   NUXT_SLOTS,
   nuxtSlotsFor,
   NON_PART_SEGMENTS,
+  NON_COMPONENT_PREFIXES,
   FIGMA_NUXT_PART_ALIAS,
   SLOT_PAIRS,
 } from "./component-vocab";
@@ -142,5 +143,17 @@ describe("nuxtSlotsFor — accordion", () => {
     for (const s of ["root", "item", "header", "trigger", "content", "body", "leadingIcon", "trailingIcon", "label"]) {
       expect(slots!.has(s)).toBe(true);
     }
+  });
+});
+
+describe("NON_COMPONENT_PREFIXES", () => {
+  it("lists the layout / type-scale primitive prefixes", () => {
+    for (const p of ["typography", "container", "page", "grid", "stack", "section"]) {
+      expect(NON_COMPONENT_PREFIXES.has(p)).toBe(true);
+    }
+  });
+  it("does not list a real Nuxt component", () => {
+    expect(NON_COMPONENT_PREFIXES.has("button")).toBe(false);
+    expect(NON_COMPONENT_PREFIXES.has("sidebar")).toBe(false);
   });
 });
