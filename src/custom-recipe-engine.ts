@@ -7,7 +7,7 @@
 // slot set (the component's foreign parts) plus a trailing-color-role
 // normalization, then DELEGATE assembly to buildComponentRecipes.
 
-import { COLOR_ROLE_KEYS, getSlotMapping, type SlotMappingOverride } from "@tg/grammar";
+import { COLOR_ROLE_KEYS, getSlotMapping, nuxtSlotsFor, type SlotMappingOverride } from "@tg/grammar";
 import type { TokenGraph } from "./token-graph.js";
 import {
   buildComponentRecipes,
@@ -88,24 +88,40 @@ export function buildCustomRecipes(
 export type OverlayMode = "light" | "dark";
 
 /**
- * Detects an `overlay-light`/`overlay-dark` segment in the 2nd position
- * (immediately after the component name) and returns the logical base id with
- * the segment removed plus the detected mode. A no-op (mode `null`) when the
- * segment is absent or sits after a sub-element (e.g. `nav-item-overlay-*`,
- * which is deferred until variant-after-sub-element mapping lands) — there
- * `parts[1]` is the sub-element, not `"overlay"`.
+ * Detects an `overlay-light`/`overlay-dark` marker and returns the logical base
+ * id with the marker removed plus the mode. The marker may sit either at the
+ * fixed 2nd segment (`button-overlay-dark-solid-bg` → `button-solid-bg`) or
+ * after a recognised sub-element slot (`nav-item-overlay-dark-ghost-bg` →
+ * `nav-item-ghost-bg`). Returns mode `null` when no overlay marker is present,
+ * the mode is invalid, or the pre-overlay segment is not a known slot.
  */
 export function stripOverlayPrefix(tokenId: string): {
   logicalId: string;
   mode: OverlayMode | null;
 } {
   const parts = tokenId.split("-");
-  if (parts.length < 4) return { logicalId: tokenId, mode: null };
-  if (parts[1] !== "overlay") return { logicalId: tokenId, mode: null };
-  const mode = parts[2];
-  if (mode !== "light" && mode !== "dark") return { logicalId: tokenId, mode: null };
-  const logicalId = [parts[0], ...parts.slice(3)].join("-");
-  return { logicalId, mode };
+  // Case 1: overlay at the fixed 2nd segment — `comp-overlay-<mode>-<utility...>`.
+  if (parts.length >= 4 && parts[1] === "overlay") {
+    const mode = parts[2];
+    if (mode === "light" || mode === "dark") {
+      return { logicalId: [parts[0], ...parts.slice(3)].join("-"), mode };
+    }
+  }
+  // Case 2: overlay after a recognised sub-element slot —
+  // `comp-<sub>-overlay-<mode>-<utility...>` (e.g. nav-item-overlay-dark-ghost-bg).
+  // The logical id keeps the sub-element; the variant-after-sub-element parser
+  // change then maps it.
+  if (parts.length >= 5 && parts[2] === "overlay") {
+    const sub = parts[1];
+    const slots = sub !== undefined ? nuxtSlotsFor(parts[0]!) : undefined;
+    if (sub !== undefined && slots?.has(sub)) {
+      const mode = parts[3];
+      if (mode === "light" || mode === "dark") {
+        return { logicalId: [parts[0], sub, ...parts.slice(4)].join("-"), mode };
+      }
+    }
+  }
+  return { logicalId: tokenId, mode: null };
 }
 
 function capitalize(s: string): string {

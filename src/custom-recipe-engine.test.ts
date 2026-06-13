@@ -94,9 +94,23 @@ describe("stripOverlayPrefix", () => {
       mode: "light",
     });
   });
-  it("is a no-op when overlay sits after a sub-element (deferred nav case)", () => {
+  it("strips an overlay marker after a recognised sub-element slot", () => {
     expect(stripOverlayPrefix("nav-item-overlay-dark-ghost-bg")).toEqual({
-      logicalId: "nav-item-overlay-dark-ghost-bg",
+      logicalId: "nav-item-ghost-bg",
+      mode: "dark",
+    });
+  });
+
+  it("is a no-op when the segment before overlay is not a known slot", () => {
+    expect(stripOverlayPrefix("nav-xyz-overlay-dark-bg")).toEqual({
+      logicalId: "nav-xyz-overlay-dark-bg",
+      mode: null,
+    });
+  });
+
+  it("is a no-op for a bad overlay mode after a sub-element", () => {
+    expect(stripOverlayPrefix("nav-item-overlay-foo-bg")).toEqual({
+      logicalId: "nav-item-overlay-foo-bg",
       mode: null,
     });
   });
@@ -170,9 +184,11 @@ describe("buildOverlayRecipes", () => {
     expect(recipes["badgeOverlayLight"]?.variants.color?.accent?.base).toMatch(/bg-\[/);
   });
 
-  it("defers sub-element overlay tokens (nav-item-overlay-*) — emits nothing", () => {
+  it("emits a nav overlay recipe for an overlay token after a sub-element", () => {
     const graph = ovGraph([ ovNode("nav-item-overlay-dark-ghost-bg", "#FAFAFA") ]);
-    expect(buildOverlayRecipes(graph)).toEqual({});
+    const recipes = buildOverlayRecipes(graph);
+    expect(recipes["navOverlayDark"]).toBeDefined();
+    expect(recipes["navOverlayDark"].variants.variant?.ghost?.item).toMatch(/bg-\[/);
   });
 
   it("returns {} for a graph with no overlay tokens", () => {
