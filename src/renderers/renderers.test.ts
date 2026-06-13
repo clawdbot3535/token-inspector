@@ -6,6 +6,7 @@ import { buildGraph } from "../build-graph.js";
 import type { SourceFile, SourceLayer, TokenNode } from "../token-graph.js";
 import { appConfigRenderer } from "./app-config.js";
 import { customComponentsRenderer } from "./custom-components.js";
+import { scanGraph, customPartsByComponent } from "../scanner.js";
 
 function realGraph() {
   const dir = resolve(
@@ -365,5 +366,29 @@ describe("customComponentsRenderer overlay recipes", () => {
   it("still returns empty text for a graph with neither custom nor overlay output", () => {
     const graph = ovGraphR([ovN("button-solid-bg", "#5667A7")]) as never;
     expect(customComponentsRenderer.render(graph, {}).text).toBe("");
+  });
+});
+
+describe("appConfigRenderer — accordion", () => {
+  it("emits an accordion recipe block, not routed to custom, when accordion-item tokens are present", () => {
+    const accordionSources: SourceFile[] = [
+      {
+        name: "global",
+        data: {
+          accordion: {
+            item: {
+              bg: { $type: "color", $value: "#FFFFFF" },
+              text: { $type: "color", $value: "#18181B" },
+            },
+          },
+        },
+      },
+    ];
+    const g = buildGraph(accordionSources);
+    const customComponents = new Set(customPartsByComponent(scanGraph(g, { components: ["accordion"] })).keys());
+    const out = appConfigRenderer.render(g, { customComponents });
+    expect(out.text).toContain("accordion: {");
+    expect(out.text).toContain("item:");
+    expect(customComponents.has("accordion")).toBe(false);
   });
 });

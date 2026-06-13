@@ -51,6 +51,7 @@ interface RoleMapping {
 export const COMPONENT_ALLOW_LIST = [
   "button", "badge", "input", "textarea", "card", "modal", "kbd", "chip",
   "checkbox", "radio", "switch", "nav", "dropdown", "table", "progress",
+  "accordion",
 ] as const;
 
 const DEFAULT_ROLES: RoleMapping = {
