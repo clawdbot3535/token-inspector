@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.15.0] — 2026-06-13
+
+Trailing colour-roles on the general path (Bucket C) — form-control tokens whose Nuxt colour-role is
+named last (`checkbox-bg-error`, `switch-thumb-color-success`, `checkbox-bg-checked-error`) now map
+to `variants.color.{error,success}` instead of falling to a NULL mapping, the same way the custom
+path already handled `chip`.
+
+### Added
+
+- **`variants.color.{error,success,…}` for non-custom form controls.** `checkbox` / `radio` /
+  `switch` / `input` / `textarea` tokens whose colour-role sits in the trailing position now emit a
+  colour variant carrying the designer's exact value — with `border→ring` for ring-framed components
+  and a trailing `-checked-` state preserved. 26 previously-dropped tokens map (2 stragglers remain;
+  see Known boundaries).
+
+### Changed
+
+- **`normalizeTrailingColorRole` promoted into `@tg/grammar`.** It moves out of
+  `src/custom-recipe-engine.ts` and runs once at the `heuristicSlotMapping` entry, so the renderer,
+  the scanner, and the custom path all classify a trailing colour-role identically — a single source
+  of truth (the custom path's own call becomes a redundant no-op). A `STATE_KEYS` guard keeps a
+  trailing `default` a state: `default` is both a colour-role alias and the "default state" suffix
+  (the only `COLOR_ROLE_KEYS` ∩ `STATE_KEYS` overlap), and without the guard `button-solid-text-default`
+  regressed to NULL on the general path.
+
+### Removed
+
+- **`validation-color-via-prop` scanner rule.** It fired only when a `<comp>-border-<role>` token
+  failed to map; those tokens now map (the role is a colour-role the grammar normalises), so the
+  rule was unreachable and is removed along with its `isValidationColorBorder` helper. It previously
+  reframed these NULLs as "Nuxt applies validation colour via the `color` prop" — the inspector now
+  emits the designer's values directly as `variants.color.*`.
+
+### Known boundaries
+
+- `radio-dot-color-{error,success}` still map to NULL — they normalise to `radio-error-dot-color`,
+  but `dot` is not recognised as a `radio` slot on the general path (needs the `dot→indicator`
+  alias; `buildGraph` lowercases ids). Deferred.
+- The emitted `variants.color.*` assumes Nuxt UI v4 accepts `error`/`success` as `color` variant
+  keys for these components (the standard semantic aliases) — no capability gate.
+- Unlike the v0.12.0 (overlay) and v0.14.0 (nav) buckets, this is visible on the committed
+  `components/` fixture: the `build:tokens` digest loses its `validation-color-via-prop` warnings and
+  gains `variants.color.*` blocks, and the `recipe-engine` golden snapshot was regenerated.
+
 ## [0.14.0] — 2026-06-13
 
 Variant-after-sub-element mapping (Bucket B) — `nav` component tokens whose Nuxt variant or `overlay`
