@@ -185,6 +185,10 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
       <span v-if="report.forecast.unmappedComponentPrefixes.length > 0">
         Unmapped: {{ report.forecast.unmappedComponentPrefixes.join(", ") }}.
       </span>
+      <span v-if="report.forecast.nonComponentPrefixes.length > 0">
+        Layout/typography primitives (theme/CSS, not <code>ui.*</code> recipes):
+        {{ report.forecast.nonComponentPrefixes.join(", ") }}.
+      </span>
     </div>
   </div>
 </template>

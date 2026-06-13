@@ -21,6 +21,7 @@ function report(issues: ScanIssue[]): ScanReport {
       tokensCss: { estimatedBytes: 1200, tailwindMatches: 52, themeExtensions: 10, modeVariantEntries: 44 },
       components: [],
       unmappedComponentPrefixes: [],
+      nonComponentPrefixes: [],
     },
     generatedAt: 0,
   };
