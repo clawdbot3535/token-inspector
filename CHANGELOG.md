@@ -1,5 +1,50 @@
 # Changelog
 
+## [0.14.0] — 2026-06-13
+
+Variant-after-sub-element mapping (Bucket B) — `nav` component tokens whose Nuxt variant or `overlay`
+marker sits *after* a sub-element slot (e.g. `nav-item-ghost-bg`, `nav-item-overlay-dark-ghost-bg`)
+now map instead of falling to a NULL mapping, and `nav` overlay recipes — deferred in v0.12.0 —
+finally emit.
+
+### Added
+
+- **`navOverlayDark` / `navOverlayLight` recipes.** `stripOverlayPrefix` now recognises an
+  `overlay-<mode>` marker sitting after a recognised sub-element slot
+  (`nav-item-overlay-dark-ghost-bg` → logical `nav-item-ghost-bg`, mode `dark`, resolved via
+  `nuxtSlotsFor`), so the already component-agnostic `buildOverlayRecipes` emits sparse
+  `navOverlay{Dark,Light}Recipe` deltas into `output/nuxt/custom-components.ts` — closing the nav
+  gap left open in v0.12.0.
+
+### Changed
+
+- **`parseSegments` detects a variant / color-role after a sub-element slot.** The grammar
+  previously recognised a Nuxt variant (`ghost`/`link`/…) or color-role only at the fixed 2nd
+  segment, so `nav-item-ghost-bg` (where `item` is the slot) leaked `ghost-bg` into the utility
+  string and went NULL. A new post-`slotPrefix` check honours both `BUTTON_VARIANT_KEYS` and
+  `COLOR_ROLE_KEYS`. It fires only on the fallback routing pass (guarded by `slotPrefix !== null`),
+  so the normal first pass — and every variant-at-2nd-segment token like `button-ghost-bg` — is
+  unchanged. ~35 NULL nav tokens now map to `{ slot: "item", variantAxis: "variant", … }`.
+
+### Fixed
+
+- **`localStorage` restored in the jsdom test environment under Node 26.** Node 22+ exposes a native
+  `localStorage` global that returns `undefined` unless `--localstorage-file` is passed; under Node
+  26 it shadowed jsdom's own `localStorage` in Vitest (while `sessionStorage` came through),
+  breaking the `CommitPanel` / `GitLoader` component tests and blocking the pre-commit gate. A
+  `setupFiles` polyfill (`src/test-setup.ts`) installs an in-memory `Storage` when a DOM is present
+  and `localStorage` is missing; node-environment engine tests have no `window` and are untouched.
+
+### Known boundaries
+
+- `link` as a *slot* (`nav-link-…`) vs `link` as a *variant* is a pre-existing 2nd-segment
+  ambiguity; nav's real tokens use `item` as the slot, so it does not bite them.
+- camelCase child slots (`childLink`, `linkLeadingIcon`) stay unreachable because `buildGraph`
+  lowercases token ids — a separate issue.
+- The real `nav-item-*` tokens live only in the 914-token export, not the committed `components/`
+  fixture, so the unit tests are authoritative; the local CLI scan digest is unchanged (a no-op
+  there).
+
 ## [0.13.0] — 2026-06-12
 
 Typo / did-you-mean detector — a designer who misspells a token segment (`line-heigth`,
