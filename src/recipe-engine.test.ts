@@ -807,9 +807,11 @@ describe("buildComponentRecipes — input characterisation (cycle A baseline)", 
     expect(base).toContain("focus:rounded-lg");
   });
 
-  it("SEED for cycle B: input-border-error/success are silently dropped (no color axis)", () => {
+  it("maps input-border-error/success onto the color axis (ring-framed)", () => {
     const recipes = buildComponentRecipes(inputGraph(), { components: ["input"] });
-    expect(recipes["input"]?.variants.color).toBeUndefined();
+    expect(recipes["input"]?.variants.color?.error?.base).toContain("ring-[#EF4444]");
+    expect(recipes["input"]?.variants.color?.success?.base).toContain("ring-[#22C55E]");
+    // the validation colours live on the color axis, not on the resting base slot
     const base = recipes["input"]?.slots.base ?? "";
     expect(base).not.toContain("#EF4444");
     expect(base).not.toContain("#22C55E");

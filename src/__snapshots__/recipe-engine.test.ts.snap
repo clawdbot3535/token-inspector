@@ -26,6 +26,14 @@ exports[`buildComponentRecipes — input characterisation (cycle A baseline) > p
     "base": "disabled:bg-[#F4F4F5] disabled:placeholder:text-[#D4D4D8] disabled:ring-[#E4E4E7] disabled:text-[#A1A1AA] focus:ring-[#3B82F6] focus:rounded-lg font-[400] h-[36px] hover:ring-[#A1A1AA] placeholder:text-[#71717A] px-1.5 py-2 ring-[#D4D4D8] ring-offset-[4px] rounded-md text-[#18181B] text-sm",
   },
   "variants": {
+    "color": {
+      "error": {
+        "base": "ring-[#EF4444]",
+      },
+      "success": {
+        "base": "ring-[#22C55E]",
+      },
+    },
     "size": {
       "md": {
         "leadingIcon": "size-4",

@@ -7,34 +7,15 @@
 // slot set (the component's foreign parts) plus a trailing-color-role
 // normalization, then DELEGATE assembly to buildComponentRecipes.
 
-import { COLOR_ROLE_KEYS, getSlotMapping, nuxtSlotsFor, type SlotMappingOverride } from "@tg/grammar";
+import { getSlotMapping, normalizeTrailingColorRole, nuxtSlotsFor, type SlotMappingOverride } from "@tg/grammar";
+
+export { normalizeTrailingColorRole }; // re-exported for src/custom-recipe-engine.test.ts
 import type { TokenGraph } from "./token-graph.js";
 import {
   buildComponentRecipes,
   type ComponentRecipe,
 } from "./recipe-engine.js";
 import { resolveTokenToValue } from "./resolve-token.js";
-
-/**
- * The grammar recognizes a color-role only as the 2nd segment
- * (`button-error-bg`). Figma also names them trailing (`chip-bg-error`).
- * Move a trailing color-role to the 2nd position so the existing grammar
- * maps it to variants.color. A trailing STATE/SIZE word is left untouched
- * (the grammar already handles those as suffixes). No-op when the 2nd
- * segment is already a color-role or the id is too short.
- */
-export function normalizeTrailingColorRole(tokenId: string): string {
-  const parts = tokenId.split("-");
-  if (parts.length < 3) return tokenId;
-  const last = parts[parts.length - 1];
-  const second = parts[1];
-  if (last === undefined || second === undefined) return tokenId;
-  if (!COLOR_ROLE_KEYS.has(last)) return tokenId; // trailing state/size/prop — leave it
-  if (COLOR_ROLE_KEYS.has(second)) return tokenId; // already 2nd-segment color-role
-  const component = parts[0];
-  const middle = parts.slice(1, parts.length - 1); // property/sub-element segments
-  return [component, last, ...middle].join("-");
-}
 
 export interface BuildCustomRecipesOptions {
   readonly defaultSizeByComponent?: Readonly<Record<string, string>>;

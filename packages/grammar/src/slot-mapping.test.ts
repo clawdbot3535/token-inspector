@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { heuristicSlotMapping, getSlotMapping } from "./slot-mapping.js";
+import { heuristicSlotMapping, getSlotMapping, normalizeTrailingColorRole } from "./slot-mapping.js";
 
 describe("heuristicSlotMapping — button", () => {
   it("maps button-padding-x-sm to base/padding-x/size/sm", () => {
@@ -339,8 +339,13 @@ describe("color-role variant axis (prefix position)", () => {
       slot: "base", utilityType: "border-color", variantAxis: "color", variantKey: "error",
     });
   });
-  it("leaves a trailing color-role (chip-bg-error) unmapped — Figma-fix, not heuristic", () => {
-    expect(heuristicSlotMapping("chip-bg-error")).toBeNull();
+  it("maps a trailing color-role (chip-bg-error) on the general path (normalised to 2nd position)", () => {
+    expect(heuristicSlotMapping("chip-bg-error", "color")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "color",
+      variantKey: "error",
+    });
   });
 });
 
@@ -559,8 +564,10 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
     });
   });
 
-  it("leaves input-border-error null (parses to utility 'border-error', matches no rule; intercept needs exactly 'border')", () => {
-    expect(heuristicSlotMapping("input-border-error")).toBeNull();
+  it("maps input-border-error to ring-color on the color axis (trailing role normalised, ring-framed)", () => {
+    expect(heuristicSlotMapping("input-border-error", "color")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: "color", variantKey: "error",
+    });
   });
 
   it("maps card-border to ring-color (card frame is a ring)", () => {
@@ -588,8 +595,10 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
     });
   });
 
-  it("leaves chip-border-error null (trailing color-role, unchanged)", () => {
-    expect(heuristicSlotMapping("chip-border-error")).toBeNull();
+  it("maps chip-border-error to ring-color on the color axis (trailing role normalised, ring-framed)", () => {
+    expect(heuristicSlotMapping("chip-border-error", "color")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: "color", variantKey: "error",
+    });
   });
 });
 
@@ -745,5 +754,84 @@ describe("heuristicSlotMapping — variant after sub-element (nav)", () => {
 
   it("stays NULL when the segment after the sub-element is not a variant", () => {
     expect(heuristicSlotMapping("nav-item-foo-bg")).toBeNull();
+  });
+});
+
+describe("normalizeTrailingColorRole", () => {
+  it("moves a trailing color-role to the 2nd position", () => {
+    expect(normalizeTrailingColorRole("checkbox-bg-error")).toBe("checkbox-error-bg");
+  });
+  it("keeps a trailing state after the moved color-role", () => {
+    expect(normalizeTrailingColorRole("checkbox-bg-checked-error")).toBe("checkbox-error-bg-checked");
+  });
+  it("is a no-op when the 2nd segment is already a color-role", () => {
+    expect(normalizeTrailingColorRole("button-error-bg")).toBe("button-error-bg");
+  });
+  it("is a no-op when the last segment is not a color-role", () => {
+    expect(normalizeTrailingColorRole("button-bg-hover")).toBe("button-bg-hover");
+  });
+  it("leaves a trailing `default` alone (it is a state suffix, not a color-role to move)", () => {
+    expect(normalizeTrailingColorRole("button-solid-text-default")).toBe("button-solid-text-default");
+  });
+});
+
+describe("heuristicSlotMapping — trailing color-role (general path)", () => {
+  it("maps checkbox-bg-error to base + color/error", () => {
+    expect(heuristicSlotMapping("checkbox-bg-error", "color")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "color",
+      variantKey: "error",
+    });
+  });
+
+  it("carries a trailing checked state (checkbox-bg-checked-error)", () => {
+    expect(heuristicSlotMapping("checkbox-bg-checked-error", "color")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "color",
+      variantKey: "error",
+      statePrefix: "checked",
+    });
+  });
+
+  it("routes a sub-element color-role (switch-thumb-color-success)", () => {
+    expect(heuristicSlotMapping("switch-thumb-color-success", "color")).toEqual({
+      slot: "thumb",
+      utilityType: "text-color",
+      variantAxis: "color",
+      variantKey: "success",
+    });
+  });
+
+  it("ring-frames a trailing border color-role (checkbox-border-error -> ring)", () => {
+    expect(heuristicSlotMapping("checkbox-border-error", "color")).toEqual({
+      slot: "base",
+      utilityType: "ring-color",
+      variantAxis: "color",
+      variantKey: "error",
+    });
+  });
+
+  it("keeps border-color on an unframed component (switch-border-error)", () => {
+    expect(heuristicSlotMapping("switch-border-error", "color")).toEqual({
+      slot: "base",
+      utilityType: "border-color",
+      variantAxis: "color",
+      variantKey: "error",
+    });
+  });
+
+  it("does not change a 2nd-segment color-role (button-error-bg)", () => {
+    expect(heuristicSlotMapping("button-error-bg", "color")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "color",
+      variantKey: "error",
+    });
+  });
+
+  it("stays NULL for a trailing color-role behind an unroutable sub-element (radio-dot-color-error)", () => {
+    expect(heuristicSlotMapping("radio-dot-color-error", "color")).toBeNull();
   });
 });

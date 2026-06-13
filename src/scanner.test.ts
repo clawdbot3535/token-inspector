@@ -434,60 +434,6 @@ describe("scanGraph — asymmetric variant coverage", () => {
   });
 });
 
-describe("scanGraph — validation-color-via-prop (D3)", () => {
-  it("warns for a dropped <comp>-border-<validation-role> token", () => {
-    const graph = makeGraph([
-      makeNode({ id: "input-border-error", layer: "component", type: "color", source: "global", base: "#EF4444" }),
-    ]);
-    const vc = scanGraph(graph, { components: ["input"] }).issues
-      .filter((i) => i.kind === "validation-color-via-prop");
-    expect(vc).toHaveLength(1);
-    expect(vc[0]).toMatchObject({
-      severity: "warning",
-      category: "classification-hint",
-      tokenIds: ["input-border-error"],
-      componentName: "input",
-    });
-  });
-
-  it("also warns for a -border-success token", () => {
-    const graph = makeGraph([
-      makeNode({ id: "input-border-success", layer: "component", type: "color", source: "global", base: "#22C55E" }),
-    ]);
-    const vc = scanGraph(graph, { components: ["input"] }).issues
-      .filter((i) => i.kind === "validation-color-via-prop");
-    expect(vc).toHaveLength(1);
-  });
-
-  it("does NOT warn for a non-validation dropped token", () => {
-    const graph = makeGraph([
-      makeNode({ id: "input-mystery-token", layer: "component", type: "color", source: "global", base: "#000000" }),
-    ]);
-    const vc = scanGraph(graph, { components: ["input"] }).issues
-      .filter((i) => i.kind === "validation-color-via-prop");
-    expect(vc).toHaveLength(0);
-  });
-
-  it("warns for the warning role too", () => {
-    const graph = makeGraph([
-      makeNode({ id: "input-border-warning", layer: "component", type: "color", source: "global", base: "#F59E0B" }),
-    ]);
-    const vc = scanGraph(graph, { components: ["input"] }).issues
-      .filter((i) => i.kind === "validation-color-via-prop");
-    expect(vc).toHaveLength(1);
-  });
-
-  it("does NOT warn for tokens outside the dropped border-role form (input-border, badge-error-border)", () => {
-    const graph = makeGraph([
-      makeNode({ id: "input-border", layer: "component", type: "color", source: "global", base: "#D4D4D8" }),
-      makeNode({ id: "badge-error-border", layer: "component", type: "color", source: "global", base: "#FCA5A5" }),
-    ]);
-    const vc = scanGraph(graph, { components: ["input", "badge"] }).issues
-      .filter((i) => i.kind === "validation-color-via-prop");
-    expect(vc).toHaveLength(0);
-  });
-});
-
 describe("scanGraph — D2c border-on-unframed-variant hint", () => {
   function unframed(base: string) {
     return makeGraph([
@@ -583,13 +529,13 @@ describe("scanGraph — prop-driven state hint (capability)", () => {
     expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
   });
 
-  it("still flags input-border-error as a validation colour, not state-via-prop", () => {
+  it("maps input-border-error now (no state-via-prop, no validation warning)", () => {
     const graph = makeGraph([
       makeNode({ id: "input-border-error", layer: "component", type: "color", source: "global", base: "#E64041" }),
     ]);
     const report = scanGraph(graph, { components: ["input"] });
-    expect(report.issues.find((i) => i.kind === "validation-color-via-prop")).toBeDefined();
     expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
+    expect(report.issues.find((i) => i.kind === "validation-color-via-prop")).toBeUndefined();
   });
 });
 

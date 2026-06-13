@@ -19,6 +19,9 @@
 //   <component>-[<sub-element>-][<variant>-]<utility...>[-<size|state>]
 //   The <variant> may follow a recognised sub-element slot (e.g.
 //   `nav-item-ghost-bg`), not only sit at the fixed 2nd segment.
+//   A <color-role> (error/success/…) may also be named trailing
+//   (`checkbox-bg-error`); it is normalised to the 2nd position before parsing
+//   (a trailing `default` stays a state — see normalizeTrailingColorRole).
 //
 //   The optional second segment <variant> is recognised when it matches
 //   one of the Nuxt UI v4 button-style variants (solid/outline/ghost/link/...).
@@ -420,6 +423,28 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
 /**
  * Pure heuristic mapping. Returns null if no rule matches.
  */
+/**
+ * The grammar recognises a color-role only at the 2nd segment
+ * (`button-error-bg`). Figma also names them trailing (`checkbox-bg-error`).
+ * Move a trailing color-role to the 2nd position so the existing grammar maps
+ * it to `variants.color`. A trailing STATE/SIZE word is left in place after the
+ * moved role (the grammar handles those as suffixes). No-op when the 2nd
+ * segment is already a color-role or the id is too short.
+ */
+export function normalizeTrailingColorRole(tokenId: string): string {
+  const parts = tokenId.split("-");
+  if (parts.length < 3) return tokenId;
+  const last = parts[parts.length - 1];
+  const second = parts[1];
+  if (last === undefined || second === undefined) return tokenId;
+  if (!COLOR_ROLE_KEYS.has(last)) return tokenId; // trailing state/size/prop — leave it
+  if (STATE_KEYS.has(last)) return tokenId; // `default` is both a color-role and the trailing "default state" suffix — keep it a state
+  if (COLOR_ROLE_KEYS.has(second)) return tokenId; // already 2nd-segment color-role
+  const component = parts[0];
+  const middle = parts.slice(1, parts.length - 1); // property/sub-element/state segments
+  return [component, last, ...middle].join("-");
+}
+
 export function heuristicSlotMapping(
   tokenId: string,
   // TokenType in practice (e.g. "color"); typed as string to keep this module a pure id-based classifier with no domain-type coupling.
@@ -428,7 +453,10 @@ export function heuristicSlotMapping(
   // addition to the component's Nuxt slots). Empty/omitted → today's behaviour.
   extraSlots?: ReadonlySet<string>,
 ): SlotMappingEntry | null {
-  const parsed = parseSegments(tokenId);
+  // A color-role may be named trailing (`checkbox-bg-error`); normalise it to
+  // the 2nd position once so both passes below classify it as a color variant.
+  const id = normalizeTrailingColorRole(tokenId);
+  const parsed = parseSegments(id);
   if (!parsed) return null;
 
   // 1) Normal mapping — no sub-element routing. icon-size and every existing
@@ -445,7 +473,7 @@ export function heuristicSlotMapping(
       ? new Set<string>([...(nuxt ?? []), ...extraSlots])
       : nuxt;
   if (slots && slots.size > 0) {
-    const routed = parseSegments(tokenId, slots);
+    const routed = parseSegments(id, slots);
     if (routed && routed.slotPrefix !== null) {
       const m = matchParsed(routed, valueType);
       if (m) return m;

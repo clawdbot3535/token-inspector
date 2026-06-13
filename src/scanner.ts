@@ -37,23 +37,6 @@ interface ComponentEntry {
   value: string;
 }
 
-const VALIDATION_COLOR_ROLES: ReadonlySet<string> = new Set([
-  "error", "success", "warning", "info",
-]);
-
-/**
- * True for the dropped `<comp>-border-<error|success|warning|info>` token form —
- * a validation color Nuxt applies via the `color` prop, not a recipe slot.
- * Excludes `badge-error-border` (`…, error, border`) and `input-border` (no role).
- */
-function isValidationColorBorder(id: string): boolean {
-  const segs = id.split("-");
-  if (segs.length < 3) return false; // need comp + "border" + role
-  const last = segs[segs.length - 1]!;
-  const beforeLast = segs[segs.length - 2]!;
-  return beforeLast === "border" && VALIDATION_COLOR_ROLES.has(last);
-}
-
 /** {state, prop} when the token's trailing state is prop-driven for its component, else null. */
 function propDrivenStateForId(id: string): { state: string; prop: string } | null {
   const segs = id.split("-");
@@ -96,37 +79,21 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     if (!allowSet.has(prefix)) continue;
     const mapping = getSlotMapping(node.id, undefined, node.type);
     if (mapping === null) {
-      if (node.type === "color" && isValidationColorBorder(node.id)) {
+      const pd = propDrivenStateForId(node.id);
+      if (pd !== null) {
         issues.push({
-          id: `vc-${node.id}`,
+          id: `pd-${node.id}`,
           category: "classification-hint",
           severity: "warning",
-          kind: "validation-color-via-prop",
+          kind: "state-via-prop",
           message:
-            `\`${node.id}\` is a validation color. Nuxt UI applies validation colors (error / success / warning / info) ` +
-            `through the component's \`color\` prop (e.g. \`color="error"\`, or a ` +
-            `\`UFormField\` on validation), not a recipe slot — it lives in the color ` +
-            `layer, so no \`ui.${prefix}\` override is emitted.`,
+            `\`${node.id}\` targets the \`${pd.state}\` state, which Nuxt UI v4 applies via ` +
+            `the \`${pd.prop}\` prop (set programmatically), not a recipe slot — ` +
+            `\`${prefix}\` has no \`:${pd.state}\` pseudo-class state, so no \`ui.${prefix}\` ` +
+            `override is emitted.`,
           tokenIds: [node.id],
           componentName: prefix,
         });
-      } else {
-        const pd = propDrivenStateForId(node.id);
-        if (pd !== null) {
-          issues.push({
-            id: `pd-${node.id}`,
-            category: "classification-hint",
-            severity: "warning",
-            kind: "state-via-prop",
-            message:
-              `\`${node.id}\` targets the \`${pd.state}\` state, which Nuxt UI v4 applies via ` +
-              `the \`${pd.prop}\` prop (set programmatically), not a recipe slot — ` +
-              `\`${prefix}\` has no \`:${pd.state}\` pseudo-class state, so no \`ui.${prefix}\` ` +
-              `override is emitted.`,
-            tokenIds: [node.id],
-            componentName: prefix,
-          });
-        }
       }
       const nseg = node.id.split("-")[1];
       if (nseg !== undefined) {
