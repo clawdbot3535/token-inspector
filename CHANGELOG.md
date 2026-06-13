@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.16.0] — 2026-06-13
+
+Accordion as a Nuxt-native component (Bucket D) — the new export's `accordion-item-*` tokens now map
+to a `ui.accordion` recipe by registering `accordion` in the component vocabulary. `sidebar`
+(no Nuxt UI v4 recipe) is deferred to a separate effort.
+
+### Added
+
+- **`accordion` allow-list component.** `accordion` is added to `NUXT_SLOTS` (the Nuxt UI v4 Accordion
+  theme slots — `root` / `item` / `header` / `trigger` / `content` / `body` / `leadingIcon` /
+  `trailingIcon` / `label`) and to `COMPONENT_ALLOW_LIST`. These two purely-additive vocabulary
+  entries are all it takes: the existing sub-element routing and `appConfigRenderer` then map the
+  18 `accordion-item-*` tokens to `ui.accordion.slots.item` (14 map — `bg`, `border` →
+  `border-color` since accordion is not ring-framed, `text`, `font-size`, `font-weight`, `gap`,
+  `padding-x/y`, `icon-size`, `line-height`, `letter-spacing`, `ring-width`, with trailing
+  `disabled` states as `disabled:` prefixes). Because `item` is a real Nuxt slot, `accordion` is not
+  flagged `component-looks-custom` — it emits as `ui.accordion`, not `custom/accordion`. Verified on
+  the real 914-token export.
+
+### Known boundaries
+
+- 4 `accordion-item-*` straggler tokens stay NULL and are deferred: `border-focus-ring`,
+  `focus-offset`, `ring-radius` (non-standard utility names — a data-quality concern) and
+  `text-opened` (`opened` is a real accordion state but not a `STATE_KEY`; adding it globally would
+  affect every component).
+- `sidebar` (16 tokens) is not done — Nuxt UI v4 (free) has no sidebar component, so it needs
+  invented anatomy and a custom emit; a separate later effort.
+- The real `accordion-*` tokens live only in the 914-token export, not the committed `components/`
+  fixture, so this is a no-op on the local `build:tokens` digest; the unit tests (synthetic graph)
+  are authoritative.
+
 ## [0.15.0] — 2026-06-13
 
 Trailing colour-roles on the general path (Bucket C) — form-control tokens whose Nuxt colour-role is
