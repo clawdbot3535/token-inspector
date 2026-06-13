@@ -16,7 +16,9 @@
 //     statePrefix: string | null }
 //
 // Token id shape:
-//   <component>-[<variant>-]<utility...>[-<size|state>]
+//   <component>-[<sub-element>-][<variant>-]<utility...>[-<size|state>]
+//   The <variant> may follow a recognised sub-element slot (e.g.
+//   `nav-item-ghost-bg`), not only sit at the fixed 2nd segment.
 //
 //   The optional second segment <variant> is recognised when it matches
 //   one of the Nuxt UI v4 button-style variants (solid/outline/ghost/link/...).
@@ -125,6 +127,20 @@ function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): P
   ) {
     slotPrefix = slotSeg;
     start += 1;
+  }
+
+  // Seam (bucket B): a Nuxt variant / color-role may sit AFTER the sub-element
+  // prefix, not only at the fixed 2nd segment (e.g. `nav-item-ghost-bg` =
+  // item slot + ghost variant + bg utility). Fires only when a slot prefix was
+  // just consumed, no variant was found at the 2nd segment, and a utility
+  // segment remains. Honours both BUTTON_VARIANT_KEYS and COLOR_ROLE_KEYS,
+  // mirroring the 2nd-segment logic.
+  if (slotPrefix !== null && variant === null && colorRole === null) {
+    const afterSlot = parts[start];
+    if (afterSlot !== undefined && end - start > 1) {
+      if (BUTTON_VARIANT_KEYS.has(afterSlot)) { variant = afterSlot; start += 1; }
+      else if (COLOR_ROLE_KEYS.has(afterSlot)) { colorRole = afterSlot; start += 1; }
+    }
   }
 
   // Last segment may be a size or state suffix. Only consume it when

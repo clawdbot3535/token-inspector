@@ -695,3 +695,55 @@ describe("extraSlots (custom sub-element routing)", () => {
     expect(m?.slot).toBe("label");
   });
 });
+
+describe("heuristicSlotMapping — variant after sub-element (nav)", () => {
+  it("maps nav-item-ghost-bg to item slot + ghost variant", () => {
+    expect(heuristicSlotMapping("nav-item-ghost-bg")).toEqual({
+      slot: "item",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "ghost",
+    });
+  });
+
+  it("maps nav-item-link-text to item slot + link variant (text-color)", () => {
+    expect(heuristicSlotMapping("nav-item-link-text", "color")).toEqual({
+      slot: "item",
+      utilityType: "text-color",
+      variantAxis: "variant",
+      variantKey: "link",
+    });
+  });
+
+  it("maps a color-role after a sub-element (nav-item-primary-bg)", () => {
+    expect(heuristicSlotMapping("nav-item-primary-bg")).toEqual({
+      slot: "item",
+      utilityType: "bg-color",
+      variantAxis: "color",
+      variantKey: "primary",
+    });
+  });
+
+  it("carries a trailing state on a variant-after-sub-element token", () => {
+    expect(heuristicSlotMapping("nav-item-ghost-bg-hover")).toEqual({
+      slot: "item",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "ghost",
+      statePrefix: "hover",
+    });
+  });
+
+  it("does not change variant-at-2nd-segment tokens (button-ghost-bg)", () => {
+    expect(heuristicSlotMapping("button-ghost-bg")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "ghost",
+    });
+  });
+
+  it("stays NULL when the segment after the sub-element is not a variant", () => {
+    expect(heuristicSlotMapping("nav-item-foo-bg")).toBeNull();
+  });
+});
