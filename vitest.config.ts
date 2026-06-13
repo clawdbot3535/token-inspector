@@ -25,6 +25,9 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "packages/**/*.test.ts", "apps/**/*.test.ts"],
     environment: "node",
+    // Restores jsdom's `localStorage` (shadowed by Node 26's native global);
+    // no-op in the node environment. See src/test-setup.ts.
+    setupFiles: ["./src/test-setup.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
@@ -36,6 +39,7 @@ export default defineConfig({
         "src/**/*.test.ts",
         "src/**/*.d.ts",
         "src/tailwind-defaults.generated.ts",
+        "src/test-setup.ts",
         "src/app/main.ts",
       ],
     },
