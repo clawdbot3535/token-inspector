@@ -200,6 +200,7 @@ export interface OutputForecast {
     variants: readonly CompletenessScore[];
   }>;
   unmappedComponentPrefixes: readonly string[];
+  nonComponentPrefixes: readonly string[];
 }
 
 export interface ScanReport {

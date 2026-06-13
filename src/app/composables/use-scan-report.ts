@@ -14,6 +14,7 @@ const EMPTY_REPORT: ScanReport = {
     tokensCss: { estimatedBytes: 0, tailwindMatches: 0, themeExtensions: 0, modeVariantEntries: 0 },
     components: [],
     unmappedComponentPrefixes: [],
+    nonComponentPrefixes: [],
   },
   generatedAt: 0,
 };

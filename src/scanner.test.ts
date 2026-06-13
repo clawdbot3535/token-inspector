@@ -813,3 +813,18 @@ describe("detectPossibleTypos", () => {
     expect(issues[0]!.message).toContain("spacing");
   });
 });
+
+describe("scanGraph — non-component prefixes (Bucket E)", () => {
+  it("splits layout/type-scale primitives out of the unmapped list", () => {
+    const graph = makeGraph([
+      makeNode({ id: "typography-body-color", layer: "component", type: "color", source: "global", base: "#18181B" }),
+      makeNode({ id: "grid-gap-sm", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "sidebar-item-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(report.forecast.nonComponentPrefixes).toEqual(["grid", "typography"]);
+    expect(report.forecast.unmappedComponentPrefixes).toContain("sidebar");
+    expect(report.forecast.unmappedComponentPrefixes).not.toContain("typography");
+    expect(report.forecast.unmappedComponentPrefixes).not.toContain("grid");
+  });
+});
