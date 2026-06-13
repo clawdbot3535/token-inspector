@@ -835,3 +835,39 @@ describe("heuristicSlotMapping — trailing color-role (general path)", () => {
     expect(heuristicSlotMapping("radio-dot-color-error", "color")).toBeNull();
   });
 });
+
+describe("heuristicSlotMapping — accordion (item sub-element)", () => {
+  it("maps accordion-item-bg to the item slot", () => {
+    expect(heuristicSlotMapping("accordion-item-bg", "color")).toEqual({
+      slot: "item", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("maps accordion-item-border to border-color (accordion is not ring-framed)", () => {
+    expect(heuristicSlotMapping("accordion-item-border", "color")).toEqual({
+      slot: "item", utilityType: "border-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("carries a trailing disabled state (accordion-item-text-disabled)", () => {
+    expect(heuristicSlotMapping("accordion-item-text-disabled", "color")).toEqual({
+      slot: "item", utilityType: "text-color", variantAxis: null, variantKey: null,
+      statePrefix: "disabled",
+    });
+  });
+
+  it("maps the non-color item utilities (padding-x, font-size, gap, icon-size)", () => {
+    expect(heuristicSlotMapping("accordion-item-padding-x")?.utilityType).toBe("padding-x");
+    expect(heuristicSlotMapping("accordion-item-font-size")?.utilityType).toBe("text-size");
+    expect(heuristicSlotMapping("accordion-item-gap")?.utilityType).toBe("gap");
+    expect(heuristicSlotMapping("accordion-item-icon-size")?.utilityType).toBe("icon-size");
+    expect(heuristicSlotMapping("accordion-item-padding-x")?.slot).toBe("item");
+  });
+
+  it("leaves the 4 straggler tokens NULL (non-standard utilities / non-state word)", () => {
+    expect(heuristicSlotMapping("accordion-item-border-focus-ring", "color")).toBeNull();
+    expect(heuristicSlotMapping("accordion-item-focus-offset")).toBeNull();
+    expect(heuristicSlotMapping("accordion-item-ring-radius")).toBeNull();
+    expect(heuristicSlotMapping("accordion-item-text-opened", "color")).toBeNull();
+  });
+});

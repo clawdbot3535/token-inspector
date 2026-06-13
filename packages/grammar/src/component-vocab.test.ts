@@ -134,3 +134,13 @@ describe("SLOT_PAIRS", () => {
     }
   });
 });
+
+describe("nuxtSlotsFor — accordion", () => {
+  it("returns the Nuxt UI v4 Accordion theme slots", () => {
+    const slots = nuxtSlotsFor("accordion");
+    expect(slots).toBeDefined();
+    for (const s of ["root", "item", "header", "trigger", "content", "body", "leadingIcon", "trailingIcon", "label"]) {
+      expect(slots!.has(s)).toBe(true);
+    }
+  });
+});

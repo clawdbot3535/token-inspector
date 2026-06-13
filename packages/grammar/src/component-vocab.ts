@@ -110,6 +110,10 @@ export function propDrivenStateFor(component: string, state: string | null): str
  * uninventoried components safely).
  */
 export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  ["accordion", new Set([
+    "root", "item", "header", "trigger", "content", "body",
+    "leadingIcon", "trailingIcon", "label",
+  ])],
   ["button", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
   ["badge", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
   ["input", new Set(["root", "base", "leading", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailing", "trailingIcon"])],

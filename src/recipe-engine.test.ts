@@ -982,3 +982,15 @@ describe("buildComponentRecipes — SLOT_MIRROR: leadingIcon → trailingIcon", 
     expect(md?.["trailingIcon"]).toBe(md?.["leadingIcon"]);
   });
 });
+
+describe("buildComponentRecipes — accordion", () => {
+  it("emits a ui.accordion recipe routing item tokens to slots.item", () => {
+    const graph = makeGraph([
+      makeNode({ id: "accordion-item-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "accordion-item-text-disabled", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["accordion"] });
+    expect(recipes["accordion"]?.slots.item).toContain("bg-[#FFFFFF]");
+    expect(recipes["accordion"]?.slots.item).toContain("disabled:text-[#A1A1AA]");
+  });
+});
