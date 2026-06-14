@@ -1019,6 +1019,17 @@ describe("buildComponentRecipes — card / modal slot correctness", () => {
   });
 });
 
+describe("buildComponentRecipes — checked fill on the indicator slot", () => {
+  it("emits a checkbox checked-error fill on variants.color.error.indicator", () => {
+    const graph = makeGraph([
+      makeNode({ id: "checkbox-bg-checked-error", layer: "component", type: "color", source: "global", base: "#DC2626" }),
+    ]);
+    const r = buildComponentRecipes(graph, { components: ["checkbox"] });
+    expect(r.checkbox?.variants?.color?.error?.indicator).toContain("bg-[#DC2626]");
+    expect(r.checkbox?.variants?.color?.error?.base ?? "").not.toContain("checked:");
+  });
+});
+
 describe("buildComponentRecipes — progress", () => {
   it("maps track bg to base, fill bg to indicator, and heights to size variants", () => {
     const graph = makeGraph([
