@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.18.0] — 2026-06-14
+
+Sidebar as a known-custom component (Bucket D, part 2) — the export's `sidebar` tokens emit a custom
+recipe, since Nuxt UI v4 (free) has no sidebar component. This completes all five new-export mapping
+buckets (A–E).
+
+### Added
+
+- **`KNOWN_CUSTOM_COMPONENTS` registry** (in `@tg/grammar`) — components with no Nuxt UI recipe that
+  the inspector emits as hand-anatomy custom recipes, independent of the scanner's
+  `component-looks-custom` flag. Maps a component to its routable sub-element slots; currently
+  `sidebar → ["item"]`.
+- **`sidebar` custom emit.** `customPartsByComponent` seeds the registry before the scanner-flagged
+  entries, so both the CLI (`build-cli.ts`) and the web (`App.vue`) — which derive `customParts` from
+  that one function — emit `export const sidebarRecipe` into `output/nuxt/custom-components.ts`. The
+  recipe has a `base` slot (bg / border / padding-x/y / width) and an `item` slot (bg and text with
+  `active:` / `hover:` prefixes, icon-size / padding-x/y / radius). On the real export, 13 of 16
+  `sidebar-*` tokens map. The registry bypasses the `component-looks-custom` flag (which skips
+  components with no `NUXT_SLOTS` entry), keeping `NUXT_SLOTS` and `COMPONENT_ALLOW_LIST` Nuxt-only.
+
+### Known boundaries
+
+- 3 straggler tokens stay NULL: `sidebar-section-label-{color,size}` (the two-word `section-label`
+  sub-element does not route — the same multi-segment / camelCase slot limit as nav's `childLink`)
+  and `sidebar-width-collapsed` (`collapsed` is not a `STATE_KEY`).
+- `buildCustomRecipes` skips components with no matching tokens, so a project without `sidebar`
+  tokens (including the committed `components/` fixture) emits no empty `sidebarRecipe` — a no-op
+  there; the unit tests on synthetic graphs are authoritative.
+
 ## [0.17.0] — 2026-06-14
 
 Reclassify layout / typography primitives (Bucket E) — the export's type-scale and layout tokens
