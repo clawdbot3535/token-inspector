@@ -1018,3 +1018,19 @@ describe("buildComponentRecipes — card / modal slot correctness", () => {
     expect(r.modal?.slots.base ?? "").toBe("");
   });
 });
+
+describe("buildComponentRecipes — progress", () => {
+  it("maps track bg to base, fill bg to indicator, and heights to size variants", () => {
+    const graph = makeGraph([
+      makeNode({ id: "progress-track-bg", layer: "component", type: "color", source: "global", base: "#E4E4E7" }),
+      makeNode({ id: "progress-fill-bg", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+      makeNode({ id: "progress-radius", layer: "component", type: "dimension", source: "global", base: "999px" }),
+      makeNode({ id: "progress-height-md", layer: "component", type: "dimension", source: "global", base: "8px" }),
+    ]);
+    const r = buildComponentRecipes(graph, { components: ["progress"] });
+    expect(r.progress?.slots.base).toContain("bg-[#E4E4E7]");
+    expect(r.progress?.slots.base).toContain("rounded-[999px]");
+    expect(r.progress?.slots.indicator).toContain("bg-[#5667A7]");
+    expect(r.progress?.variants?.size?.md?.base).toContain("h-[8px]");
+  });
+});
