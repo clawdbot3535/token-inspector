@@ -78,7 +78,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, defaultBaseSlot, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
 
 interface ParsedSegments {
   component: string;
@@ -361,7 +361,7 @@ const HEURISTIC_RULES: ReadonlyArray<{
  * sub-element fallback path can re-use the same logic with a re-parsed token.
  */
 function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEntry | null {
-  const slot: RecipeSlot = parsed.slotPrefix ?? "base";
+  const slot: RecipeSlot = parsed.slotPrefix ?? defaultBaseSlot(parsed.component);
   const ctx: BuildContext = {
     variant: parsed.variant,
     colorRole: parsed.colorRole,

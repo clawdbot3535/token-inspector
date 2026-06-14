@@ -11,6 +11,7 @@ import {
   propDrivenStateFor,
   NUXT_SLOTS,
   nuxtSlotsFor,
+  defaultBaseSlot,
   NON_PART_SEGMENTS,
   NON_COMPONENT_PREFIXES,
   KNOWN_CUSTOM_COMPONENTS,
@@ -165,5 +166,27 @@ describe("KNOWN_CUSTOM_COMPONENTS", () => {
   });
   it("does not list a real Nuxt component", () => {
     expect(KNOWN_CUSTOM_COMPONENTS.has("button")).toBe(false);
+  });
+});
+
+describe("nuxtSlotsFor — card / modal", () => {
+  it("knows card slots", () => {
+    expect(nuxtSlotsFor("card")?.has("root")).toBe(true);
+    expect(nuxtSlotsFor("card")?.has("body")).toBe(true);
+  });
+  it("knows modal slots including overlay", () => {
+    expect(nuxtSlotsFor("modal")?.has("content")).toBe(true);
+    expect(nuxtSlotsFor("modal")?.has("overlay")).toBe(true);
+  });
+});
+
+describe("defaultBaseSlot", () => {
+  it("maps card→root, dropdown→content, modal→content", () => {
+    expect(defaultBaseSlot("card")).toBe("root");
+    expect(defaultBaseSlot("dropdown")).toBe("content");
+    expect(defaultBaseSlot("modal")).toBe("content");
+  });
+  it("falls back to base for every other component", () => {
+    expect(defaultBaseSlot("button")).toBe("base");
   });
 });

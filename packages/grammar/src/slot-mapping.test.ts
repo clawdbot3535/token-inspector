@@ -560,7 +560,7 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
 
   it("maps modal-border to ring-color (panel frame is a ring)", () => {
     expect(heuristicSlotMapping("modal-border")).toEqual({
-      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+      slot: "content", utilityType: "ring-color", variantAxis: null, variantKey: null,
     });
   });
 
@@ -572,7 +572,7 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
 
   it("maps card-border to ring-color (card frame is a ring)", () => {
     expect(heuristicSlotMapping("card-border")).toEqual({
-      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
+      slot: "root", utilityType: "ring-color", variantAxis: null, variantKey: null,
     });
   });
 
@@ -909,5 +909,20 @@ describe("heuristicSlotMapping — part alias routing (dot→indicator)", () => 
 
   it("does not rescue a token blocked by a mid-token state (table-row-hover-bg → null)", () => {
     expect(heuristicSlotMapping("table-row-hover-bg", "color")).toBeNull();
+  });
+});
+
+describe("per-component default base slot", () => {
+  it("routes bare card tokens to the root slot", () => {
+    expect(heuristicSlotMapping("card-bg")?.slot).toBe("root");
+  });
+  it("routes bare dropdown tokens to the content slot", () => {
+    expect(heuristicSlotMapping("dropdown-bg")?.slot).toBe("content");
+  });
+  it("routes bare modal tokens to the content slot", () => {
+    expect(heuristicSlotMapping("modal-bg")?.slot).toBe("content");
+  });
+  it("keeps other components on the base slot", () => {
+    expect(heuristicSlotMapping("button-bg")?.slot ?? "base").toBe("base");
   });
 });

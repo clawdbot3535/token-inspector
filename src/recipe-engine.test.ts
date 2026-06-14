@@ -747,7 +747,7 @@ describe("robustness — messy/inconsistent tokens degrade gracefully", () => {
     expect(() => {
       recipes = buildComponentRecipes(graph, { components: ["chip", "nav", "card"] });
     }).not.toThrow();
-    expect(recipes!.card?.slots.base).toContain("p-[8px]");
+    expect(recipes!.card?.slots.root).toContain("p-[8px]");
     expect(JSON.stringify(recipes!)).not.toContain("frobnicate");
   });
 });

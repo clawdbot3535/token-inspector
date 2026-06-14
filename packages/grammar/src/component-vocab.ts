@@ -137,11 +137,32 @@ export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
   ])],
   ["switch", new Set(["root", "base", "container", "thumb", "icon", "wrapper", "label", "description"])],
   ["radio", new Set(["root", "fieldset", "legend", "item", "container", "base", "indicator", "wrapper", "label", "description"])],
+  ["card", new Set(["root", "header", "title", "description", "body", "footer"])],
+  ["modal", new Set([
+    "overlay", "content", "header", "wrapper", "body", "footer",
+    "title", "description", "close",
+  ])],
 ]);
 
 /** The Nuxt UI v4 theme slot names for a Figma component, or undefined if not inventoried. */
 export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined {
   return NUXT_SLOTS.get(component);
+}
+
+/**
+ * The default recipe slot for a component's bare (no sub-element) tokens. Nuxt UI
+ * v4 components name their styling base differently — Card's is `root`, Dropdown
+ * and Modal's is `content` — whereas most components use `base`.
+ */
+export const COMPONENT_BASE_SLOT: ReadonlyMap<string, string> = new Map([
+  ["card", "root"],
+  ["dropdown", "content"],
+  ["modal", "content"],
+]);
+
+/** The base slot for a component's bare tokens (`base` unless overridden). */
+export function defaultBaseSlot(component: string): string {
+  return COMPONENT_BASE_SLOT.get(component) ?? "base";
 }
 
 /**
