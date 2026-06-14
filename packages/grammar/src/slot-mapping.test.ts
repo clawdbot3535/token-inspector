@@ -831,9 +831,8 @@ describe("heuristicSlotMapping — trailing color-role (general path)", () => {
     });
   });
 
-  it("stays NULL for a trailing color-role behind an unroutable sub-element (radio-dot-color-error)", () => {
-    expect(heuristicSlotMapping("radio-dot-color-error", "color")).toBeNull();
-  });
+  // NOTE: radio-dot-color-error (a former straggler asserted NULL here) now maps
+  // via the dot→indicator part alias — see the "part alias routing" describe.
 });
 
 describe("heuristicSlotMapping — accordion (item sub-element)", () => {
@@ -869,5 +868,46 @@ describe("heuristicSlotMapping — accordion (item sub-element)", () => {
     expect(heuristicSlotMapping("accordion-item-focus-offset")).toBeNull();
     expect(heuristicSlotMapping("accordion-item-ring-radius")).toBeNull();
     expect(heuristicSlotMapping("accordion-item-text-opened", "color")).toBeNull();
+  });
+});
+
+describe("heuristicSlotMapping — part alias routing (dot→indicator)", () => {
+  it("routes radio-dot-color-error to the indicator slot (color axis)", () => {
+    expect(heuristicSlotMapping("radio-dot-color-error", "color")).toEqual({
+      slot: "indicator", utilityType: "text-color", variantAxis: "color", variantKey: "error",
+    });
+  });
+
+  it("routes radio-dot-color to the indicator slot", () => {
+    expect(heuristicSlotMapping("radio-dot-color", "color")).toEqual({
+      slot: "indicator", utilityType: "text-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("carries a trailing disabled state (radio-dot-color-disabled)", () => {
+    expect(heuristicSlotMapping("radio-dot-color-disabled", "color")).toEqual({
+      slot: "indicator", utilityType: "text-color", variantAxis: null, variantKey: null,
+      statePrefix: "disabled",
+    });
+  });
+
+  it("routes radio-dot-size-md to the indicator slot (size axis)", () => {
+    expect(heuristicSlotMapping("radio-dot-size-md")).toEqual({
+      slot: "indicator", utilityType: "size", variantAxis: "size", variantKey: "md",
+    });
+  });
+
+  it("prefers an exact slot match over an alias (radio-item-bg → item)", () => {
+    expect(heuristicSlotMapping("radio-item-bg", "color")).toEqual({
+      slot: "item", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+
+  it("does not alias when the target is not a slot of the component (button-dot-bg → null)", () => {
+    expect(heuristicSlotMapping("button-dot-bg", "color")).toBeNull();
+  });
+
+  it("does not rescue a token blocked by a mid-token state (table-row-hover-bg → null)", () => {
+    expect(heuristicSlotMapping("table-row-hover-bg", "color")).toBeNull();
   });
 });

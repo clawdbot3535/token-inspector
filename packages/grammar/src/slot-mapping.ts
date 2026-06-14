@@ -78,7 +78,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
 
 interface ParsedSegments {
   component: string;
@@ -122,14 +122,20 @@ function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): P
   // omitted (normal first pass), nothing is consumed — today's behaviour.
   let slotPrefix: RecipeSlot | null = null;
   const slotSeg = parts[start];
-  if (
-    slotSeg !== undefined &&
-    slotSeg !== "base" &&
-    componentSlots !== undefined &&
-    componentSlots.has(slotSeg)
-  ) {
-    slotPrefix = slotSeg;
-    start += 1;
+  if (slotSeg !== undefined && slotSeg !== "base" && componentSlots !== undefined) {
+    if (componentSlots.has(slotSeg)) {
+      slotPrefix = slotSeg;
+      start += 1;
+    } else {
+      // Honour the curated Figma→Nuxt rename map: a segment whose alias target
+      // is a real slot for this component routes to that Nuxt slot name
+      // (e.g. radio `dot` → `indicator`).
+      const aliased = FIGMA_NUXT_PART_ALIAS.get(slotSeg);
+      if (aliased !== undefined && componentSlots.has(aliased)) {
+        slotPrefix = aliased;
+        start += 1;
+      }
+    }
   }
 
   // Seam (bucket B): a Nuxt variant / color-role may sit AFTER the sub-element
