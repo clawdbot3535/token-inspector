@@ -188,4 +188,21 @@ describe("tokensCssRenderer", () => {
     // Line map points the base line at its real source token.
     expect(result.lines.has("typography-heading-1-font-size")).toBe(true);
   });
+
+  it("routes primitive letter-spacing and line-height under Typography, not Colors", () => {
+    const graph = makeGraph([
+      makeNode({ id: "letter-spacing-tight", layer: "primitive", type: "number", source: "typography", base: "-0.4px" }),
+      makeNode({ id: "line-height-2xl", layer: "primitive", type: "number", source: "typography", base: "24px" }),
+    ]);
+    const result = tokensCssRenderer.render(graph);
+    const typoIdx = result.text.indexOf("Non-default Typography");
+    const colorIdx = result.text.indexOf("Primitive Colors");
+    expect(typoIdx).toBeGreaterThan(-1);
+    expect(result.text.indexOf("--letter-spacing-tight")).toBeGreaterThan(typoIdx);
+    expect(result.text.indexOf("--line-height-2xl")).toBeGreaterThan(typoIdx);
+    // Not in the Primitive Colors section (which, if present, precedes Typography).
+    if (colorIdx > -1) {
+      expect(result.text.indexOf("--letter-spacing-tight")).toBeGreaterThan(colorIdx);
+    }
+  });
 });

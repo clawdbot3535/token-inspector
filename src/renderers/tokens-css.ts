@@ -174,7 +174,9 @@ function sectionFor(
     cssName.startsWith("--text-") ||
     cssName.startsWith("--font-") ||
     cssName.startsWith("--leading-") ||
-    cssName.startsWith("--tracking-")
+    cssName.startsWith("--tracking-") ||
+    cssName.startsWith("--letter-spacing-") ||
+    cssName.startsWith("--line-height-")
   ) {
     return "non-default-font";
   }
