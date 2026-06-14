@@ -190,3 +190,10 @@ describe("defaultBaseSlot", () => {
     expect(defaultBaseSlot("button")).toBe("base");
   });
 });
+
+describe("nuxtSlotsFor — progress", () => {
+  it("knows progress slots including indicator", () => {
+    expect(nuxtSlotsFor("progress")?.has("indicator")).toBe(true);
+    expect(nuxtSlotsFor("progress")?.has("base")).toBe(true);
+  });
+});

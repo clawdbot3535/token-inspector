@@ -934,3 +934,16 @@ describe("overlay slot vs overlay-bg utility", () => {
     expect(m?.utilityType).toBe("bg-color");
   });
 });
+
+describe("part alias routing — progress (fill→indicator, track→base)", () => {
+  it("routes progress-fill-bg to the indicator slot", () => {
+    expect(heuristicSlotMapping("progress-fill-bg", "color")).toEqual({
+      slot: "indicator", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+  it("routes progress-track-bg to the base slot", () => {
+    expect(heuristicSlotMapping("progress-track-bg", "color")).toEqual({
+      slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+});

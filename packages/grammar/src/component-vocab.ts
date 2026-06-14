@@ -142,6 +142,7 @@ export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
     "overlay", "content", "header", "wrapper", "body", "footer",
     "title", "description", "close",
   ])],
+  ["progress", new Set(["root", "base", "indicator", "status", "steps", "step"])],
 ]);
 
 /** The Nuxt UI v4 theme slot names for a Figma component, or undefined if not inventoried. */
@@ -211,6 +212,8 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
   ["divider", "separator"],
   ["check", "icon"],
   ["dot", "indicator"],
+  ["fill", "indicator"],
+  ["track", "base"],
 ]);
 
 /**
