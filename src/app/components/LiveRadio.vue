@@ -23,6 +23,9 @@ const recipe = computed(() => {
   return buildComponentRecipes(props.graph, { components: [props.componentName] })[props.componentName] ?? null;
 });
 const baseClasses = computed<string>(() => recipe.value?.slots["base"] ?? "");
+// The checked fill lives on the `indicator` slot (the dot only shows when
+// checked) — merged into the checked cell so it reads as the checked background.
+const indicatorClasses = computed<string>(() => recipe.value?.slots["indicator"] ?? "");
 
 const SIZE_ORDER: readonly string[] = ["xs", "sm", "md", "lg", "xl"];
 const sizeClasses = computed<string>(() => {
@@ -48,8 +51,12 @@ function highlightSegments(classString: string): HighlightSegment[] {
 
 const cells = computed<Cell[]>(() => {
   if (!recipe.value) return [];
-  const merged = [baseClasses.value, sizeClasses.value].filter((s) => s.length > 0).join(" ");
+  const base = [baseClasses.value, sizeClasses.value].filter((s) => s.length > 0).join(" ");
   return (["default", "checked"] as const).map((state) => {
+    const merged =
+      state === "checked"
+        ? [base, indicatorClasses.value].filter((s) => s.length > 0).join(" ")
+        : base;
     const { classes, style } = extractArbitrary(projectToState(merged, state));
     return { label: state === "default" ? "unchecked" : "checked", checked: state === "checked", classes, style };
   });

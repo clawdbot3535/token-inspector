@@ -420,6 +420,23 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
   for (const rule of HEURISTIC_RULES) {
     if (rule.match(parsed.utility)) {
       const entry = rule.build(ctx);
+      // A `checked` bg-color fill belongs on the `indicator` slot for components
+      // that have one (checkbox/radio): the indicator embodies the checked state,
+      // so the fill drops the `checked` prefix and moves off `base`. Components
+      // without an indicator slot (switch) keep the base `checked:` behaviour.
+      if (
+        slot === "base" &&
+        entry.statePrefix === "checked" &&
+        entry.utilityType === "bg-color" &&
+        (nuxtSlotsFor(parsed.component)?.has("indicator") ?? false)
+      ) {
+        return {
+          slot: "indicator",
+          utilityType: entry.utilityType,
+          variantAxis: entry.variantAxis,
+          variantKey: entry.variantKey,
+        };
+      }
       return slot === "base" ? entry : { ...entry, slot };
     }
   }

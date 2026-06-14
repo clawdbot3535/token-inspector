@@ -350,8 +350,8 @@ describe("color-role variant axis (prefix position)", () => {
 });
 
 describe("extra state keys", () => {
-  it("recognizes checked as a state, emitting a base `checked:` prefix when no variant", () => {
-    expect(heuristicSlotMapping("checkbox-bg-checked")).toEqual({
+  it("recognizes checked as a state, emitting a base `checked:` prefix on a component with no indicator slot", () => {
+    expect(heuristicSlotMapping("switch-bg-checked")).toEqual({
       slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null, statePrefix: "checked",
     });
   });
@@ -785,13 +785,12 @@ describe("heuristicSlotMapping — trailing color-role (general path)", () => {
     });
   });
 
-  it("carries a trailing checked state (checkbox-bg-checked-error)", () => {
+  it("routes a checked bg fill to the indicator slot (checkbox-bg-checked-error)", () => {
     expect(heuristicSlotMapping("checkbox-bg-checked-error", "color")).toEqual({
-      slot: "base",
+      slot: "indicator",
       utilityType: "bg-color",
       variantAxis: "color",
       variantKey: "error",
-      statePrefix: "checked",
     });
   });
 
@@ -944,6 +943,29 @@ describe("part alias routing — progress (fill→indicator, track→base)", () 
   it("routes progress-track-bg to the base slot", () => {
     expect(heuristicSlotMapping("progress-track-bg", "color")).toEqual({
       slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+});
+
+describe("checked bg-color → indicator slot", () => {
+  it("routes checkbox-bg-checked (no color) to the indicator slot, dropping the prefix", () => {
+    expect(heuristicSlotMapping("checkbox-bg-checked")).toEqual({
+      slot: "indicator", utilityType: "bg-color", variantAxis: null, variantKey: null,
+    });
+  });
+  it("routes radio-bg-checked-error to the indicator slot", () => {
+    expect(heuristicSlotMapping("radio-bg-checked-error", "color")).toEqual({
+      slot: "indicator", utilityType: "bg-color", variantAxis: "color", variantKey: "error",
+    });
+  });
+  it("leaves switch-bg-checked-error on the base slot (no indicator slot)", () => {
+    expect(heuristicSlotMapping("switch-bg-checked-error", "color")).toEqual({
+      slot: "base", utilityType: "bg-color", variantAxis: "color", variantKey: "error", statePrefix: "checked",
+    });
+  });
+  it("does not move a checked border (ring-color) off base", () => {
+    expect(heuristicSlotMapping("checkbox-border-checked")).toEqual({
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null, statePrefix: "checked",
     });
   });
 });
