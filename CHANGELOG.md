@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.19.0] — 2026-06-14
+
+Honour part aliases in slot routing — a Figma part name (`row`, `divider`, `check`, `dot`) routes to
+its Nuxt slot, so `radio-dot-*` tokens map to the `indicator` slot instead of reading as NULL.
+
+### Changed
+
+- **`parseSegments`' `slotPrefix` seam consults `FIGMA_NUXT_PART_ALIAS`.** The grammar's sub-element
+  routing already matched a segment that is exactly a Nuxt slot; it now also honours the curated
+  Figma→Nuxt rename map (`{ row→tr, divider→separator, check→icon, dot→indicator }`) — exact match
+  first, then the alias to the Nuxt slot name. This unblocks the 5 `radio-dot-*` tokens (`color`,
+  `color-disabled`, `color-error`, `color-success`, `size-md` → the `indicator` slot), including the
+  two Bucket C stragglers `radio-dot-color-{error,success}`. Additive: the alias fires only when an
+  exact match fails and the alias target is a real slot of the component.
+- **The `unsupported-part` "rename X→Y" hint skips aliased-routable parts.** Since the grammar now
+  routes these parts, the scanner's rename suggestion (`up-table-row`, `up-table-divider`,
+  `up-radio-dot`) is obsolete and is retired. Genuinely-foreign parts (e.g. chip's `label`/`close`,
+  which are not in the alias map) are still flagged.
+
+### Known boundaries
+
+- `table-row-hover-bg` / `table-row-selected-bg` (a mid-token state — `row-hover-bg`) and
+  `table-divider` (no utility segment after the slot) stay NULL — separate token-shape issues the
+  alias does not touch, now silent (no misleading rename hint). Deferred to a future state-ordering /
+  bare-slot effort.
+- The committed `components/` fixture has the `table-row-*` / `table-divider` tokens (so the
+  `build:tokens` rename hints disappear) but no `radio-dot-*`; the unit tests on synthetic ids are
+  authoritative for the new mappings.
+
 ## [0.18.0] — 2026-06-14
 
 Sidebar as a known-custom component (Bucket D, part 2) — the export's `sidebar` tokens emit a custom
