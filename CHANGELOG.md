@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.24.0] — 2026-06-14
+
+Progress component recipe — the `progress-fill-bg` / `progress-track-bg` tokens now route to their
+Nuxt UI v4 slots, completing the `ui.progress` recipe (6/6 tokens mapped, was 4/6).
+
+### Added
+
+- **`progress` registered in `NUXT_SLOTS`** (`root, base, indicator, status, steps, step`) and two
+  `FIGMA_NUXT_PART_ALIAS` entries — `fill → indicator`, `track → base`. The Figma part names route to
+  the Nuxt slots via the v0.19.0 alias seam: `progress-fill-bg` → `slots.indicator` (the fill bar),
+  `progress-track-bg` → `slots.base` (the rail). `progress-radius` (→ `slots.base rounded`) and
+  `progress-height-{sm,md,lg}` (→ `variants.size`) already mapped. Purely additive grammar vocabulary;
+  no renderer / scanner / allow-list change (progress was already allow-listed).
+
+### Notes
+
+- Verified against the live export: `slots.base` (track bg + radius), `slots.indicator` (fill bg),
+  `variants.size` sm/md/lg → `h-[4px]`/`h-[8px]`/`h-[12px]`.
+- The aliases are global but ripple-free: `fill`/`track` appear on *only* `progress` in the export, and
+  an alias fires only when its target slot exists for the component.
+- **`tooltip` / `popover` were checked and have zero tokens** in the export — not registered (would be
+  speculative vocab). **`kbd`** already emits a correct `slots.base` recipe (Nuxt base slot *is* `base`)
+  — unchanged.
+
 ## [0.23.0] — 2026-06-14
 
 Inspector badge parity — the live view now classifies typography-role and layout-primitive tokens as
