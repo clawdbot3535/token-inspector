@@ -926,3 +926,11 @@ describe("per-component default base slot", () => {
     expect(heuristicSlotMapping("button-bg")?.slot ?? "base").toBe("base");
   });
 });
+
+describe("overlay slot vs overlay-bg utility", () => {
+  it("routes modal-overlay-bg to the overlay slot, not the overlay-bg base utility", () => {
+    const m = heuristicSlotMapping("modal-overlay-bg");
+    expect(m?.slot).toBe("overlay");
+    expect(m?.utilityType).toBe("bg-color");
+  });
+});

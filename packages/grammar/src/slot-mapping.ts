@@ -468,7 +468,14 @@ export function heuristicSlotMapping(
   // 1) Normal mapping — no sub-element routing. icon-size and every existing
   //    rule win here, so this path is regression-free.
   const normal = matchParsed(parsed, valueType);
-  if (normal) return normal;
+  // An `overlay` slot (e.g. modal) takes precedence over the `overlay-bg` base
+  // utility: when the normal pass matched overlay-bg but the component actually
+  // has an `overlay` slot, fall through to the slot fallback below so the token
+  // routes to `slots.overlay` instead of colliding with the content bg.
+  const overlayShadowsSlot =
+    normal?.utilityType === "overlay-bg" &&
+    (nuxtSlotsFor(parsed.component)?.has("overlay") ?? false);
+  if (normal && !overlayShadowsSlot) return normal;
 
   // 2) Fallback: route a leading segment that EXACTLY matches a routable slot of
   //    this component — its Nuxt slots, plus any custom extraSlots. No aliasing —
