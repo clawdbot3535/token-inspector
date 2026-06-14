@@ -606,16 +606,13 @@ describe("scanGraph — unsupported-part hint (slot inventory)", () => {
     expect(report.issues.find((i) => i.kind === "unsupported-part" && (i.id === "up-checkbox-size" || i.id === "up-checkbox-checked"))).toBeUndefined();
   });
 
-  it("suggests the Nuxt slot name for a known naming mismatch (table row → tr)", () => {
+  it("does not flag an aliased-routable part (table row → tr); the grammar routes it", () => {
     const graph = makeGraph([
       makeNode({ id: "table-base-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
       makeNode({ id: "table-row-hover-bg", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
     ]);
     const report = scanGraph(graph, { components: ["table"] });
-    const hit = report.issues.find((i) => i.kind === "unsupported-part" && i.id === "up-table-row");
-    expect(hit).toBeDefined();
-    expect(hit!.message).toContain("`tr`");
-    expect(hit!.message.toLowerCase()).toContain("rename");
+    expect(report.issues.find((i) => i.kind === "unsupported-part" && i.id === "up-table-row")).toBeUndefined();
   });
 });
 

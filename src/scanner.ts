@@ -178,7 +178,11 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     const mapped = mappedSecondSegByComponent.get(comp) ?? new Set<string>();
     const byPart = new Map<string, string[]>();
     for (const { seg, id } of nullToks) {
-      if (mapped.has(seg) || slots.has(seg) || NON_PART_SEGMENTS.has(seg)) continue;
+      const aliasTarget = FIGMA_NUXT_PART_ALIAS.get(seg);
+      if (
+        mapped.has(seg) || slots.has(seg) || NON_PART_SEGMENTS.has(seg) ||
+        (aliasTarget !== undefined && slots.has(aliasTarget))
+      ) continue;
       const arr = byPart.get(seg) ?? [];
       arr.push(id);
       byPart.set(seg, arr);
