@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.23.0] — 2026-06-14
+
+Inspector badge parity — the live view now classifies typography-role and layout-primitive tokens as
+`theme`, matching the `--text-*` / `--container-*` / `--spacing-*` / `--radius-*` vars the renderer
+emits (v0.20.0 + v0.21.0). Closes the loose end shared by those two features.
+
+### Fixed
+
+- **Typography roles and layout primitives no longer read as `skip` in the Inspector.** They emit
+  `@theme` vars in the CLI/download but were authored in the `global` source → component layer, so
+  `classifyToken` skipped them — the row badge showed `skip`, the summary counted them under
+  `skipped`, and the detail panel showed a false "⚠ No Tailwind utility mapping". `useClassifications`
+  now overrides those tokens to the existing `theme-static` kind (via the renderer pre-passes
+  `collectTypographyComposites` / `collectLayoutPrimitives`), so the badge, summary count, filter, and
+  detail panel (CSS variable + value + Copy var()) all reflect the real emit.
+
+### Notes
+
+- One seam: a pure `buildInspectorClassifications(graph)` in `src/app/classifications.ts` that everything
+  downstream already consumes. No new `ClassificationKind`, no `classify-token.ts` or renderer change,
+  CLI untouched.
+- Reuses the existing `theme` badge — these genuinely are theme vars.
+- Deduped page-width tokens (e.g. `page-max-width-narrow`, folded into `--container-narrow`) and
+  component-recipe tokens (card/dropdown/modal/button/…, which already surface their recipe classes)
+  correctly stay `skip`.
+
 ## [0.22.0] — 2026-06-14
 
 Component recipes for `card` / `dropdown` / `modal` — a per-component default base slot so their
