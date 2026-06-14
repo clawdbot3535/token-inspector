@@ -9,6 +9,7 @@
 import type { TextRenderer, TokenGraph } from "../token-graph.js";
 import { LineBuilder } from "./line-builder.js";
 import { classifyGraph, type Classification } from "../classify-token.js";
+import { collectTypographyComposites } from "./typography-composites.js";
 
 type SectionKey =
   | "primitive-colors"
@@ -57,6 +58,18 @@ export const tokensCssRenderer: TextRenderer = {
       const node = graph.nodes.get(tokenId);
       if (!node) continue;
       bucketize(node.id, node.type, classification, sections, darkOverrides);
+    }
+
+    // Typography roles (typography-<role>-*) live in the component layer and are
+    // skipped by classifyToken; re-surface the type-scale roles as Tailwind v4
+    // composite --text-<role> custom properties.
+    for (const entry of collectTypographyComposites(graph)) {
+      push(sections, "non-default-font", {
+        cssName: entry.cssName,
+        value: entry.value,
+        tokenId: entry.tokenId,
+        modeInvariantHint: false,
+      });
     }
 
     const lb = new LineBuilder();

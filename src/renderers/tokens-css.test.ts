@@ -168,4 +168,24 @@ describe("tokensCssRenderer", () => {
     const result = tokensCssRenderer.render(graph);
     expect(result.text).toContain("--spacing-card-gutter: 18px;");
   });
+
+  it("emits typography roles as composite --text-<role> custom properties", () => {
+    const graph = makeGraph([
+      makeNode({ id: "typography-heading-1-font-size", layer: "component", type: "number", source: "global", base: "72px" }),
+      makeNode({ id: "typography-heading-1-line-height", layer: "component", type: "number", source: "global", base: "64" }),
+      makeNode({ id: "typography-heading-1-letter-spacing", layer: "component", type: "number", source: "global", base: "-0.4px" }),
+      makeNode({ id: "typography-heading-1-font-weight", layer: "component", type: "number", source: "global", base: "500" }),
+    ]);
+    const result = tokensCssRenderer.render(graph);
+    expect(result.text).toContain("--text-heading-1: 72px;");
+    expect(result.text).toContain("--text-heading-1--line-height: 64px;");
+    expect(result.text).toContain("--text-heading-1--letter-spacing: -0.4px;");
+    expect(result.text).toContain("--text-heading-1--font-weight: 500;");
+    // Lands under the Typography section.
+    const typoIdx = result.text.indexOf("Non-default Typography");
+    expect(typoIdx).toBeGreaterThan(-1);
+    expect(result.text.indexOf("--text-heading-1:")).toBeGreaterThan(typoIdx);
+    // Line map points the base line at its real source token.
+    expect(result.lines.has("typography-heading-1-font-size")).toBe(true);
+  });
 });
