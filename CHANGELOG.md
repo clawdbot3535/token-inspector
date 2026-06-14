@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.21.0] — 2026-06-14
+
+Layout-primitive theme export — the `container` / `page` / `grid` / `stack` / `section` primitives now
+emit as Tailwind v4 `@theme` utilities, completing the CSS-var emit that v0.17.0 (Bucket E) deferred.
+
+### Added
+
+- **Layout primitives → Tailwind v4 `@theme` utilities** (`src/renderers/layout-primitives.ts`). The 24
+  `container`/`page`/`grid`/`stack`/`section` tokens are authored in the `global` source → component
+  layer, so `classifyToken` skips them. A renderer-owned pre-pass re-surfaces them via a deterministic
+  id→namespace mapping: widths (`…max-width…`) → `--container-*` (`max-w-*`), gaps/paddings
+  (`…gap…`/`…padding…`) → `--spacing-*` (`p-`/`px-`/`py-`/`m-`/`gap-*`), radii (`…radius…`) →
+  `--radius-*` (`rounded-*`), and `grid-columns` as a plain `--grid-columns` var (no namespace fits a
+  raw column count). `classify-token.ts` is untouched (same rationale as v0.20.0). They land in a new
+  **"Layout Primitives"** `@theme` section.
+
+### Notes
+
+- **Container & page widths dedupe** into one `--container-*` scale (their values are identical:
+  1280/960/720). Guard: if a variant's values ever diverge, both are kept and the non-container family
+  is qualified (`--container-page-<variant>`) — never silently overwritten. The bare `max-width` (no
+  variant) becomes `--container-default`.
+- **Spacing keys drop the axis** (`x`/`y`) — Tailwind spacing is axis-agnostic, so `section-padding-y-lg`
+  → `--spacing-section-lg` and the designer picks `py-section-lg`.
+- Verified against the live 914-token export: 21 entries (24 source − 3 deduped page widths).
+- The Inspector live per-token badge still shows these as `skip: component-layer`; the CLI and in-app
+  download (same renderer) include them. Inspector badge parity is a follow-up.
+- `output/css/tokens.css` is a gitignored build artifact; the local `components/` fixture has none of
+  these tokens (they exist only in the live export), so unit tests on synthetic ids are authoritative.
+
 ## [0.20.0] — 2026-06-14
 
 Typography theme export — the per-role type scale now emits as Tailwind v4 canonical composite
