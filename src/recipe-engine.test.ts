@@ -994,3 +994,27 @@ describe("buildComponentRecipes — accordion", () => {
     expect(recipes["accordion"]?.slots.item).toContain("disabled:text-[#A1A1AA]");
   });
 });
+
+describe("buildComponentRecipes — card / modal slot correctness", () => {
+  it("emits card surface tokens on the root slot", () => {
+    const graph = makeGraph([
+      makeNode({ id: "card-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "card-padding", layer: "component", type: "dimension", source: "global", base: "24px" }),
+    ]);
+    const r = buildComponentRecipes(graph, { components: ["card"] });
+    expect(r.card?.slots.root).toContain("#FFFFFF");
+    expect(r.card?.slots.root).toContain("p-[24px]");
+    expect(r.card?.slots.base ?? "").toBe("");
+  });
+
+  it("emits modal content and overlay on distinct slots (no bg collision)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "modal-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+      makeNode({ id: "modal-overlay-bg", layer: "component", type: "color", source: "global", base: "rgba(0,0,0,0.5)" }),
+    ]);
+    const r = buildComponentRecipes(graph, { components: ["modal"] });
+    expect(r.modal?.slots.content).toContain("#FFFFFF");
+    expect(r.modal?.slots.overlay).toContain("rgba");
+    expect(r.modal?.slots.base ?? "").toBe("");
+  });
+});
