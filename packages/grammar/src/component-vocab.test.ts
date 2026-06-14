@@ -13,6 +13,7 @@ import {
   nuxtSlotsFor,
   NON_PART_SEGMENTS,
   NON_COMPONENT_PREFIXES,
+  KNOWN_CUSTOM_COMPONENTS,
   FIGMA_NUXT_PART_ALIAS,
   SLOT_PAIRS,
 } from "./component-vocab";
@@ -155,5 +156,14 @@ describe("NON_COMPONENT_PREFIXES", () => {
   it("does not list a real Nuxt component", () => {
     expect(NON_COMPONENT_PREFIXES.has("button")).toBe(false);
     expect(NON_COMPONENT_PREFIXES.has("sidebar")).toBe(false);
+  });
+});
+
+describe("KNOWN_CUSTOM_COMPONENTS", () => {
+  it("maps sidebar to its routable sub-element slots", () => {
+    expect(KNOWN_CUSTOM_COMPONENTS.get("sidebar")).toEqual(["item"]);
+  });
+  it("does not list a real Nuxt component", () => {
+    expect(KNOWN_CUSTOM_COMPONENTS.has("button")).toBe(false);
   });
 });

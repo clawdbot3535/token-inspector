@@ -145,6 +145,16 @@ export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined
 }
 
 /**
+ * Components with no Nuxt UI recipe that the inspector emits as hand-anatomy
+ * custom recipes (custom-components.ts), independent of the scanner's
+ * `component-looks-custom` flag. Maps component → its routable sub-element slots
+ * (used as extraSlots; base-level tokens use the default `base` slot).
+ */
+export const KNOWN_CUSTOM_COMPONENTS: ReadonlyMap<string, readonly string[]> = new Map([
+  ["sidebar", ["item"]],
+]);
+
+/**
  * Top-level token prefixes that are layout / type-scale primitives, not Nuxt
  * UI components. They land in the component layer (authored in the `global`
  * source) but belong to the theme/CSS layer — the scan forecast reports them as
