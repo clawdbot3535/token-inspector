@@ -392,3 +392,28 @@ describe("appConfigRenderer — accordion", () => {
     expect(customComponents.has("accordion")).toBe(false);
   });
 });
+
+describe("customComponentsRenderer — sidebar (known-custom)", () => {
+  it("emits a sidebarRecipe with base + item slots and an active prefix", () => {
+    const sidebarSources: SourceFile[] = [
+      {
+        name: "global",
+        data: {
+          sidebar: {
+            bg: { $type: "color", $value: "#FFFFFF" },
+            item: {
+              text: { $type: "color", $value: "#18181B" },
+              bg: { active: { $type: "color", $value: "#EEF2FF" } },
+            },
+          },
+        },
+      },
+    ];
+    const g = buildGraph(sidebarSources);
+    const customParts = customPartsByComponent({ issues: [] });
+    const out = customComponentsRenderer.render(g, { customParts });
+    expect(out.text).toContain("export const sidebarRecipe");
+    expect(out.text).toContain("item:");
+    expect(out.text).toMatch(/active:/);
+  });
+});

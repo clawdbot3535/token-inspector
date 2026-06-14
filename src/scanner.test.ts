@@ -828,3 +828,20 @@ describe("scanGraph — non-component prefixes (Bucket E)", () => {
     expect(report.forecast.unmappedComponentPrefixes).not.toContain("grid");
   });
 });
+
+describe("customPartsByComponent — known-custom registry (sidebar)", () => {
+  it("seeds sidebar even with no scanner flags", () => {
+    const map = customPartsByComponent({ issues: [] });
+    expect(map.get("sidebar")).toEqual(["item"]);
+  });
+
+  it("includes both a registry component and a scanner-flagged one", () => {
+    const graph = makeGraph([
+      makeNode({ id: "chip-label-text", layer: "component", type: "color", source: "global", base: "#52525B" }),
+      makeNode({ id: "chip-close-bg", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const map = customPartsByComponent(scanGraph(graph, { components: ["chip"] }));
+    expect(map.get("sidebar")).toEqual(["item"]);
+    expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
+  });
+});

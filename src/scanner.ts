@@ -17,7 +17,7 @@ import {
   utilityPrefix,
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
-import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
+import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, KNOWN_CUSTOM_COMPONENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
 import { detectPossibleTypos } from "./data-quality.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
@@ -788,6 +788,9 @@ export function customPartsByComponent(
   report: { issues: ReadonlyArray<ScanIssue> },
 ): ReadonlyMap<string, readonly string[]> {
   const out = new Map<string, string[]>();
+  for (const [component, parts] of KNOWN_CUSTOM_COMPONENTS) {
+    out.set(component, [...parts]);
+  }
   for (const i of report.issues) {
     if (i.kind !== "component-looks-custom") continue;
     if (i.componentName === undefined || i.customParts === undefined) continue;
