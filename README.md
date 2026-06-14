@@ -7,13 +7,18 @@ single in-memory token graph, surfaces it through a searchable inspector
 (alias chains, used-by lookups, issues), and renders out:
 
 - A lean `tokens.css` with a Tailwind v4 `@theme` block plus `.dark` overrides
-  for mode-variant semantic tokens.
+  for mode-variant semantic tokens, the typography type-scale as composite
+  `--text-<role>` utilities (font-size + paired `--line-height` / `--letter-spacing`
+  / `--font-weight`), and the layout primitives (`--container-*` / `--spacing-*`
+  / `--radius-*`, plus a `--grid-columns` var).
 - A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus component
-  recipes for the standard set (`button`, `badge`, `input`, `card`, … — 15
+  recipes for the standard set (`button`, `badge`, `input`, `card`, … — 16
   components): slots, size / color-role / visual variants (`solid` / `outline`
   / `ghost` / `link`) with pseudo-class state prefixes, derived from your Figma
   component tokens. Color utilities resolve to `var(--<semantic-id>)` references
   so dark-mode overrides cascade automatically.
+- A `custom-components.ts` with `<name>Recipe` exports for components that have
+  no Nuxt UI v4 pendant (e.g. `chip`, `sidebar`), kept out of `ui.*`.
 
 100% client-side. No backend, no upload, nothing leaves the browser tab.
 
@@ -29,6 +34,7 @@ default (no output) or extends Tailwind's `@theme` as a static value:
 | Mode-invariant matching Tailwind default | Nothing — use the Tailwind utility |
 | Mode-invariant not matching Tailwind default | `@theme` extension |
 | Component-layer (button-*, badge-*, …) | `app.config.ts` recipe, not CSS var |
+| Type-scale / layout primitive (typography-*, container-*, grid-*, …) | `@theme` utility (`--text-<role>`, `--container-*`, `--spacing-*`, `--radius-*`) |
 
 This keeps `tokens.css` lean (~70% smaller than the legacy output) and
 moves component customization to Nuxt UI's recipe layer where it belongs.
@@ -41,34 +47,39 @@ tokens fall into the "mode-invariant" rows above — they emit as single-value
 they stay invariant by construction. Nuxt UI v4 / Tailwind have no first-class
 concept for this; the absence of `dark:` is the convention.
 
+**Typography & layout primitives** authored in the `global` source (`typography-heading-1-*`,
+`container-*`, `grid-*`, `stack-*`, `section-*`) are component-layer but belong to the theme: they
+emit as Tailwind v4 `@theme` utilities. The per-role type scale becomes the canonical composite form
+(`--text-heading-1` + `--text-heading-1--line-height` / `--letter-spacing` / `--font-weight`); widths
+→ `--container-*` (`max-w-*`), gaps/paddings → `--spacing-*`, radii → `--radius-*`.
+
 **Out of token scope:**
 
-- **Fonts** — primitive `fontFamily` tokens (e.g. `font-family/display = Inter`)
-  are recognised; component `font-family` tokens currently emit as Tailwind
-  arbitrary classes (`font-[Inter]`). A proper `@theme { --font-display: … }`
-  pipeline that turns them into named `font-display` utilities is v0.5.0+ work.
+- **`font-family` component tokens** still emit as Tailwind arbitrary classes
+  (`font-[Inter]`); primitive `fontFamily` tokens (e.g. `font-family/display`)
+  are recognised. A named `--font-display` namespace is future work.
 - **Icons** are not design tokens. They live as Figma component instances
   (instance-swap) and as Nuxt UI component props
   (`<UButton icon="i-lucide-rocket" />`); the inspector's `figma-mapping.json`
   only carries a `defaultIcon` for the live preview.
 
-**Standard vs custom components (`custom/<name>/…`):** the allow-list is the
-set of *supported targets* (the 15 Nuxt UI v4 components), not "always
-emitted" — a component without tokens is silently skipped. Components whose
-Figma semantics diverge from Nuxt UI (e.g. a classic chip while Nuxt's
-`UChip` is an indicator dot; or a custom `sidebar` with no Nuxt pendant) take
-the path prefix `custom/<name>/…` in Figma. They show as honest WIP today;
-v0.5.0+ promotes them into a dedicated `customRecipes` section in
-`app.config.ts` (outside `ui.*`).
+**Standard vs custom components:** the allow-list is the set of *supported
+targets* (the 16 Nuxt UI v4 components), not "always emitted" — a component
+without tokens is silently skipped. Components whose Figma semantics diverge
+from Nuxt UI (e.g. a classic `chip` while Nuxt's `UChip` is an indicator dot;
+or a `sidebar` with no Nuxt pendant) emit into a separate
+`output/nuxt/custom-components.ts` as `export const <name>Recipe = { slots,
+variants }` — kept out of `ui.*` so they don't masquerade as Nuxt UI recipes.
 
 ## What gets written
 
 ```
 output/
 ├── css/
-│   └── tokens.css        # @theme + .dark overrides
+│   └── tokens.css            # @theme (+ typography & layout primitives) + .dark overrides
 └── nuxt/
-    └── app.config.ts     # Nuxt UI v4 color roles + button recipe
+    ├── app.config.ts         # Nuxt UI v4 color roles + component recipes
+    └── custom-components.ts  # <name>Recipe for components with no Nuxt UI pendant
 ```
 
 ## Build
@@ -123,15 +134,19 @@ The UI shows:
   Collapse-all and the visible-token count
 - **Classification badges** (`tailwind`, `theme`, `mode-var`, `skip`)
   on every leaf, plus filter chips and a summary panel with
-  per-classification counts (clickable as quick filters)
+  per-classification counts (clickable as quick filters). The badge
+  reflects the real emit: typography roles and layout primitives that
+  become `@theme` vars show as `theme`, not `skip`
+
 - **Token detail** panel showing alias chains, used-by, and an
   **Output** section that highlights the assigned Tailwind class in a
   primary pill (`tokenId → gap-2`) or a warning pill when no mapping
   exists yet
 - **Click a component group** in the tree → the middle pane focuses
-  the preview on that component. Today only `button` has a rendered
-  preview; other components surface an info pill until their own live
-  preview lands (`LiveBadge`/`LiveInput`/…, v0.5.0+)
+  the preview on that component. The form controls have bespoke live
+  previews (`LiveButton`, `LiveInput`, `LiveBadge`, `LiveSwitch`,
+  `LiveCheckbox`, `LiveRadio`, plus `textarea` via `LiveInput`);
+  components without one surface an info pill
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
@@ -162,12 +177,14 @@ The UI shows:
   - **Output forecast** — a summary of how many tokens will emit
     `@theme` CSS vars vs match a Tailwind default (no output) vs
     land in the `app.config.ts` recipe layer
-  The recipe output now covers the full standard component set:
+  The recipe output covers the full standard component set:
   `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
   `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
-  `progress`. Sub-element-heavy components (`nav`, `dropdown`,
-  `table`, `progress`, and the form-control internals) are partially
-  mapped today; complete slot coverage is planned for v0.5.0+.
+  `progress`, `accordion`. Sub-element routing maps each component to
+  its real Nuxt UI v4 slots (`card → root`, `dropdown`/`modal →
+  content` + `item`/`overlay`, `progress → base`/`indicator`, a
+  `checked` fill → `indicator`). A handful of odd-shaped tokens stay
+  unmapped by design and are listed in the scan; see `CHANGELOG.md`.
 - **Resizable sidebars** — drag the boundaries to resize the panes;
   width persists in `localStorage`
 
@@ -208,25 +225,26 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 ```
 .
 ├── components/             # Figma DTCG token exports (color, light, dark, global, …)
+├── packages/
+│   └── grammar/            # @tg/grammar: slot-mapping, component-vocab, scaffold, typo-detect
 ├── scripts/
 │   ├── build-cli.ts        # Typed CLI: graph → renderers → output/
 │   └── extract-tailwind-defaults.mjs  # Re-run after Tailwind upgrades
 ├── src/
 │   ├── classify-token.ts   # Pure classification engine
 │   ├── resolve-token.ts    # Alias-chain resolver
-│   ├── slot-mapping.ts     # Figma token → Nuxt UI slot/variant heuristic
-│   ├── recipe-engine.ts    # Walks component tokens → Nuxt UI recipes
+│   ├── recipe-engine.ts    # Walks component tokens → Nuxt UI recipes (consumes @tg/grammar)
 │   ├── tailwind-defaults.* # Generated lookup tables + public matchers
 │   ├── token-graph.ts      # Type contract: TokenNode, TokenGraph, …
 │   ├── build-graph.ts      # Source files → TokenGraph (pure builder)
-│   ├── renderers/          # tokens-css.ts, app-config.ts, line-builder.ts
+│   ├── renderers/          # tokens-css.ts, typography-composites.ts, layout-primitives.ts, app-config.ts, custom-components.ts
 │   └── app/                # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
 └── docs/superpowers/       # Spec + plan documents driving the design
 ```
 
 ## Tests
 
-233 tests across the typed pipeline. Run:
+686 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
 
 ```bash
 npm test         # full suite
@@ -254,42 +272,30 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-v0.5.0 ships the first component recipe past `button` — `input`, golden-snapshot
-verified, with a bespoke `LiveInput` preview (leading `search` / trailing
-`chevron-down` icons, JIT-safe inline styles) — plus the cycle-B deviation work:
-component `text` colors emit themeable `var(--…)` again, ring-framed components
-(`input`, `textarea`, `checkbox`, `radio`, `kbd`, `dropdown`, `modal`, `card`, `chip`)
-emit `ring-*` instead of CSS `border-*`, and a `validation-color-via-prop` scan warning
-explains the dropped `error`/`success` border tokens. The sidebar is regrouped into
-collapsible `Components` / `Semantic` / `Primitives` layer sections.
+Current release: **v0.25.0**. The adapter is feature-complete against the live
+914-token Figma export — every token either maps, emits as a theme var, or is a
+documented by-design skip.
 
-Since then **v0.6.0** shipped a large batch: the **scan-area rework**
-(`ScanView` Issues/Readiness/Forecast tabs, severity filter, per-component grouping);
-**D2c** — `button` variant-conditional rings (`RING_FRAMED_VARIANTS`) plus `border-width`
-/`ring-width` utility types; **D2e** — `border-width`=resting / `ring-width`=focus
-semantics, with a component-level resting ring-width paired to its ring-colour so unframed
-variants get no stray ring; **prop-driven states** (`input`/`textarea` `active`→`highlight`
-prop, `state-via-prop` warning); dropping fully-transparent colour emissions; and the
-**Nuxt slot inventory** (`NUXT_SLOTS`) + an `unsupported-part` scan warning with Figma→Nuxt
-rename suggestions.
+What works today:
 
-**v0.7.0** then added live previews for the core form controls (`textarea`/`badge`/`switch`/
-`checkbox`/`radio`, joining `button`/`input`), **sub-element slot routing** (`dropdown-item`/
-`table-th`/`nav-item` → their Nuxt slot by exact match), and the **`capability-gap`** scan hint
-(an uncovered Nuxt slot like `trailingIcon`).
+- **Recipes** for all 16 standard components, routed to their real Nuxt UI v4
+  slots (`card → root`, `dropdown`/`modal → content` + `item`/`overlay`,
+  `progress → base`/`indicator`, a `checked` fill → `indicator`). Components with
+  no Nuxt pendant (`chip`, `sidebar`) emit to `custom-components.ts`.
+- **Theme export** beyond colors: the typography type-scale as composite
+  `--text-<role>` utilities, and the layout primitives (`--container-*` /
+  `--spacing-*` / `--radius-*`).
+- **Inspector parity** — the live classification badges, summary, and detail
+  match what the renderer actually emits (typography / layout tokens read as
+  `theme`, not `skip`).
+- **Git round-trip** (load from a public repo, commit output back via a write
+  PAT), bespoke live previews for the form controls, and a scan view (issues,
+  per-component readiness, output forecast, possible-typo detection).
 
-**v0.8.0** closes the **git workflow round-trip**: **Load from Git** imports Figma tokens straight
-from a public GitHub/GitLab repo URL (token-less), and **Commit to Git** writes the generated
-`tokens.css` + `app.config.ts` back to a repo in one atomic commit (write PAT kept in
-`sessionStorage`).
-
-**v0.9.0** closed the `size` utility grammar gap (token-driven checkbox/radio box and switch-thumb
-sizing), mirrored `icon-size` to `trailingIcon` (`SLOT_MIRROR` — recipes and scanner agree, the
-`capability-gap` misreport is gone), slimmed `App.vue` (1047 → 905; `CommitPanel`/`GitLoader`
-extracted with tests + an app-gate smoke test), and gave the scan-view switch and the `Commit…`
-toggle visible pressed states with ARIA. Still deferred: the aggregate `component-looks-custom`
-flag, the `custom/<name>` layer, a typo detector, and the remaining component recipes. See
-`CHANGELOG.md`.
+The per-version detail lives in the Roadmap table below and in `CHANGELOG.md`.
+Deferred until the export has tokens that need them: a `compoundVariants` emit
+path, `tooltip`/`popover` recipes, and the `data-[state=…]:` prefix form for
+Reka-based components.
 
 ## Roadmap
 
