@@ -205,4 +205,23 @@ describe("tokensCssRenderer", () => {
       expect(result.text.indexOf("--letter-spacing-tight")).toBeGreaterThan(colorIdx);
     }
   });
+
+  it("emits layout primitives under a Layout Primitives section", () => {
+    const graph = makeGraph([
+      makeNode({ id: "container-max-width-narrow", layer: "component", type: "number", source: "global", base: "960px" }),
+      makeNode({ id: "stack-gap-md", layer: "component", type: "number", source: "global", base: "24px" }),
+      makeNode({ id: "section-radius-card", layer: "component", type: "number", source: "global", base: "12px" }),
+      makeNode({ id: "grid-columns", layer: "component", type: "number", source: "global", base: "12" }),
+    ]);
+    const result = tokensCssRenderer.render(graph);
+    const secIdx = result.text.indexOf("Layout Primitives");
+    expect(secIdx).toBeGreaterThan(-1);
+    expect(result.text).toContain("--container-narrow: 960px;");
+    expect(result.text).toContain("--spacing-stack-md: 24px;");
+    expect(result.text).toContain("--radius-section-card: 12px;");
+    expect(result.text).toContain("--grid-columns: 12;");
+    expect(result.text.indexOf("--container-narrow:")).toBeGreaterThan(secIdx);
+    // Line map points each output line at its real source token.
+    expect(result.lines.has("container-max-width-narrow")).toBe(true);
+  });
 });

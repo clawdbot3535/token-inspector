@@ -10,6 +10,7 @@ import type { TextRenderer, TokenGraph } from "../token-graph.js";
 import { LineBuilder } from "./line-builder.js";
 import { classifyGraph, type Classification } from "../classify-token.js";
 import { collectTypographyComposites } from "./typography-composites.js";
+import { collectLayoutPrimitives } from "./layout-primitives.js";
 
 type SectionKey =
   | "primitive-colors"
@@ -17,6 +18,7 @@ type SectionKey =
   | "non-default-spacing"
   | "non-default-radius"
   | "non-default-font"
+  | "layout-primitives"
   | "mode-variant-semantics"
   | "mode-variant-shadows";
 
@@ -26,6 +28,7 @@ const SECTION_HEADERS: ReadonlyArray<readonly [SectionKey, string]> = [
   ["non-default-spacing", "Non-default Spacing"],
   ["non-default-radius", "Non-default Radius"],
   ["non-default-font", "Non-default Typography"],
+  ["layout-primitives", "Layout Primitives"],
   ["mode-variant-semantics", "Mode-variant Semantics (light defaults)"],
   ["mode-variant-shadows", "Mode-variant Shadows"],
 ];
@@ -65,6 +68,18 @@ export const tokensCssRenderer: TextRenderer = {
     // composite --text-<role> custom properties.
     for (const entry of collectTypographyComposites(graph)) {
       push(sections, "non-default-font", {
+        cssName: entry.cssName,
+        value: entry.value,
+        tokenId: entry.tokenId,
+        modeInvariantHint: false,
+      });
+    }
+
+    // Layout primitives (container/page/grid/stack/section) live in the component
+    // layer and are skipped by classifyToken; re-surface them as Tailwind v4
+    // @theme utilities (widths→--container-*, gaps/paddings→--spacing-*, radii→--radius-*).
+    for (const entry of collectLayoutPrimitives(graph)) {
+      push(sections, "layout-primitives", {
         cssName: entry.cssName,
         value: entry.value,
         tokenId: entry.tokenId,
