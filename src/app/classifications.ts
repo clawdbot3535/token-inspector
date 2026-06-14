@@ -10,6 +10,34 @@ import {
   type Classification,
   type ClassificationKind,
 } from "@core/classify-token.js";
+import { collectTypographyComposites } from "@core/renderers/typography-composites.js";
+import { collectLayoutPrimitives } from "@core/renderers/layout-primitives.js";
+
+/**
+ * Inspector classification map: the core classification, plus overrides for the
+ * component-layer tokens the renderer emits as Tailwind v4 @theme vars
+ * (typography roles → --text-*, layout primitives → --container-/--spacing-/--radius-*).
+ * Those would otherwise read as `skip`, diverging from the actual CLI/download
+ * output. Reuses the existing `theme-static` kind so the badge, summary, filter,
+ * and detail panel all reflect the real emit.
+ */
+export function buildInspectorClassifications(
+  graph: TokenGraph,
+): Map<string, Classification> {
+  const out = new Map<string, Classification>(classifyGraph(graph));
+  for (const e of [
+    ...collectTypographyComposites(graph),
+    ...collectLayoutPrimitives(graph),
+  ]) {
+    out.set(e.tokenId, {
+      kind: "theme-static",
+      cssName: e.cssName,
+      value: e.value,
+      modeInvariantHint: false,
+    });
+  }
+  return out;
+}
 
 export interface ClassificationSummary {
   readonly total: number;
@@ -29,7 +57,7 @@ export function useClassifications(
   const classifications = computed<ReadonlyMap<string, Classification>>(() => {
     const g = graph.value;
     if (!g) return new Map();
-    return classifyGraph(g);
+    return buildInspectorClassifications(g);
   });
 
   const summary = computed<ClassificationSummary>(() => {
