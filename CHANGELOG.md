@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.20.0] — 2026-06-14
+
+Typography theme export — the per-role type scale now emits as Tailwind v4 canonical composite
+`--text-<role>` custom properties, and the primitive letter-spacing / line-height tokens are routed
+under Typography instead of leaking into Primitive Colors.
+
+### Added
+
+- **`--text-<role>` composite type scale** (`src/renderers/typography-composites.ts`). The roles
+  `typography-heading-1-*` / `typography-heading-2-*` are authored in the `global` source → component
+  layer, so `classifyToken` skips them. A renderer-owned pre-pass re-surfaces the roles that define a
+  font-size as the Tailwind v4 canonical composite form — `--text-<role>` (font-size) plus
+  `--text-<role>--line-height` / `--letter-spacing` / `--font-weight` companions — which Tailwind
+  consumes to generate a `text-<role>` utility that sets all four at once. `classify-token.ts` is
+  untouched (no new `Classification` kind, which would ripple to four switch sites).
+
+### Changed
+
+- **`sectionFor` routes primitive `--letter-spacing-*` and `--line-height-*` under "Non-default
+  Typography".** They previously fell through to the Primitive Colors fallback because only the
+  `--tracking-` / `--leading-` prefixes were recognised.
+- **The source typo `typography-heading-2-line-heigth` is normalized in the composite output**
+  (`line-heigth` → `--text-heading-2--line-height`) so heading-2 still gets a correctly-named
+  modifier. The scanner's `possible-typo` detector is untouched, so the source repo is still flagged
+  (`build:tokens` keeps warning). Unitless line-height role values get a `px` length (a unitless
+  `--text-*--line-height` would be a CSS multiplier).
+
+### Known boundaries
+
+- **Only roles with a font-size become composites** (`heading-1`, `heading-2`). `typography-body-color`
+  and `typography-label-color` are colors (Tailwind's `--text-*--*` modifiers do not include color),
+  and `typography-label-letter-spacing` has no base font-size — they remain skipped, no behavior change.
+- The Inspector's live per-token badge still shows these roles as `skip: component-layer`; the CLI and
+  the in-app download (same renderer) include the composites. Inspector badge parity is a follow-up.
+- `output/css/tokens.css` is a gitignored build artifact (regenerate with `npm run build:tokens`).
+
 ## [0.19.0] — 2026-06-14
 
 Honour part aliases in slot routing — a Figma part name (`row`, `divider`, `check`, `dot`) routes to
