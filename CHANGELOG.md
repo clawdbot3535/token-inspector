@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.25.0] — 2026-06-15
+
+Checked×color fills route to the `indicator` slot — `checkbox`/`radio` checked-state color tokens now
+emit where Nuxt UI v4 actually styles them. (The `compoundVariants` emit path was investigated and
+deferred — see Notes.)
+
+### Changed
+
+- **A `checked` bg-color fill routes to the `indicator` slot** (`@tg/grammar`, `matchParsed`). The 6
+  `checkbox/radio/switch-bg-checked-{error,success}` tokens previously emitted
+  `variants.color.<role>.base: "checked:bg-[…]"` — a `checked:` pseudo-prefix that Nuxt UI v4's
+  Reka-based checkbox/radio don't use. They now emit `variants.color.<role>.indicator: bg-[…]`
+  (the indicator embodies the checked state, so the prefix is dropped), matching the Nuxt theme. The
+  rule fires only for components with an `indicator` slot (consults `nuxtSlotsFor`), so **switch is
+  unchanged** (no indicator slot — Nuxt keeps its checked fill on `base`). Scoped to `bg-color`:
+  `checkbox-border-checked` (→ ring-color) is unaffected.
+- **`LiveCheckbox` / `LiveRadio` previews** read the checked fill from the `indicator` slot, so the
+  checked cell still renders its background after the routing change.
+
+### Notes
+
+- **`compoundVariants` emit path: deferred.** Probing all 914 export tokens found no `variant×color` /
+  `size×variant` / `color×highlight` tokens — the only input a compoundVariants emit path would
+  consume — so building that infrastructure would serve zero tokens. The 125 `variant+state` tokens
+  already emit correctly (state as a CSS pseudo-prefix within the single variant axis). Revisit when
+  the export gains such tokens.
+- Follow-up: the prop/data-state prefix *form* (`checked:` vs `data-[state=checked]:`) for switch and
+  other Reka components is a broader state-syntax concern, out of scope here.
+- Verified against the live export: checkbox/radio error+success fills on `indicator`; switch unchanged.
+
 ## [0.24.0] — 2026-06-14
 
 Progress component recipe — the `progress-fill-bg` / `progress-track-bg` tokens now route to their
