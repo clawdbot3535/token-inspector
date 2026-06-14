@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.22.0] — 2026-06-14
+
+Component recipes for `card` / `dropdown` / `modal` — a per-component default base slot so their
+bare tokens route to the correct Nuxt UI v4 slot, plus modal's overlay backdrop on its own slot.
+
+### Changed
+
+- **Per-component default base slot** (`@tg/grammar`). Bare component tokens previously defaulted to
+  `slots.base`, but Nuxt UI v4 names the styling base differently per component. A new
+  `COMPONENT_BASE_SLOT` map (`card → root`, `dropdown → content`, `modal → content`) + `defaultBaseSlot()`
+  helper drives `matchParsed`'s default; every other component keeps `base`. This corrects the existing
+  (already allow-listed) emit: `card` surface tokens now land on `slots.root`, `dropdown`/`modal` bare
+  tokens on `slots.content`. `card`/`modal` are added to `NUXT_SLOTS` (dropdown was already there).
+- **An `overlay` slot wins over the `overlay-bg` utility.** `modal-overlay-bg` matched the `overlay-bg`
+  base utility and collided with the modal content `bg` on one slot. A guard in `heuristicSlotMapping`
+  routes it to `slots.overlay` when the component has an `overlay` slot (only modal today — zero ripple).
+
+### Notes
+
+- Verified against the live export: `card` → `slots.root`; `dropdown` → `slots.content` + `slots.item`;
+  `modal` → `slots.content` + `slots.overlay` (no bg collision).
+- Deferred stragglers (NULL by design): `dropdown-item-hover-bg` (mid-token state — a duplicate of
+  `dropdown-item-bg-hover`, same value) and `dropdown-item-text-muted` (`muted` is not a color-role key).
+- No `COMPONENT_ALLOW_LIST` or renderer change — the three were already allow-listed; this fixes the
+  slot they emit to.
+
 ## [0.21.0] — 2026-06-14
 
 Layout-primitive theme export — the `container` / `page` / `grid` / `stack` / `section` primitives now
