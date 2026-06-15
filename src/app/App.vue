@@ -515,6 +515,7 @@ function downloadAll() {
             {{ nodeCount }} nodes
             <button
               v-if="issueCount > 0"
+              data-testid="scan-toggle"
               class="text-warning hover:underline rounded px-1"
               :class="state.view.value === 'scan' ? 'bg-zinc-100 dark:bg-zinc-800 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700' : ''"
               :aria-pressed="state.view.value === 'scan'"
