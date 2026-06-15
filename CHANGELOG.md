@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.28.2] — 2026-06-15
+
+### Tests
+
+- **`App.vue` view-state characterization** — `src/app/App.view-state.test.ts` mounts the app
+  and asserts the four app-level view-state behaviors: the theme toggle flips the
+  `document.documentElement` `dark`/`light` class, the live-filter chip flips its `aria-pressed`,
+  the output tabs switch the selected tab, and selecting a component-layer node auto-switches the
+  output tab to `app.config.ts`.
+
+### Changed
+
+- Output-tab buttons now carry `role="tab"` + `aria-selected` (a tablist a11y fix and the test
+  seam). Additive — no behavior change.
+
 ## [0.28.1] — 2026-06-15
 
 ### Tests
