@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.27.0] — 2026-06-15
+
+Live previews for the five multi-element components — `modal`, `dropdown`, `accordion`, `nav`,
+`table` now render in the Inspector instead of showing an info pill.
+
+### Added
+
+- **`LiveModal`** — a content panel on a dimmed overlay (`content` + `overlay` slots).
+- **`LiveDropdown`** — a menu surface (`content`) with three item rows: resting / hovered / active
+  (the `item` slot's `hover:`/`active:` states promoted to applied styles via `projectToState`).
+- **`LiveAccordion`** — header rows in resting + disabled states (`item` slot).
+- **`LiveNav`** — one item row per variant (`outline`/`ghost`/`link`); the colours live in the
+  `variants.variant.*.item` classes, so each variant is rendered from its merged base+variant classes.
+- **`LiveTable`** — a mini table: header (`th`) + body (`td`) cells inside the `base` wrapper.
+
+All reuse the v0.26.0 pattern (`usePreviewRecipe` + `extractArbitrary(projectToState(...))` → inline
+styles, JIT-safe), show a fallback message when the component has no tokens, and are wired into both
+Inspector preview panes.
+
+### Notes
+
+- Representative fidelity — each preview shows the states/variants its recipe defines, not an
+  exhaustive matrix.
+- Tier-3 custom-recipe previews (`chip`, `sidebar`, rendered from `custom-components.ts` rather than
+  `ui.*`) remain deferred, along with the data-blocked items (`tooltip`/`popover`, `compoundVariants`).
+
 ## [0.26.0] — 2026-06-15
 
 Live previews for `card`, `kbd`, and `progress` — you can now *see* these recipes render in the
