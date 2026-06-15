@@ -1130,6 +1130,9 @@ function downloadAll() {
               <button
                 v-for="tab in outputTabs"
                 :key="tab"
+                role="tab"
+                :data-testid="`tab-${tab}`"
+                :aria-selected="state.outputTab.value === tab"
                 class="px-3 py-2 text-xs border-r border-default whitespace-nowrap"
                 :class="{
                   'bg-elevated font-medium': state.outputTab.value === tab,
