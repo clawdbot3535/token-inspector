@@ -2,6 +2,15 @@ import { describe, it, expect } from "vitest";
 import { extractArbitrary } from "./extract-arbitrary.js";
 
 describe("extractArbitrary", () => {
+  // Regression: the recipe engine emits a single padding token as the all-sides
+  // shorthand `p-[..]`. ARBITRARY_TO_CSS knew px/py/pl/pr/pt/pb but not `p`, so
+  // card/modal/dropdown/switch/checkbox/radio previews rendered with no padding.
+  it("translates arbitrary all-sides padding (p-[..]) into inline padding", () => {
+    const { classes, style } = extractArbitrary("p-[24px]");
+    expect(style.padding).toBe("24px");
+    expect(classes).toBe("");
+  });
+
   it("translates arbitrary padding into inline styles, dropping the class", () => {
     const { classes, style } = extractArbitrary("px-[10px] py-[8px]");
     expect(style.paddingLeft).toBe("10px");

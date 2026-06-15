@@ -22,6 +22,7 @@ import {
 
 // Tailwind utility prefix → CSS property mapping for arbitrary-value classes.
 const ARBITRARY_TO_CSS: Readonly<Record<string, ReadonlyArray<keyof CSSProperties>>> = {
+  p: ["padding"],
   px: ["paddingLeft", "paddingRight"],
   py: ["paddingTop", "paddingBottom"],
   pl: ["paddingLeft"],
