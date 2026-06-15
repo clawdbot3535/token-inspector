@@ -93,6 +93,20 @@ describe("buildComponentRecipes", () => {
     expect(recipes.button!.variants.size?.md?.base).toContain("py-2");
   });
 
+  it("routes accordion item icon-size to the icon slots, not the item box", () => {
+    const graph = makeGraph([
+      makeNode({ id: "accordion-item-icon-size", layer: "component", type: "number", source: "global", base: "20" }),
+      makeNode({ id: "accordion-item-padding-y", layer: "component", type: "number", source: "global", base: "14" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["accordion"] });
+    const slots = recipes.accordion?.slots ?? {};
+    // the item box must NOT carry a size-* utility (that collapsed it to 20px)
+    expect(slots.item ?? "").not.toContain("size-");
+    // the icon size lands on leadingIcon (mirrored to trailingIcon by SLOT_MIRROR)
+    expect(slots.leadingIcon ?? "").toContain("size-");
+    expect(slots.trailingIcon ?? "").toContain("size-");
+  });
+
   it("emits slots.base for non-variant tokens", () => {
     const graph = makeGraph([
       makeNode({
