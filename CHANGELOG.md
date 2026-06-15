@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.28.8] — 2026-06-15
+
+### Fixed
+
+- **Accordion preview item collapsed to ~20px** — `accordion-item-icon-size` was emitted as
+  `size-5` on `slots.item` (the item box), because `matchParsed` forced the icon rule's
+  `leadingIcon` slot onto the `item` sub-element prefix. An `icon-size` utility now keeps the
+  icon slot when the sub-element prefix is a non-icon container and the component actually has
+  that icon slot (`nuxtSlotsFor(component).has("leadingIcon")`), so the size lands on
+  `leadingIcon` / `trailingIcon` (the chevron) and the item renders at its natural width
+  (verified: 20px → 384px in the preview). An explicit icon-slot prefix
+  (`button-trailingIcon-icon-size`) is respected unchanged; nav / chip / sidebar (no
+  `leadingIcon` slot) are unchanged.
+
+### Notes
+
+- Remaining accordion follow-ups: `accordion-item-text-opened` (open-state colour, needs the
+  `data-[state=open]:` prefix form) and `nav-item-icon-size` (nav's icon slot is
+  `linkLeadingIcon`) are still routed as before — separate, lower-priority work.
+
 ## [0.28.7] — 2026-06-15
 
 ### Fixed
