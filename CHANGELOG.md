@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.28.9] — 2026-06-15
+
+### Added
+
+- **`data-[state=open]:` state prefix** — `accordion-item-text-opened` (the accordion item's
+  text colour when expanded) previously mapped to `null` and was dropped. The grammar now
+  recognises the `opened` / `open` state and maps it to Reka's `data-[state=open]` data-variant,
+  so the token emits `data-[state=open]:text-[…]` on `slots.item` (matching Nuxt UI v4's
+  Reka-driven open state). The recipe engine already prepends the prefix verbatim, so no engine
+  change was needed. Existing pseudo-class states (hover/focus/active/disabled/checked) are
+  unchanged.
+
+### Notes
+
+- Rendering the opened state in the live preview is separate follow-up (`projectToState` /
+  `LiveAccordion` have no open/closed projection yet). Other data-state mappings
+  (`active` / `selected` → data-variants) remain a separate semantic decision.
+
 ## [0.28.8] — 2026-06-15
 
 ### Fixed
