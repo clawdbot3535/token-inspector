@@ -152,6 +152,19 @@ export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined
 }
 
 /**
+ * The component's leading-icon slot — `leadingIcon` for most, `linkLeadingIcon` (nav) or
+ * `itemLeadingIcon` (dropdown) for link/item-scoped anatomies, or undefined if it has none.
+ * `icon-size` routes here instead of collapsing a sub-element base (accordion-item-icon-size,
+ * nav-item-icon-size). Derived from NUXT_SLOTS so new components need no extra wiring.
+ */
+export function leadingIconSlotFor(component: string): string | undefined {
+  const slots = nuxtSlotsFor(component);
+  if (!slots) return undefined;
+  if (slots.has("leadingIcon")) return "leadingIcon";
+  return [...slots].find((s) => /leadingIcon$/i.test(s));
+}
+
+/**
  * The default recipe slot for a component's bare (no sub-element) tokens. Nuxt UI
  * v4 components name their styling base differently — Card's is `root`, Dropdown
  * and Modal's is `content` — whereas most components use `base`.

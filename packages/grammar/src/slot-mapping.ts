@@ -78,7 +78,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, defaultBaseSlot, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, leadingIconSlotFor, defaultBaseSlot, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
 
 interface ParsedSegments {
   component: string;
@@ -445,17 +445,14 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
           variantKey: entry.variantKey,
         };
       }
-      // icon-size belongs on an icon slot. If the sub-element prefix is ITSELF an
-      // icon slot (button-trailingIcon-icon-size), respect it. Only when the prefix
-      // is a non-icon container (accordion-item-icon-size sizes the chevron, not the
-      // item box) re-route to the icon rule's slot — and only if the component has it
-      // (nav/chip/sidebar lack `leadingIcon` → unchanged, no mis-routing).
-      if (
-        entry.utilityType === "icon-size" &&
-        !/icon$/i.test(slot) &&
-        (nuxtSlotsFor(parsed.component)?.has(entry.slot) ?? false)
-      ) {
-        return entry;
+      // icon-size belongs on the component's leading-icon slot, not the sub-element
+      // container it was named under (accordion-item / nav-item). Route there when the
+      // prefix is NOT itself an icon slot and the component has a leading-icon slot
+      // (leadingIcon / linkLeadingIcon / itemLeadingIcon). chip/sidebar (none) → unchanged;
+      // an explicit icon prefix (button-trailingIcon-icon-size) is preserved by !/icon$/i.
+      if (entry.utilityType === "icon-size" && !/icon$/i.test(slot)) {
+        const iconSlot = leadingIconSlotFor(parsed.component);
+        if (iconSlot) return { ...entry, slot: iconSlot };
       }
       return slot === "base" ? entry : { ...entry, slot };
     }

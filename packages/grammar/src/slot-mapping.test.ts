@@ -79,10 +79,19 @@ describe("heuristicSlotMapping — button", () => {
     });
   });
 
-  it("does NOT re-route icon-size for components without a leadingIcon slot", () => {
-    // nav's icon slot is linkLeadingIcon, not leadingIcon → unchanged (stays on item)
+  it("routes nav-item-icon-size to nav's linkLeadingIcon slot", () => {
     expect(heuristicSlotMapping("nav-item-icon-size")).toEqual({
-      slot: "item",
+      slot: "linkLeadingIcon",
+      utilityType: "icon-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("leaves icon-size on the sub-element when the component has no leading-icon slot", () => {
+    // table has a `td` slot but no *leadingIcon slot → size stays on td (no collapse-fix target)
+    expect(heuristicSlotMapping("table-td-icon-size")).toEqual({
+      slot: "td",
       utilityType: "icon-size",
       variantAxis: null,
       variantKey: null,
