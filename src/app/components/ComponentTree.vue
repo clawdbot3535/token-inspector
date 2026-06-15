@@ -8,6 +8,7 @@
 
 import type { TreeNode } from "../token-tree.js";
 import type { ClassificationKind } from "@core/classify-token.js";
+import { groupHasPreview } from "../preview-component.js";
 import ClassificationBadge from "./ClassificationBadge.vue";
 
 interface Props {
@@ -42,7 +43,7 @@ const props = withDefaults(defineProps<Props>(), { depth: 0, liveOnly: false });
 function hasPreview(path: string): boolean {
   if (props.depth !== 0) return false;
   const component = path.split("/")[0] ?? path;
-  return props.previewComponents?.has(component) ?? false;
+  return groupHasPreview(component, props.previewComponents ?? new Set());
 }
 
 /**

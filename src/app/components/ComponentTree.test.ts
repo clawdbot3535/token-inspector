@@ -42,6 +42,22 @@ describe("ComponentTree — Live preview pill", () => {
   });
 });
 
+describe("ComponentTree — Live pill for -item groups", () => {
+  it("shows the pill on accordion-item when previewComponents has accordion", () => {
+    const nodes = [
+      { kind: "group" as const, label: "accordion-item", path: "accordion-item", count: 18, children: [] },
+      { kind: "group" as const, label: "container", path: "container", count: 4, children: [] },
+    ];
+    const wrapper = mount(ComponentTree, {
+      props: { nodes, previewComponents: new Set(["accordion"]), ...baseProps },
+    });
+    const accRow = wrapper.findAll("button").find((b) => b.text().includes("accordion-item"));
+    expect(accRow!.text()).toContain("Live");
+    const containerRow = wrapper.findAll("button").find((b) => b.text().includes("container"));
+    expect(containerRow!.text()).not.toContain("Live");
+  });
+});
+
 describe("ComponentTree — liveOnly filter", () => {
   it("hides non-preview component groups when liveOnly is true", () => {
     const wrapper = mount(ComponentTree, {
