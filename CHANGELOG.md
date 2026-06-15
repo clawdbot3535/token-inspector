@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.28.6] — 2026-06-15
+
+### Fixed
+
+- **Live previews dropped all-sides padding** — the recipe engine emits a single padding token
+  as the shorthand `p-[..]`, but `extract-arbitrary.ts` mapped only the per-axis forms
+  (`px`/`py`/`pl`/`pr`/`pt`/`pb`), so `p-[24px]` and friends fell through unresolved and rendered
+  as **zero padding** on the `card`, `modal`, `dropdown`, `switch`, `checkbox`, and `radio`
+  previews (content jammed to the edges, a strong deviation from the Figma source). Added `p` →
+  `padding` to `ARBITRARY_TO_CSS`. (The scale-class path already handled `p`; only the
+  arbitrary-value path was missing it.) Regression test added — this is the JIT-class preview
+  pitfall, now guarded for the shorthand.
+
 ## [0.28.5] — 2026-06-15
 
 ### Docs
