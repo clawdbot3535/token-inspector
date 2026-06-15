@@ -159,6 +159,21 @@ describe("App preview routing — Chain 2 (component-group select)", () => {
   });
 });
 
+describe("App preview routing — -item group aliasing", () => {
+  it.each([
+    ["accordion-item", "live-accordion"],
+    ["nav-item", "live-nav"],
+  ])("routes the %s group to %s", async (groupLabel, expected) => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", ""); // Chain 2 (no node selected)
+    tree.vm.$emit("select-component", groupLabel);
+    await flushPromises();
+    expect(wrapper.find(`[data-testid="${expected}"]`).exists()).toBe(true);
+    expect(wrapper.find('[data-testid="live-button"]').exists()).toBe(false);
+  });
+});
+
 describe("App preview routing — Chain 1 (token selected)", () => {
   it.each(NAMES)("routes a selected %s-bg token to its own Live*", async (name) => {
     const wrapper = await mountLoaded();

@@ -45,6 +45,7 @@ import { customPartsByComponent } from "@core/scanner.js";
 import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
+import { previewComponentForGroup, groupHasPreview } from "./preview-component.js";
 import {
   loadFigmaMapping,
   parseFigmaFileUrl,
@@ -186,7 +187,7 @@ const liveCount = computed(() => {
   const componentSection = sections.value.find((s) => s.layer === "component");
   if (!componentSection) return COMPONENTS_WITH_PREVIEW.size;
   return componentSection.tree.filter(
-    (node) => node.kind === "group" && COMPONENTS_WITH_PREVIEW.has(node.label),
+    (node) => node.kind === "group" && groupHasPreview(node.label, COMPONENTS_WITH_PREVIEW),
   ).length;
 });
 
@@ -727,7 +728,7 @@ function downloadAll() {
                   @select="(id: string) => (state.selection.value = id)"
                   @toggle="toggleExpanded"
                   @select-component="(name: string) => {
-                    selectedComponent = name;
+                    selectedComponent = previewComponentForGroup(name, COMPONENTS_WITH_PREVIEW);
                     state.selection.value = null;
                   }"
                 />
