@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.28.0] — 2026-06-15
+
+Live previews for `chip` and `sidebar` — the two custom-recipe components. **Every component now has
+a live preview in the Inspector.**
+
+### Added
+
+- **`useCustomPreviewRecipe` composable** — like `usePreviewRecipe`, but builds via
+  `buildCustomRecipes(graph, customParts, {})` instead of `buildComponentRecipes`, so previews can
+  render components that emit to `custom-components.ts` rather than `app.config.ts`. The shared size
+  logic is factored into `representativeSizeClasses(recipe)`, used by both composables.
+- **`LiveChip`** — a pill per colour: `default` + each `variants.color.*` (`error`, `success`), each
+  rendering `slots.base` + `slots.label` + a `×` from `slots.close`.
+- **`LiveSidebar`** — a `slots.base` panel containing three `slots.item` rows (resting / hover /
+  active).
+
+Both take a `customParts` prop (App.vue's existing `customPartsByComponent` computed) and are wired
+into both Inspector preview panes.
+
+### Notes
+
+- The chip `close` slot carries an export data quirk (`close-color` tokens map to `size-[#hex]`);
+  rendered as-is, harmless (the junk class doesn't style the `×`).
+- This completes the preview work: **every standard and custom component renders.** Only the
+  data-blocked items remain — `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the
+  `data-[state=…]:` prefix form — all waiting on tokens that don't exist in the export yet.
+
 ## [0.27.0] — 2026-06-15
 
 Live previews for the five multi-element components — `modal`, `dropdown`, `accordion`, `nav`,

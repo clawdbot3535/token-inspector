@@ -143,11 +143,11 @@ The UI shows:
   primary pill (`tokenId → gap-2`) or a warning pill when no mapping
   exists yet
 - **Click a component group** in the tree → the middle pane focuses
-  the preview on that component. Every standard component has a bespoke
-  live preview (`button`, `input`/`textarea`, `badge`, `switch`,
-  `checkbox`, `radio`, `card`, `kbd`, `progress`, `modal`, `dropdown`,
-  `accordion`, `nav`, `table`); the remaining custom-recipe components
-  (`chip`, `sidebar`) surface an info pill
+  the preview on that component. **Every component** has a bespoke live
+  preview — the standard set (`button`, `input`/`textarea`, `badge`,
+  `switch`, `checkbox`, `radio`, `card`, `kbd`, `progress`, `modal`,
+  `dropdown`, `accordion`, `nav`, `table`) plus the custom-recipe
+  components (`chip`, `sidebar`, built via `buildCustomRecipes`)
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
@@ -273,7 +273,7 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-Current release: **v0.27.0**. The adapter is feature-complete against the live
+Current release: **v0.28.0**. The adapter is feature-complete against the live
 914-token Figma export — every token either maps, emits as a theme var, or is a
 documented by-design skip.
 
@@ -290,7 +290,7 @@ What works today:
   match what the renderer actually emits (typography / layout tokens read as
   `theme`, not `skip`).
 - **Git round-trip** (load from a public repo, commit output back via a write
-  PAT), bespoke live previews for every standard component, and a scan view (issues,
+  PAT), a bespoke live preview for every component, and a scan view (issues,
   per-component readiness, output forecast, possible-typo detection).
 
 The per-version detail lives in the Roadmap table below and in `CHANGELOG.md`.
@@ -332,7 +332,8 @@ Reka-based components.
 | **v0.25.0** | ✅ released | **Checked×color fills → `indicator` slot.** The `checkbox`/`radio` `*-bg-checked-{error,success}` tokens emitted `variants.color.<role>.base: checked:bg-[…]` (a `checked:` prefix Nuxt UI v4's Reka checkbox/radio don't use); a `matchParsed` rule now routes a `checked` bg-color fill to `variants.color.<role>.indicator` (prefix dropped) for components with an `indicator` slot. Switch unchanged (no indicator slot — Nuxt keeps its checked fill on `base`). `LiveCheckbox`/`LiveRadio` previews read the indicator fill. Verified against the live export. |
 | **v0.26.0** | ✅ released | **Live previews for `card` / `kbd` / `progress`.** A shared `usePreviewRecipe` composable (recipe build + representative `sizeClasses`) dedups the `checkbox`/`radio` previews; `LiveCard` (root box), `LiveKbd` (keycap), and `LiveProgress` (track + `indicator` fill + size→height) render their recipes as inline styles (JIT-safe) in both preview panes. `switch` left on its size-switcher logic (Badge/Button archetype). Tier-2 (`modal`/`dropdown`/`accordion`/`nav`/`table`) + Tier-3 (`chip`/`sidebar`) previews deferred. |
 | **v0.27.0** | ✅ released | **Live previews for `modal` / `dropdown` / `accordion` / `nav` / `table`** (Tier-2, multi-element). `LiveModal` (content on overlay), `LiveDropdown` (content + resting/hover/active item rows), `LiveAccordion` (resting + disabled rows), `LiveNav` (one row per variant — colours live in `variants.variant.*.item`), `LiveTable` (`base` wrapper + `th`/`td`). All reuse `usePreviewRecipe` + `extractArbitrary(projectToState(...))` → inline styles, wired into both preview chains. Representative fidelity. |
-| **Next** | 🔭 planned | Tier-3 custom-recipe previews (`chip`, `sidebar` — rendered from `custom-components.ts`); data-state prefix form (`data-[state=checked]:`) for Reka components; `tooltip`/`popover` recipes + `compoundVariants` emit path once the export has tokens that need them || **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
+| **v0.28.0** | ✅ released | **Live previews for `chip` / `sidebar`** (Tier-3, custom recipes). A new `useCustomPreviewRecipe` composable builds via `buildCustomRecipes` (the `custom-components.ts` path) instead of `buildComponentRecipes`. `LiveChip` renders a pill per colour (`default` + `error`/`success` `variants.color.*`, each with `base`/`label`/`close`); `LiveSidebar` renders a `base` panel + `item` rows (resting/hover/active). **Every component now has a live preview.** |
+| **Next** | 🔭 planned | Only data-blocked items remain: `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the `data-[state=checked]:` prefix form for Reka components — all waiting on tokens the export doesn't have yet || **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
 Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 A snapshot project analysis (architecture, verified findings, prioritised recommendations)
