@@ -207,6 +207,24 @@ Drop any combination of these files (drag-and-drop or file picker):
 The naming convention matches Figma's default DTCG export, so the typical
 workflow is: export from Figma → drop the whole zip → done.
 
+### Color value format
+
+Color tokens must use Figma's object form for `$value` — an object carrying
+both `components` and `hex` (the shape Figma's variables/REST export emits):
+
+```json
+{
+  "$type": "color",
+  "$value": { "components": [0.035, 0.035, 0.043], "alpha": 1, "hex": "#09090B" }
+}
+```
+
+A bare DTCG hex string (`"$value": "#09090B"`) is reported as a `malformed-value`
+issue and not resolved. This is deliberate: the inspector is a Figma-export
+adapter, not a general DTCG validator, and the plugin always emits the object
+form. Other token types (`dimension`, `typography`, etc.) accept their plain
+DTCG values as usual — only `color` requires the object form.
+
 ### Load and commit from Git
 
 Beyond drag-and-drop, the inspector reads and writes Git directly:
