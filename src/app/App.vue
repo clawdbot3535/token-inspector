@@ -29,6 +29,7 @@ import LiveDropdown from "./components/LiveDropdown.vue";
 import LiveAccordion from "./components/LiveAccordion.vue";
 import LiveNav from "./components/LiveNav.vue";
 import LiveSidebar from "./components/LiveSidebar.vue";
+import LiveChip from "./components/LiveChip.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import { buildTokenTree, buildLayeredTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
@@ -169,7 +170,7 @@ const selectedComponent = ref<string>("button");
 // aren't buttons — confusing. Gate the visual preview on the supported
 // set; other components still get the token tree, OutputSection, and
 // code-preview highlighting, just not the rendered chip.
-const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio", "card", "kbd", "progress", "modal", "table", "dropdown", "accordion", "nav", "sidebar"]);
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio", "card", "kbd", "progress", "modal", "table", "dropdown", "accordion", "nav", "sidebar", "chip"]);
 // input + textarea are the form-field previews (rendered by LiveInput); button
 // is rendered by LiveButton.
 const FIELD_PREVIEW_COMPONENTS: ReadonlySet<string> = new Set(["input", "textarea"]);
@@ -927,6 +928,18 @@ function downloadAll() {
                 :highlight-utility="selectedVueTemplateClasses"
                 :completeness="scanReport.completeness"
               />
+              <LiveChip
+                v-else-if="
+                  previewSupported &&
+                  selectedComponent === 'chip' &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :custom-parts="customParts"
+                :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
+              />
               <LiveButton
                 v-else-if="
                   previewSupported &&
@@ -1058,6 +1071,13 @@ function downloadAll() {
               />
               <LiveSidebar
                 v-else-if="previewSupported && selectedComponent === 'sidebar'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :custom-parts="customParts"
+                :completeness="scanReport.completeness"
+              />
+              <LiveChip
+                v-else-if="previewSupported && selectedComponent === 'chip'"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :custom-parts="customParts"
