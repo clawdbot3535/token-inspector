@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.28.4] — 2026-06-15
+
+### Tests
+
+- **`App.vue` scan-view toggle characterization** — `src/app/App.scan-view.test.ts` mounts the app
+  and asserts the issues toggle: the button is hidden for a graph with no issues, present for one
+  with issues, and clicking it switches `state.view` so `ScanView` mounts/unmounts (with
+  `aria-pressed` tracking). Completes the `App.vue` mount-test coverage.
+
+### Changed
+
+- The scan/issues toggle button gains `data-testid="scan-toggle"` (test hook). Additive — no
+  behavior change.
+
 ## [0.28.3] — 2026-06-15
 
 ### Tests
