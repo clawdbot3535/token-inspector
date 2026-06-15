@@ -568,6 +568,7 @@ function downloadAll() {
           >Commit…</button>
           <UButton
             v-if="state.graph.value"
+            data-testid="clear-graph"
             icon="i-lucide-upload"
             color="neutral"
             variant="ghost"
