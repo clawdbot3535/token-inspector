@@ -107,6 +107,17 @@ describe("buildComponentRecipes", () => {
     expect(slots.trailingIcon ?? "").toContain("size-");
   });
 
+  it("routes nav item icon-size to linkLeadingIcon, not the item box", () => {
+    const graph = makeGraph([
+      makeNode({ id: "nav-item-icon-size", layer: "component", type: "number", source: "global", base: "20" }),
+      makeNode({ id: "nav-item-padding-y", layer: "component", type: "number", source: "global", base: "6" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["nav"] });
+    const slots = recipes.nav?.slots ?? {};
+    expect(slots.item ?? "").not.toContain("size-");
+    expect(slots.linkLeadingIcon ?? "").toContain("size-");
+  });
+
   it("emits a data-[state=open]: prefix for accordion opened-state text", () => {
     const graph = makeGraph([
       makeNode({ id: "accordion-item-text-opened", layer: "component", type: "color", source: "global", base: "#5B6573" }),
