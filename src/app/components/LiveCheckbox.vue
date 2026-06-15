@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, type CSSProperties } from "vue";
-import { buildComponentRecipes } from "@core/recipe-engine.js";
+import { usePreviewRecipe } from "../composables/use-preview-recipe.js";
 import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { useCopyToClipboard } from "../composables/use-copy-to-clipboard.js";
 import { extractArbitrary } from "../extract-arbitrary.js";
@@ -18,25 +18,11 @@ const props = withDefaults(defineProps<Props>(), {
   completeness: undefined,
 });
 
-const recipe = computed(() => {
-  if (!props.graph) return null;
-  return buildComponentRecipes(props.graph, { components: [props.componentName] })[props.componentName] ?? null;
-});
+const { recipe, sizeClasses } = usePreviewRecipe(() => props.graph, () => props.componentName);
 const baseClasses = computed<string>(() => recipe.value?.slots["base"] ?? "");
 // The checked fill lives on the `indicator` slot (the box fill only shows when
 // checked) — merged into the checked cell so it reads as the checked background.
 const indicatorClasses = computed<string>(() => recipe.value?.slots["indicator"] ?? "");
-
-const SIZE_ORDER: readonly string[] = ["xs", "sm", "md", "lg", "xl"];
-const sizeClasses = computed<string>(() => {
-  const sizes = recipe.value?.variants.size ?? {};
-  const keys = Object.keys(sizes);
-  if (keys.length === 0) return "";
-  const key = keys.includes("md")
-    ? "md"
-    : [...keys].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b))[0]!;
-  return sizes[key]?.["base"] ?? "";
-});
 
 interface Cell { label: string; checked: boolean; classes: string; style: CSSProperties; }
 interface HighlightSegment { token: string; highlight: boolean; }
