@@ -107,6 +107,14 @@ describe("buildComponentRecipes", () => {
     expect(slots.trailingIcon ?? "").toContain("size-");
   });
 
+  it("emits a data-[state=open]: prefix for accordion opened-state text", () => {
+    const graph = makeGraph([
+      makeNode({ id: "accordion-item-text-opened", layer: "component", type: "color", source: "global", base: "#5B6573" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["accordion"] });
+    expect(recipes.accordion?.slots.item ?? "").toContain("data-[state=open]:text-");
+  });
+
   it("emits slots.base for non-variant tokens", () => {
     const graph = makeGraph([
       makeNode({
