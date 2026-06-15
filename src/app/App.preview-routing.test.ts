@@ -158,3 +158,19 @@ describe("App preview routing — Chain 2 (component-group select)", () => {
     }
   });
 });
+
+describe("App preview routing — Chain 1 (token selected)", () => {
+  it.each(NAMES)("routes a selected %s-bg token to its own Live*", async (name) => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select-component", name); // selectedComponent = name
+    tree.vm.$emit("select", `${name}-bg`); // selectedNode resolves; id splits to `name`
+    await flushPromises();
+
+    const expected = EXPECTED[name];
+    expect(wrapper.find(`[data-testid="${expected}"]`).exists()).toBe(true);
+    if (expected !== "live-button") {
+      expect(wrapper.find('[data-testid="live-button"]').exists()).toBe(false);
+    }
+  });
+});
