@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.1] — 2026-06-15
+
+### Tests
+
+- **`App.vue` preview-routing characterization** — `src/app/App.preview-routing.test.ts`
+  mounts the app, stubs every `Live*` with a name-emitting stub, and drives selection through
+  the `ComponentTree` events to assert that each `COMPONENTS_WITH_PREVIEW` member routes to its
+  own preview in **both** template chains (token-selected and component-group), and that the
+  `LiveButton` catch-all never fires for a non-button component. Also asserts an unsupported
+  component (`tooltip`) renders no preview. Closes the one untested seam in `App.vue` — the
+  routing footgun where a forgotten branch silently renders button-shaped. No production change.
+
 ## [0.28.0] — 2026-06-15
 
 Live previews for `chip` and `sidebar` — the two custom-recipe components. **Every component now has
