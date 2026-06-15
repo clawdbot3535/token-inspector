@@ -437,6 +437,18 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
           variantKey: entry.variantKey,
         };
       }
+      // icon-size belongs on an icon slot. If the sub-element prefix is ITSELF an
+      // icon slot (button-trailingIcon-icon-size), respect it. Only when the prefix
+      // is a non-icon container (accordion-item-icon-size sizes the chevron, not the
+      // item box) re-route to the icon rule's slot — and only if the component has it
+      // (nav/chip/sidebar lack `leadingIcon` → unchanged, no mis-routing).
+      if (
+        entry.utilityType === "icon-size" &&
+        !/icon$/i.test(slot) &&
+        (nuxtSlotsFor(parsed.component)?.has(entry.slot) ?? false)
+      ) {
+        return entry;
+      }
       return slot === "base" ? entry : { ...entry, slot };
     }
   }

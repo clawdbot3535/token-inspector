@@ -38,6 +38,44 @@ describe("heuristicSlotMapping — button", () => {
     });
   });
 
+  it("routes accordion-item-icon-size to leadingIcon, not the item base", () => {
+    expect(heuristicSlotMapping("accordion-item-icon-size")).toEqual({
+      slot: "leadingIcon",
+      utilityType: "icon-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("leaves a non-icon sub-element utility on its sub-element slot", () => {
+    // accordion-item-bg stays on the item slot (only icon-size is re-routed)
+    expect(heuristicSlotMapping("accordion-item-bg", "color")).toEqual({
+      slot: "item",
+      utilityType: "bg-color",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("respects an explicit icon-slot prefix for icon-size (trailingIcon stays trailingIcon)", () => {
+    expect(heuristicSlotMapping("button-trailingIcon-icon-size-md")).toEqual({
+      slot: "trailingIcon",
+      utilityType: "icon-size",
+      variantAxis: "size",
+      variantKey: "md",
+    });
+  });
+
+  it("does NOT re-route icon-size for components without a leadingIcon slot", () => {
+    // nav's icon slot is linkLeadingIcon, not leadingIcon → unchanged (stays on item)
+    expect(heuristicSlotMapping("nav-item-icon-size")).toEqual({
+      slot: "item",
+      utilityType: "icon-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
   it("returns null for unmapped tokens", () => {
     expect(heuristicSlotMapping("button-mystery-token")).toBeNull();
   });
