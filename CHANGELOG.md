@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.28.10] — 2026-06-15
+
+### Fixed
+
+- **Nav preview item collapsed to ~20px** — `nav-item-icon-size` was emitted as `size-5` on
+  `slots.item`, overriding the item's `h-[60px]`. The v0.28.8 icon-size fix only matched a
+  `leadingIcon` slot, but nav's leading-icon slot is `linkLeadingIcon`. A new
+  `leadingIconSlotFor(component)` now derives the leading-icon slot from `NUXT_SLOTS`
+  (`leadingIcon` / `linkLeadingIcon` / `itemLeadingIcon`), so `nav-item-icon-size` routes to
+  `linkLeadingIcon` and the item renders full-width (verified: 20px → 384px×60px in the
+  preview). accordion (`leadingIcon`), bare icon-size, explicit icon prefixes
+  (`button-trailingIcon-icon-size`), and chip/sidebar (no leading-icon slot) are unchanged.
+
+### Notes
+
+- Remaining nav follow-ups (unmapped): `nav-item-ring-radius`, `nav-item-focus-offset`,
+  `nav-item-outline-text-inverted`, `nav-item-link-text-visited` — separate, lower-priority.
+
 ## [0.28.9] — 2026-06-15
 
 ### Added
