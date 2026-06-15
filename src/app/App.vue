@@ -25,6 +25,7 @@ import LiveKbd from "./components/LiveKbd.vue";
 import LiveProgress from "./components/LiveProgress.vue";
 import LiveModal from "./components/LiveModal.vue";
 import LiveTable from "./components/LiveTable.vue";
+import LiveDropdown from "./components/LiveDropdown.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import { buildTokenTree, buildLayeredTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
@@ -165,7 +166,7 @@ const selectedComponent = ref<string>("button");
 // aren't buttons — confusing. Gate the visual preview on the supported
 // set; other components still get the token tree, OutputSection, and
 // code-preview highlighting, just not the rendered chip.
-const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio", "card", "kbd", "progress", "modal", "table"]);
+const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio", "card", "kbd", "progress", "modal", "table", "dropdown"]);
 // input + textarea are the form-field previews (rendered by LiveInput); button
 // is rendered by LiveButton.
 const FIELD_PREVIEW_COMPONENTS: ReadonlySet<string> = new Set(["input", "textarea"]);
@@ -878,6 +879,17 @@ function downloadAll() {
                 :highlight-utility="selectedVueTemplateClasses"
                 :completeness="scanReport.completeness"
               />
+              <LiveDropdown
+                v-else-if="
+                  previewSupported &&
+                  selectedComponent === 'dropdown' &&
+                  selectedNode.id.split('-')[0] === selectedComponent
+                "
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :highlight-utility="selectedVueTemplateClasses"
+                :completeness="scanReport.completeness"
+              />
               <LiveButton
                 v-else-if="
                   previewSupported &&
@@ -985,6 +997,12 @@ function downloadAll() {
               />
               <LiveTable
                 v-else-if="previewSupported && selectedComponent === 'table'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+                :completeness="scanReport.completeness"
+              />
+              <LiveDropdown
+                v-else-if="previewSupported && selectedComponent === 'dropdown'"
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :completeness="scanReport.completeness"
