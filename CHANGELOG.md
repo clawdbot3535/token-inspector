@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.26.0] — 2026-06-15
+
+Live previews for `card`, `kbd`, and `progress` — you can now *see* these recipes render in the
+Inspector, not just read their classes. Built on a shared preview composable.
+
+### Added
+
+- **`usePreviewRecipe` composable** (`src/app/composables/use-preview-recipe.ts`) — builds a
+  component recipe and exposes the representative `sizeClasses` (md, else smallest). De-duplicates the
+  recipe-build + `SIZE_ORDER`/`sizeClasses` logic that was copy-pasted in the `checkbox` and `radio`
+  previews (now refactored onto it).
+- **`LiveCard`** — renders the `card` `root` slot (bg / ring / padding / radius) as a styled box.
+- **`LiveKbd`** — renders the `kbd` `base` slot as a styled keycap.
+- **`LiveProgress`** — renders the `progress` track (`base` slot + size→height) with an `indicator`
+  fill at 60%.
+
+All three resolve their recipe classes to inline styles (JIT-safe, same as the existing previews) and
+show a fallback message when the component has no tokens. Wired into both Inspector preview panes.
+
+### Notes
+
+- `switch` was left on its own size-switcher logic (it's the Badge/Button archetype, not the simple
+  md-or-first `sizeClasses`) — folding it onto the composable would have changed its behavior. Only
+  `checkbox`/`radio` were refactored.
+- Deferred to later releases: Tier-2 previews (`modal`, `dropdown`, `accordion`, `nav`, `table`) and
+  Tier-3 custom-recipe previews (`chip`, `sidebar`).
+
 ## [0.25.0] — 2026-06-15
 
 Checked×color fills route to the `indicator` slot — `checkbox`/`radio` checked-state color tokens now
