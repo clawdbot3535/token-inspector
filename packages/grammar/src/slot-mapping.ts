@@ -183,7 +183,15 @@ interface BuildContext {
   state: string | null;
 }
 
-function normalizeState(s: string): string { return s === "hovered" ? "hover" : s; }
+// Most states are Tailwind pseudo-classes whose name equals the prefix
+// (hover/focus/active/disabled). `hovered` normalises to `hover`. `opened`/`open`
+// are Reka data-state attributes (Nuxt UI v4 accordion), not pseudo-classes →
+// the Tailwind arbitrary data-variant `data-[state=open]`.
+function normalizeState(s: string): string {
+  if (s === "hovered") return "hover";
+  if (s === "opened" || s === "open") return "data-[state=open]";
+  return s;
+}
 
 function buildEntry(
   slot: RecipeSlot,

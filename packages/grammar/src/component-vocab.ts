@@ -69,9 +69,10 @@ export function isRingFramedVariant(
   return RING_FRAMED_VARIANTS.get(component)?.has(variant) ?? false;
 }
 
-/** Trailing interaction-state keys → Tailwind pseudo-class prefixes. */
+/** Trailing interaction-state keys → Tailwind pseudo-class or data-variant prefixes. */
 export const STATE_KEYS: ReadonlySet<string> = new Set([
   "default", "hover", "active", "disabled", "focus", "checked", "hovered",
+  "opened", "open",
 ]);
 
 /**

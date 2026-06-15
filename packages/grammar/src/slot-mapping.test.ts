@@ -57,6 +57,19 @@ describe("heuristicSlotMapping — button", () => {
     });
   });
 
+  it("maps accordion-item-text-opened to a data-[state=open] text-color on the item", () => {
+    const m = heuristicSlotMapping("accordion-item-text-opened", "color");
+    expect(m).not.toBeNull();
+    expect(m!.slot).toBe("item");
+    expect(m!.utilityType).toBe("text-color");
+    expect(m!.statePrefix).toBe("data-[state=open]");
+  });
+
+  it("leaves existing pseudo-class states unchanged (hover stays hover)", () => {
+    const m = heuristicSlotMapping("button-solid-bg-hover", "color");
+    expect(m!.statePrefix).toBe("hover");
+  });
+
   it("respects an explicit icon-slot prefix for icon-size (trailingIcon stays trailingIcon)", () => {
     expect(heuristicSlotMapping("button-trailingIcon-icon-size-md")).toEqual({
       slot: "trailingIcon",
@@ -900,11 +913,12 @@ describe("heuristicSlotMapping — accordion (item sub-element)", () => {
     expect(heuristicSlotMapping("accordion-item-padding-x")?.slot).toBe("item");
   });
 
-  it("leaves the 4 straggler tokens NULL (non-standard utilities / non-state word)", () => {
+  // accordion-item-text-opened was a 4th straggler until the `opened` →
+  // data-[state=open] state mapping landed; it now maps (see the data-state test above).
+  it("leaves the 3 straggler tokens NULL (non-standard utilities)", () => {
     expect(heuristicSlotMapping("accordion-item-border-focus-ring", "color")).toBeNull();
     expect(heuristicSlotMapping("accordion-item-focus-offset")).toBeNull();
     expect(heuristicSlotMapping("accordion-item-ring-radius")).toBeNull();
-    expect(heuristicSlotMapping("accordion-item-text-opened", "color")).toBeNull();
   });
 });
 
