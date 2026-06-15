@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.28.3] — 2026-06-15
+
+### Tests
+
+- **`App.vue` output-tab characterization** — `src/app/App.output-tabs.test.ts` mounts the app
+  with a custom-flagged (`sidebar`) fixture to assert the conditional `custom-components.ts` tab
+  appears, is absent for a plain component, and that the active-tab fallback watch resets the
+  output tab to `tokens.css` when the selected tab disappears (custom tab selected → graph
+  cleared → reload a plain set → tab falls back).
+
+### Changed
+
+- The clear-graph (Re-drop) button gains `data-testid="clear-graph"` (test hook). Additive — no
+  behavior change.
+
 ## [0.28.2] — 2026-06-15
 
 ### Tests
