@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.28.5] — 2026-06-15
+
+### Docs
+
+- **Color value format documented** — the README's *What it accepts* section now states the
+  color `$value` contract: color tokens must use Figma's object form
+  (`{ components, alpha?, hex }`), and a bare DTCG hex string (`"$value": "#09090B"`) is
+  reported as a `malformed-value` issue. Confirmed by-design — the inspector is a Figma-export
+  adapter, not a general DTCG validator; only `color` requires the object form.
+
 ## [0.28.4] — 2026-06-15
 
 ### Tests
