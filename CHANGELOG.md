@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.28.7] — 2026-06-15
+
+### Fixed
+
+- **`accordion` / `nav` live previews were unreachable** — their tokens are prefixed
+  `accordion-item-*` / `nav-item-*`, so the token tree grouped them as `accordion-item` /
+  `nav-item`, which didn't match the `accordion` / `nav` keys in `COMPONENTS_WITH_PREVIEW`.
+  Clicking those groups showed no preview, no "Live" pill, and they were missed by the Live
+  count. A shared `previewComponentForGroup` helper now maps a `<comp>-item` group to its
+  preview component at all three seams (selection routing, the "Live" pill / `liveOnly`
+  filter, and the Live count). Overlay / layout / typography groups are untouched (they
+  don't end in `-item`).
+
+### Notes
+
+- The accordion recipe still has two latent issues that this fix makes visible (confirmed in
+  the browser: the `accordion-item-icon-size` token lands on `slots.item` as `size-5`, so the
+  item renders ~20px wide, and `accordion-item-bg` is dropped so the item is transparent).
+  Those change emitted `app.config.ts` output and are a separate follow-up.
+
 ## [0.28.6] — 2026-06-15
 
 ### Fixed
