@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.28.11] — 2026-06-16
+
+### Fixed
+
+- **Sidebar preview item collapsed to ~16px** — `sidebar-item-icon-size` was emitted as `size-4`
+  on the custom recipe's `item` slot (sidebar is custom and has no icon slot to route to, so the
+  v0.28.10 fix couldn't reach it). An unroutable `icon-size` that lands on a layout-container slot
+  (`item` / `content` / `root` / `wrapper`) is now dropped instead of collapsing the container.
+  Leaf slots keep their icon size — chip's `close` button is unchanged (it's not a container).
+  This closes the last collapsed preview from the live export (accordion / nav / sidebar all fixed).
+
+### Notes
+
+- Separate remaining chip item: `chip-close-icon` (a colour-valued token) mis-emits an inert
+  `size-[#hex]` because the `icon` rule is value-type-blind — a different, low-priority follow-up.
+
 ## [0.28.10] — 2026-06-15
 
 ### Fixed
