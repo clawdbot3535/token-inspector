@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.29.0] — 2026-06-16
+
+First user-facing slice of the **Design-System Coverage Guide**: the inspector now tells a designer
+which Nuxt UI theme slots of a component are still un-designed.
+
+### Added
+
+- **Coverage view** — selecting one of the five curated composites (`nav`, `accordion`, `modal`,
+  `table`, `dropdown`) in the component tree now offers a **`Preview | Coverage`** tab in the
+  component pane. The Coverage tab (`CoverageView.vue`) lists the component's slots in two sections —
+  **Structural · must design** (✓ touched / ✗ + a "to design" tag) and **Optional · designed or Nuxt
+  default** (✓ / ○) — with a `structuralTouched/structuralTotal` count and a badge on the tab showing
+  the number of un-designed structural slots. Tabs appear only for components with a curated anatomy;
+  every other component shows just the preview, unchanged. Backed by the `coverageFor` engine
+  (v0.28.14) over the anatomy spec.
+
+### Fixed
+
+- **`nav-link-*` now routes to the `link` slot** instead of `slots.base` + a `link` *variant*. `link`
+  is both nav's structural theme slot and a Nuxt button-variant value; the grammar consumed it as a
+  variant before slot routing could claim it. A `variantShadowsSlot` guard in `heuristicSlotMapping`
+  plus a `componentSlots` guard in `parseSegments` make a 2nd-segment that is one of the component's
+  own slots win over the variant interpretation. Scoped by slot-membership, so `button-link-*` (button
+  has no `link` slot) is unchanged. This makes nav's flagship "design the link slot" insight reachable
+  — supplying `nav-link-*` tokens now turns it green in the coverage view.
+
 ## [0.28.14] — 2026-06-16
 
 ### Added

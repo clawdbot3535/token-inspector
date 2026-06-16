@@ -25,9 +25,7 @@ describe("coverageFor", () => {
   });
 
   it("marks a structural slot touched when a token routes to it", () => {
-    // modal-content-bg routes cleanly to the `content` slot (no variant collision).
-    // (nav-link-* would NOT count: the grammar reads `link` as a button-variant value,
-    //  not the nav `link` slot — a known collision, documented in the design spec.)
+    // modal-content-bg routes cleanly to the `content` slot.
     const cov = coverageFor(graphWith(["modal-content-bg"]), "modal")!;
     expect(cov).not.toBeNull();
     const content = cov.slots.find((s) => s.slot === "content")!;
@@ -35,6 +33,18 @@ describe("coverageFor", () => {
     expect(content.classification).toBe("structural");
     expect(cov.structuralTouched).toBe(1);
     expect(cov.toDesign.some((s) => s.slot === "content")).toBe(false);
+  });
+
+  it("counts a nav-link-* token toward the link slot (grammar fix, end-to-end)", () => {
+    // The nav `link` slot collides with the Nuxt `link` button-variant; the grammar fix
+    // routes nav-link-* to the slot, so the engine must now mark `link` touched (and drop it
+    // from the to-design list). This is the feature's flagship correctness claim.
+    const cov = coverageFor(graphWith(["nav-link-bg"]), "nav")!;
+    const link = cov.slots.find((s) => s.slot === "link")!;
+    expect(link.touched).toBe(true);
+    expect(link.classification).toBe("structural");
+    expect(cov.structuralTouched).toBe(1);
+    expect(cov.toDesign.some((s) => s.slot === "link")).toBe(false);
   });
 
   it("reports a missing structural slot and sorts it first in toDesign", () => {

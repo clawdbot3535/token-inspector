@@ -830,6 +830,35 @@ describe("heuristicSlotMapping — variant after sub-element (nav)", () => {
   });
 });
 
+describe("heuristicSlotMapping — nav link slot (variant shadows slot guard)", () => {
+  it("maps nav-link-bg to the link slot (not base + link variant)", () => {
+    expect(heuristicSlotMapping("nav-link-bg", "color")).toEqual({
+      slot: "link",
+      utilityType: "bg-color",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("maps nav-link-color to the link slot (text-color)", () => {
+    expect(heuristicSlotMapping("nav-link-color", "color")).toEqual({
+      slot: "link",
+      utilityType: "text-color",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("leaves button-link-bg as base + link variant (button has no link slot)", () => {
+    expect(heuristicSlotMapping("button-link-bg", "color")).toEqual({
+      slot: "base",
+      utilityType: "bg-color",
+      variantAxis: "variant",
+      variantKey: "link",
+    });
+  });
+});
+
 describe("normalizeTrailingColorRole", () => {
   it("moves a trailing color-role to the 2nd position", () => {
     expect(normalizeTrailingColorRole("checkbox-bg-error")).toBe("checkbox-error-bg");
