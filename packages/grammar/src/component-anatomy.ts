@@ -15,13 +15,14 @@ export interface SlotAnatomy {
 const s = (controls: string): SlotAnatomy => ({ classification: "structural", controls });
 const o = (controls: string): SlotAnatomy => ({ classification: "optional", controls });
 
-// nav — Nuxt UI v4 NavigationMenu. structural = base navbar (root/list/item/link); the rest are
-// adornments (icons/avatars/badges), the submenu cluster, and grouping. (Classification locked
-// 2026-06-16 with the user; see the design spec.)
+// nav — Nuxt UI v4 NavigationMenu. Under the Must-Design principle only `link` carries a
+// designable surface (bg/text/hover/active/ring/radius); root=gap+layout, list=flex,
+// item=py-spacing are layout/spacing Nuxt defaults already match. The rest are adornments,
+// the submenu cluster, and grouping. (Classification locked 2026-06-16 with the user.)
 const NAV: ReadonlyMap<string, SlotAnatomy> = new Map([
-  ["root", s("navbar container: layout (flex), gap, orientation")],
-  ["list", s("items wrapper: layout / alignment of the entries")],
-  ["item", s("each entry container: vertical spacing")],
+  ["root", o("navbar container: layout (flex), gap, orientation")],
+  ["list", o("items wrapper: layout / alignment of the entries")],
+  ["item", o("each entry container: vertical spacing")],
   ["link", s("link: text, padding, bg, hover, active, ring, radius")],
   ["label", o("section heading text (grouped navs)")],
   ["linkLeadingIcon", o("leading icon size / colour on a link")],
@@ -51,9 +52,83 @@ const NAV: ReadonlyMap<string, SlotAnatomy> = new Map([
   ["arrow", o("dropdown arrow / caret")],
 ]);
 
+// accordion — Nuxt UI v4 Accordion. structural = the panel border, the clickable trigger, and the
+// body text/padding. root=w-full, header=flex, content=open/close animation → optional.
+const ACCORDION: ReadonlyMap<string, SlotAnatomy> = new Map([
+  ["root", o("accordion container (full width)")],
+  ["item", s("each panel: border / separator")],
+  ["header", o("header row layout (wraps the trigger)")],
+  ["trigger", s("clickable header: text, padding, focus ring, radius")],
+  ["content", o("expandable region: open / close animation")],
+  ["body", s("panel body: text, padding")],
+  ["leadingIcon", o("leading icon size / colour")],
+  ["trailingIcon", o("expand chevron (rotates on open)")],
+  ["label", o("trigger label text (inherits from trigger)")],
+]);
+
+// modal — Nuxt UI v4 Modal. structural = the dim overlay, the dialog box, the body padding, the
+// title text. wrapper='' empty, header/footer=layout+default padding, close=position → optional.
+const MODAL: ReadonlyMap<string, SlotAnatomy> = new Map([
+  ["overlay", s("backdrop / dim: bg colour, opacity")],
+  ["content", s("dialog box: bg, radius, shadow, ring")],
+  ["header", o("header region: layout + padding")],
+  ["wrapper", o("content wrapper (no own styling)")],
+  ["body", s("body region: padding")],
+  ["footer", o("footer region: layout + padding")],
+  ["title", s("dialog title text")],
+  ["description", o("dialog description text (secondary)")],
+  ["close", o("close button position")],
+]);
+
+// table — Nuxt UI v4 Table. structural = the header + data cells (padding + text). root/base/
+// thead/tbody/tfoot/tr=layout + state, caption=sr-only, empty/loading=states → optional.
+const TABLE: ReadonlyMap<string, SlotAnatomy> = new Map([
+  ["root", o("scroll container (overflow)")],
+  ["base", o("table element (min-width)")],
+  ["caption", o("caption (screen-reader only)")],
+  ["thead", o("header row group (layout / sticky)")],
+  ["tbody", o("body row group (row dividers)")],
+  ["tfoot", o("footer row group (layout)")],
+  ["tr", o("row (selected-state bg)")],
+  ["th", s("header cell: padding, text")],
+  ["td", s("data cell: padding, text")],
+  ["separator", o("row separator line")],
+  ["empty", o("empty-state message")],
+  ["loading", o("loading-state row")],
+]);
+
+// dropdown — Nuxt UI v4 DropdownMenu. structural = the menu panel and the menu item. The rest are
+// adornments (icon/avatar/kbds), layout, grouping, and empty states → optional.
+const DROPDOWN: ReadonlyMap<string, SlotAnatomy> = new Map([
+  ["content", s("menu panel: bg, shadow, radius, ring")],
+  ["input", o("search input (border)")],
+  ["empty", o("empty-state message")],
+  ["viewport", o("scroll viewport (layout)")],
+  ["arrow", o("menu arrow / caret")],
+  ["group", o("item group container")],
+  ["label", o("group label text")],
+  ["separator", o("divider between groups")],
+  ["item", s("menu item: text, bg, hover, active, padding")],
+  ["itemLeadingIcon", o("item leading icon")],
+  ["itemLeadingAvatar", o("item leading avatar")],
+  ["itemLeadingAvatarSize", o("item leading avatar size")],
+  ["itemTrailing", o("item trailing container")],
+  ["itemTrailingIcon", o("item trailing icon")],
+  ["itemTrailingKbds", o("item trailing keyboard hints")],
+  ["itemTrailingKbdsSize", o("item trailing kbd size")],
+  ["itemWrapper", o("item content wrapper (layout)")],
+  ["itemLabel", o("item label text (inherits from item)")],
+  ["itemDescription", o("item description text (secondary)")],
+  ["itemLabelExternalIcon", o("item external-link icon")],
+]);
+
 /** Per-component, per-slot anatomy. Keys mirror NUXT_SLOTS exactly (100% coverage required). */
 export const COMPONENT_ANATOMY: ReadonlyMap<string, ReadonlyMap<string, SlotAnatomy>> = new Map([
   ["nav", NAV],
+  ["accordion", ACCORDION],
+  ["modal", MODAL],
+  ["table", TABLE],
+  ["dropdown", DROPDOWN],
 ]);
 
 /** The anatomy of a component, or undefined if not curated yet. */
