@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.30.0] — 2026-06-16
+
+### Added
+
+- **Click a covered slot to highlight its tokens.** In the coverage view, a slot that has tokens is
+  now a clickable row; clicking it highlights those tokens in the left token tree and expands their
+  ancestor groups so they're revealed, while staying on the Coverage tab (no navigation to
+  node-detail). Untouched slots stay inert. Backed by a new `SlotCoverage.tokenIds` on the coverage
+  engine — the token ids that route to each slot, collected in `coverageFor`.
+
 ## [0.29.0] — 2026-06-16
 
 First user-facing slice of the **Design-System Coverage Guide**: the inspector now tells a designer
