@@ -318,8 +318,7 @@ function toggleExpanded(path: string): void {
 function onCoverageSelectTokens(ids: readonly string[]): void {
   state.highlightedIds.value = new Set(ids);
   const next = new Set(expandedPaths.value);
-  const tree = tokenTree.value ?? [];
-  for (const id of ids) for (const p of ancestorPaths(tree, id)) next.add(p);
+  for (const id of ids) for (const p of ancestorPaths(tokenTree.value, id)) next.add(p);
   expandedPaths.value = next;
   persistExpanded(next);
 }

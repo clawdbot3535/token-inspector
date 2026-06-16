@@ -111,6 +111,8 @@ describe("App coverage view", () => {
 
     const highlighted = tree.props("highlightedIds") as ReadonlySet<string>;
     expect(highlighted.has("nav-link-bg")).toBe(true);
+    // reveals: the token's ancestor groups get expanded so the highlight is visible
+    expect((tree.props("expandedPaths") as ReadonlySet<string>).size).toBeGreaterThan(0);
     // stays on the coverage view (no navigation to node-detail)
     expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(true);
   });
