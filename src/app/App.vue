@@ -329,6 +329,19 @@ function onCoverageSelectTokens(ids: readonly string[]): void {
   persistExpanded(next);
 }
 
+// ScanView "select tokens" (issue / readiness click): highlight, switch to the inspector, and
+// open a single token. Clears the kind-filter first (mirrors onCoverageSelectTokens) so the
+// highlighted tokens are visible — the clear precedes the selection set so the selection watch's
+// auto-expand reads the unfiltered tree.
+function onScanSelectTokens(ids: readonly string[]): void {
+  state.highlightedIds.value = new Set(ids);
+  if (state.filters.value.classification !== "all") {
+    state.filters.value = { ...state.filters.value, classification: "all" };
+  }
+  if (ids.length === 1 && ids[0] !== undefined) state.selection.value = ids[0];
+  state.view.value = "inspector";
+}
+
 /**
  * Effective expansion set used for rendering. When a search query is
  * active we force-open every group so matches stay visible without the
@@ -769,11 +782,7 @@ function downloadAll() {
           >
             <ScanView
               :report="scanReport"
-              @select-tokens="(ids: readonly string[]) => {
-                state.highlightedIds.value = new Set(ids);
-                if (ids.length === 1 && ids[0] !== undefined) state.selection.value = ids[0];
-                state.view.value = 'inspector';
-              }"
+              @select-tokens="onScanSelectTokens"
             />
           </section>
           <section v-else class="flex-1 overflow-y-auto p-4 text-sm space-y-4">
