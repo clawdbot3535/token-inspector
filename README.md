@@ -148,6 +148,18 @@ The UI shows:
   `switch`, `checkbox`, `radio`, `card`, `kbd`, `progress`, `modal`,
   `dropdown`, `accordion`, `nav`, `table`) plus the custom-recipe
   components (`chip`, `sidebar`, built via `buildCustomRecipes`)
+- **Coverage Guide** — for the five composite components (`nav`, `accordion`,
+  `modal`, `table`, `dropdown`) the component pane offers a **`Preview |
+  Coverage`** toggle. The Coverage view lists every Nuxt UI v4 theme slot the
+  component has, split into **Structural · must design** (✓ touched / ✗ + a
+  "to design" tag) and **Optional · designed or Nuxt default** (✓ / ○), with a
+  `touched / total structural` count and a tab badge of the un-designed count.
+  It answers *"what's still missing to match this component"* — e.g. `nav`
+  flags the `link` slot when a design only supplies `nav-item-*` tokens.
+  **Click a covered slot** to highlight and reveal its tokens in the left tree
+  (clearing any active kind-filter so they stay visible). Backed by the
+  `coverageFor` engine over a curated, Nuxt-v4-cited component-anatomy spec
+  (`@tg/grammar`'s `component-anatomy.ts`)
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
@@ -245,7 +257,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 .
 ├── components/             # Figma DTCG token exports (color, light, dark, global, …)
 ├── packages/
-│   └── grammar/            # @tg/grammar: slot-mapping, component-vocab, scaffold, typo-detect
+│   └── grammar/            # @tg/grammar: slot-mapping, component-vocab, component-anatomy, scaffold, typo-detect
 ├── scripts/
 │   ├── build-cli.ts        # Typed CLI: graph → renderers → output/
 │   └── extract-tailwind-defaults.mjs  # Re-run after Tailwind upgrades
@@ -256,6 +268,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 │   ├── tailwind-defaults.* # Generated lookup tables + public matchers
 │   ├── token-graph.ts      # Type contract: TokenNode, TokenGraph, …
 │   ├── build-graph.ts      # Source files → TokenGraph (pure builder)
+│   ├── coverage.ts         # Coverage engine: per-component slot coverage vs the anatomy spec
 │   ├── renderers/          # tokens-css.ts, typography-composites.ts, layout-primitives.ts, app-config.ts, custom-components.ts
 │   └── app/                # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
 └── docs/superpowers/       # Spec + plan documents driving the design
@@ -291,9 +304,11 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-Current release: **v0.28.0**. The adapter is feature-complete against the live
+Current release: **v0.30.2**. The adapter is feature-complete against the live
 914-token Figma export — every token either maps, emits as a theme var, or is a
-documented by-design skip.
+documented by-design skip — and the Inspector has evolved from a translator into
+a **Design-System Coverage Guide** that tells a designer which slots are still
+un-designed per component.
 
 What works today:
 
@@ -310,6 +325,11 @@ What works today:
 - **Git round-trip** (load from a public repo, commit output back via a write
   PAT), a bespoke live preview for every component, and a scan view (issues,
   per-component readiness, output forecast, possible-typo detection).
+- **Coverage Guide** — a curated component-anatomy spec (each Nuxt UI v4 slot
+  classified structural vs optional) + a `coverageFor` engine + a per-component
+  `Preview | Coverage` view for the five composites, with click-a-slot to
+  highlight its tokens. Tells the designer *what to design next* to match a
+  component, not just what already maps.
 
 The per-version detail lives in the Roadmap table below and in `CHANGELOG.md`.
 Deferred until the export has tokens that need them: a `compoundVariants` emit
@@ -351,7 +371,9 @@ Reka-based components.
 | **v0.26.0** | ✅ released | **Live previews for `card` / `kbd` / `progress`.** A shared `usePreviewRecipe` composable (recipe build + representative `sizeClasses`) dedups the `checkbox`/`radio` previews; `LiveCard` (root box), `LiveKbd` (keycap), and `LiveProgress` (track + `indicator` fill + size→height) render their recipes as inline styles (JIT-safe) in both preview panes. `switch` left on its size-switcher logic (Badge/Button archetype). Tier-2 (`modal`/`dropdown`/`accordion`/`nav`/`table`) + Tier-3 (`chip`/`sidebar`) previews deferred. |
 | **v0.27.0** | ✅ released | **Live previews for `modal` / `dropdown` / `accordion` / `nav` / `table`** (Tier-2, multi-element). `LiveModal` (content on overlay), `LiveDropdown` (content + resting/hover/active item rows), `LiveAccordion` (resting + disabled rows), `LiveNav` (one row per variant — colours live in `variants.variant.*.item`), `LiveTable` (`base` wrapper + `th`/`td`). All reuse `usePreviewRecipe` + `extractArbitrary(projectToState(...))` → inline styles, wired into both preview chains. Representative fidelity. |
 | **v0.28.0** | ✅ released | **Live previews for `chip` / `sidebar`** (Tier-3, custom recipes). A new `useCustomPreviewRecipe` composable builds via `buildCustomRecipes` (the `custom-components.ts` path) instead of `buildComponentRecipes`. `LiveChip` renders a pill per colour (`default` + `error`/`success` `variants.color.*`, each with `base`/`label`/`close`); `LiveSidebar` renders a `base` panel + `item` rows (resting/hover/active). **Every component now has a live preview.** |
-| **Next** | 🔭 planned | Only data-blocked items remain: `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the `data-[state=checked]:` prefix form for Reka components — all waiting on tokens the export doesn't have yet || **Backlog** | 🧊 | Hue-proximity color-role derivation (currently a fixed mapping); `App.vue` mount-test coverage; Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
+| **v0.29.0** | ✅ released | **Design-System Coverage Guide (first user-facing slice).** A curated component-anatomy spec (`@tg/grammar` `component-anatomy.ts` — every Nuxt UI v4 slot classified `structural`/`optional` under a "Must-Design" principle; five composites: `nav`/`accordion`/`modal`/`table`/`dropdown`) + a pure `coverageFor(graph, component)` engine (`src/coverage.ts`: per-slot `touched` + structural-first `toDesign` list) + a per-component **`Preview | Coverage`** tab (`CoverageView.vue`) listing structural (✓/✗ "to design") and optional (✓/○) slots with a `touched/total` count and an un-designed badge. Bundled grammar fix: `nav-link-*` routes to the `link` slot (not `base`+`link` variant) via a `variantShadowsSlot` guard, so nav's flagship "design the `link` slot" insight is reachable. Built engine-first (v0.28.12–v0.28.14 shipped the anatomy spec + engine). |
+| **v0.30.0** | ✅ released | **Click-a-slot to highlight its tokens.** Covered Coverage-view slot rows are clickable (`<button>` emitting `select-tokens`, backed by a new `SlotCoverage.tokenIds`); clicking one highlights + reveals the slot's tokens in the left tree (expanding their ancestor groups) while staying on the Coverage tab. **v0.30.1 / v0.30.2** then made both highlight entry points (the Coverage view and the Scan view) clear an active kind-filter first, so the highlighted tokens are always visible. |
+| **Next** | 🔭 planned | Only data-blocked items remain: `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the `data-[state=checked]:` prefix form for Reka components — all waiting on tokens the export doesn't have yet || **Backlog** | 🧊 | Coverage Guide extensions (anatomy for more components, the deferred `inherited` bucket, coverage in the node-detail pane, "highlight across all filters" incl. `search`); hue-proximity color-role derivation (currently a fixed mapping); Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
 
 Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 A snapshot project analysis (architecture, verified findings, prioritised recommendations)
