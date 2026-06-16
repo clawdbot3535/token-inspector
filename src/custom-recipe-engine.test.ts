@@ -72,6 +72,24 @@ describe("buildCustomRecipes", () => {
     expect(chip!.variants.color?.success?.base).toBeTypeOf("string");
   });
 
+  it("does not collapse the sidebar item — icon-size is dropped, not emitted as size-*", () => {
+    const graph = buildGraph([
+      {
+        name: "global",
+        data: {
+          sidebar: {
+            item: {
+              "icon-size": { $value: 16, $type: "number" },
+              text: { $value: "#52525B", $type: "color" },
+            },
+          },
+        },
+      },
+    ]);
+    const recipes = buildCustomRecipes(graph, new Map([["sidebar", ["item"]]]));
+    expect(recipes.sidebar?.slots.item ?? "").not.toContain("size-");
+  });
+
   it("only builds the flagged components", () => {
     const recipes = buildCustomRecipes(
       realGraph(),
