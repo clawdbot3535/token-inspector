@@ -3,6 +3,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import App from "./App.vue";
 import ComponentTree from "./components/ComponentTree.vue";
+import FilterChips from "./components/FilterChips.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -115,5 +116,26 @@ describe("App coverage view", () => {
     expect((tree.props("expandedPaths") as ReadonlySet<string>).size).toBeGreaterThan(0);
     // stays on the coverage view (no navigation to node-detail)
     expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(true);
+  });
+
+  it("clears an active kind-filter on slot click so the highlighted tokens are visible", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "nav");
+    await flushPromises();
+
+    // a kind-filter that would hide nav's component-layer tokens from the tree
+    wrapper.findComponent(FilterChips).vm.$emit("update:modelValue", "color");
+    await flushPromises();
+    expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("color");
+
+    await wrapper.find('[data-testid="coverage-tab"]').trigger("click");
+    await flushPromises();
+    await wrapper.find('[data-testid="coverage-slot"][data-slot="link"]').trigger("click");
+    await flushPromises();
+
+    // the kind-filter is reset to "all" so the highlighted tokens show in the tree
+    expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("all");
   });
 });

@@ -317,6 +317,12 @@ function toggleExpanded(path: string): void {
 
 function onCoverageSelectTokens(ids: readonly string[]): void {
   state.highlightedIds.value = new Set(ids);
+  // A kind-filter (color/dimension/…) would hide the slot's tokens from the tree, making the
+  // highlight invisible. Clear it first so the tokens are visible — and so tokenTree (which is
+  // built from the filtered visibleNodes) includes them, letting ancestorPaths resolve + expand.
+  if (state.filters.value.classification !== "all") {
+    state.filters.value = { ...state.filters.value, classification: "all" };
+  }
   const next = new Set(expandedPaths.value);
   for (const id of ids) for (const p of ancestorPaths(tokenTree.value, id)) next.add(p);
   expandedPaths.value = next;
