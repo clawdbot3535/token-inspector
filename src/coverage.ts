@@ -12,6 +12,8 @@ export interface SlotCoverage {
   controls: string;
   /** True iff at least one of the component's tokens routes to this slot. */
   touched: boolean;
+  /** The component's token ids that route to this slot ([] when untouched). */
+  tokenIds: readonly string[];
 }
 
 export interface ComponentCoverage {
@@ -33,19 +35,23 @@ export function coverageFor(graph: TokenGraph, component: string): ComponentCove
   const anatomy = anatomyFor(component);
   if (!anatomy) return null;
 
-  const touched = new Set<string>();
+  const tokensBySlot = new Map<string, string[]>();
   for (const node of graph.nodes.values()) {
     if (node.id.split("-")[0] !== component) continue;
     if (OVERLAY_CONTEXT.test(node.id)) continue;
     const slot = getSlotMapping(node.id, undefined, node.type)?.slot;
-    if (slot) touched.add(slot);
+    if (!slot) continue;
+    const arr = tokensBySlot.get(slot);
+    if (arr) arr.push(node.id);
+    else tokensBySlot.set(slot, [node.id]);
   }
 
   const slots: SlotCoverage[] = [...anatomy.entries()].map(([slot, a]) => ({
     slot,
     classification: a.classification,
     controls: a.controls,
-    touched: touched.has(slot),
+    touched: tokensBySlot.has(slot),
+    tokenIds: tokensBySlot.get(slot) ?? [],
   }));
 
   const structural = slots.filter((s) => s.classification === "structural");

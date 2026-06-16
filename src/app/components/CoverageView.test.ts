@@ -9,13 +9,13 @@ const navCoverage: ComponentCoverage = {
   structuralTotal: 1,
   structuralTouched: 0,
   slots: [
-    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false },
-    { slot: "item", classification: "optional", controls: "entry container: spacing", touched: true },
-    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false },
+    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
+    { slot: "item", classification: "optional", controls: "entry container: spacing", touched: true, tokenIds: ["nav-item-bg"] },
+    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false, tokenIds: [] },
   ],
   toDesign: [
-    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false },
-    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false },
+    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
+    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false, tokenIds: [] },
   ],
 };
 
