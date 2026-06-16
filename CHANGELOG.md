@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.0] — 2026-06-16
+
+### Added
+
+- **`inherited` slot bucket in the Coverage Guide.** A third slot classification (`@tg/grammar`'s
+  `SlotAnatomy` gains `inheritsFrom`): slots that follow a parent slot's styling — nav `linkLabel`→
+  `link`, nav `childLinkLabel`→`childLink`, accordion `label`→`trigger`, dropdown `itemLabel`→`item`.
+  In the coverage engine an inherited slot is **covered when its parent is designed** (`touched =
+  direct || parent-touched`) and is **never** listed in the to-design list — designing the parent
+  covers it. The coverage view renders them in a third **"Inherited · follows another slot"** section
+  (after Structural and Optional) with a `✓`/`↳` marker tracking the parent and an "inherits
+  `<parent>`" tag. Structural counts are unchanged. Completes the Coverage-Guide arc (anatomy →
+  engine → view → highlight → filter fixes → inherited).
+
 ## [0.30.2] — 2026-06-16
 
 ### Fixed
