@@ -1,4 +1,5 @@
 export * from "./component-vocab.js";
+export * from "./component-anatomy.js";
 export * from "./slot-mapping.js";
 export * from "./dtcg.js";
 export * from "./profile.js";
