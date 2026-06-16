@@ -3,6 +3,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import App from "./App.vue";
 import ScanView from "./components/ScanView.vue";
+import FilterChips from "./components/FilterChips.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -134,5 +135,23 @@ describe("App scan-view toggle", () => {
     await toggle().trigger("click");
     expect(toggle().attributes("aria-pressed")).toBe("false");
     expect(wrapper.findComponent(ScanView).exists()).toBe(false);
+  });
+
+  it("clears an active kind-filter when ScanView highlights tokens", async () => {
+    const wrapper = await mountLoaded(issueFixtureFile());
+    await wrapper.find('[data-testid="scan-toggle"]').trigger("click"); // open scan view
+    await flushAll();
+
+    // a kind-filter that would hide the highlighted tokens from the tree
+    wrapper.findComponent(FilterChips).vm.$emit("update:modelValue", "color");
+    await flushAll();
+    expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("color");
+
+    // ScanView highlights some tokens (e.g. clicking an issue's token list)
+    wrapper.findComponent(ScanView).vm.$emit("select-tokens", ["button-bg"]);
+    await flushAll();
+
+    // the kind-filter is reset to "all" so the highlighted tokens are visible
+    expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("all");
   });
 });
