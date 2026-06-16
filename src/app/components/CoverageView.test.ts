@@ -12,6 +12,8 @@ const navCoverage: ComponentCoverage = {
     { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
     { slot: "item", classification: "optional", controls: "entry container: spacing", touched: true, tokenIds: ["nav-item-bg"] },
     { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false, tokenIds: [] },
+    { slot: "linkLabel", classification: "inherited", controls: "link text wrapper (follows link)", touched: true, tokenIds: [], inheritsFrom: "link" },
+    { slot: "childLinkLabel", classification: "inherited", controls: "submenu link label (follows childLink)", touched: false, tokenIds: [], inheritsFrom: "childLink" },
   ],
   toDesign: [
     { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
@@ -54,5 +56,25 @@ describe("CoverageView", () => {
     expect(link.element.tagName).not.toBe("BUTTON");
     await link.trigger("click");
     expect(w.emitted("select-tokens")).toBeUndefined();
+  });
+
+  it("renders inherited slots in their own section with a parent tag", () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const ll = w.find('[data-testid="coverage-slot"][data-slot="linkLabel"]');
+    expect(ll.exists()).toBe(true);
+    expect(ll.text()).toContain("inherits link");   // names the parent
+    expect(ll.text()).toContain("✓");               // parent designed → covered
+    const cll = w.find('[data-testid="coverage-slot"][data-slot="childLinkLabel"]');
+    expect(cll.text()).toContain("inherits childLink");
+    expect(cll.text()).toContain("↳");              // parent not designed → follows
+  });
+
+  it("does not list inherited slots under Optional", () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const optionalSection = w.findAll("section").find((s) => s.text().includes("Optional"))!;
+    const optionalSlots = optionalSection
+      .findAll('[data-testid="coverage-slot"]')
+      .map((e) => e.attributes("data-slot"));
+    expect(optionalSlots).not.toContain("linkLabel");
   });
 });
