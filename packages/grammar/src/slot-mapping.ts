@@ -368,6 +368,10 @@ const HEURISTIC_RULES: ReadonlyArray<{
  * Apply all heuristic rules to an already-parsed token. Extracted so the
  * sub-element fallback path can re-use the same logic with a re-parsed token.
  */
+// Layout-container slots a stray `size-*` would collapse (width+height). Leaf slots
+// (close, label, indicator, thumb, …) legitimately carry an icon size.
+const ICON_SIZE_CONTAINER_SLOTS: ReadonlySet<string> = new Set(["item", "content", "root", "wrapper"]);
+
 function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEntry | null {
   const slot: RecipeSlot = parsed.slotPrefix ?? defaultBaseSlot(parsed.component);
   const ctx: BuildContext = {
@@ -453,6 +457,10 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
       if (entry.utilityType === "icon-size" && !/icon$/i.test(slot)) {
         const iconSlot = leadingIconSlotFor(parsed.component);
         if (iconSlot) return { ...entry, slot: iconSlot };
+        // No icon slot to route to: an icon-size on a container slot can't be honoured
+        // and would only collapse it (sidebar-item). Drop it. Leaf slots (chip-close)
+        // keep it via the fall-through below.
+        if (ICON_SIZE_CONTAINER_SLOTS.has(slot)) return null;
       }
       return slot === "base" ? entry : { ...entry, slot };
     }

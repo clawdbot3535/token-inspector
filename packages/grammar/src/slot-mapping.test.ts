@@ -57,6 +57,19 @@ describe("heuristicSlotMapping — button", () => {
     });
   });
 
+  it("drops a sidebar-item-icon-size (no icon slot, container item) instead of collapsing it", () => {
+    expect(heuristicSlotMapping("sidebar-item-icon-size", undefined, new Set(["item"]))).toBeNull();
+  });
+
+  it("keeps icon-size on a leaf sub-element with no icon slot (chip close)", () => {
+    expect(heuristicSlotMapping("chip-close-icon-size", undefined, new Set(["label", "close"]))).toEqual({
+      slot: "close",
+      utilityType: "icon-size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
   it("maps accordion-item-text-opened to a data-[state=open] text-color on the item", () => {
     const m = heuristicSlotMapping("accordion-item-text-opened", "color");
     expect(m).not.toBeNull();
