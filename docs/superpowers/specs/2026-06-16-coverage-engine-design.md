@@ -34,6 +34,16 @@ Two risks resolved by the probe:
    (`linkLeadingIcon`, `leadingIcon`) are `optional` and were reached via the icon-size rule. Net:
    the risk does **not** produce false-positive structural gaps. (Optional camelCase slots may still
    under-report "touched"; acceptable for Phase 1 — they're never flagged as required.)
+
+   **Caveat found during TDD — the nav `link` variant collision.** `link` is both nav's one
+   structural *slot* AND a Nuxt button-*variant value* (`solid|outline|…|link`). The grammar reads a
+   2nd-segment `link` as the variant, so `nav-link-bg` routes to `slots.base` + `variantKey: "link"`,
+   **not** to the `link` slot. Consequence: nav's `link` slot is effectively unreachable by
+   `nav-link-*` tokens, so the guide reports it missing even if a designer supplies them. For the
+   live export this is still *correct* (no `nav-link-*` tokens exist; `link` is genuinely empty), and
+   the engine faithfully implements the locked `touched = getSlotMapping routes there` semantics — so
+   this is a **grammar/anatomy modelling issue to address separately**, not an engine bug. Flagged
+   for Step 3 (the "design the link slot" insight can't turn green until the collision is resolved).
 2. **overlay double-meaning.** A first probe over-excluded with `/overlay/` and wrongly dropped
    modal's `overlay` **slot** token (`modal-overlay-bg`), reporting `overlay` as missing. The fix:
    exclude only overlay-**context** variants — ids matching `-overlay-(dark|light)` (the separate
