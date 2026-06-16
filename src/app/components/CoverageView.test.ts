@@ -39,4 +39,20 @@ describe("CoverageView", () => {
     expect(w.find('[data-testid="coverage-slot"][data-slot="item"]').attributes("data-touched")).toBe("true");
     expect(w.find('[data-testid="coverage-slot"][data-slot="root"]').attributes("data-touched")).toBe("false");
   });
+
+  it("renders a covered slot as a button that emits select-tokens with its tokenIds", async () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const item = w.find('[data-testid="coverage-slot"][data-slot="item"]');
+    expect(item.element.tagName).toBe("BUTTON");
+    await item.trigger("click");
+    expect(w.emitted("select-tokens")?.[0]).toEqual([["nav-item-bg"]]);
+  });
+
+  it("renders an untouched slot as a non-button that emits nothing", async () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const link = w.find('[data-testid="coverage-slot"][data-slot="link"]');
+    expect(link.element.tagName).not.toBe("BUTTON");
+    await link.trigger("click");
+    expect(w.emitted("select-tokens")).toBeUndefined();
+  });
 });
