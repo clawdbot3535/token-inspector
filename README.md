@@ -152,8 +152,11 @@ The UI shows:
   `modal`, `table`, `dropdown`) the component pane offers a **`Preview |
   Coverage`** toggle. The Coverage view lists every Nuxt UI v4 theme slot the
   component has, split into **Structural · must design** (✓ touched / ✗ + a
-  "to design" tag) and **Optional · designed or Nuxt default** (✓ / ○), with a
-  `touched / total structural` count and a tab badge of the un-designed count.
+  "to design" tag), **Optional · designed or Nuxt default** (✓ / ○), and
+  **Inherited · follows another slot** (a label that takes its parent's styling
+  — `✓`/`↳` tracking the parent, covered once the parent is designed, never
+  flagged to-design), with a `touched / total structural` count and a tab badge
+  of the un-designed count.
   It answers *"what's still missing to match this component"* — e.g. `nav`
   flags the `link` slot when a design only supplies `nav-item-*` tokens.
   **Click a covered slot** to highlight and reveal its tokens in the left tree
@@ -276,7 +279,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 
 ## Tests
 
-816 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
+825 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
 
 ```bash
 npm test         # full suite

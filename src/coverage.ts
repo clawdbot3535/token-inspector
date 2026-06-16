@@ -14,6 +14,8 @@ export interface SlotCoverage {
   touched: boolean;
   /** The component's token ids that route to this slot ([] when untouched). */
   tokenIds: readonly string[];
+  /** Parent slot, for inherited slots (mirrors the anatomy). */
+  inheritsFrom?: string;
 }
 
 export interface ComponentCoverage {
@@ -50,13 +52,15 @@ export function coverageFor(graph: TokenGraph, component: string): ComponentCove
     slot,
     classification: a.classification,
     controls: a.controls,
-    touched: tokensBySlot.has(slot),
+    // an inherited slot follows its parent: covered when the parent (or it) has a token
+    touched: tokensBySlot.has(slot) || (a.inheritsFrom != null && tokensBySlot.has(a.inheritsFrom)),
     tokenIds: tokensBySlot.get(slot) ?? [],
+    inheritsFrom: a.inheritsFrom,
   }));
 
   const structural = slots.filter((s) => s.classification === "structural");
   const toDesign = slots
-    .filter((s) => !s.touched)
+    .filter((s) => !s.touched && s.classification !== "inherited")
     .sort((a, b) => rank(a.classification) - rank(b.classification));
 
   return {

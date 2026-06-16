@@ -85,4 +85,20 @@ describe("coverageFor", () => {
     expect(slotNames.has("overlay")).toBe(true);
     expect(slotNames.has("title")).toBe(true);
   });
+
+  it("an inherited slot is touched when its parent is touched, and never in toDesign", () => {
+    const cov = coverageFor(graphWith(["nav-link-bg"]), "nav")!; // link designed
+    const ll = cov.slots.find((s) => s.slot === "linkLabel")!;
+    expect(ll.classification).toBe("inherited");
+    expect(ll.inheritsFrom).toBe("link");
+    expect(ll.touched).toBe(true); // covered via parent
+    expect(cov.toDesign.some((s) => s.slot === "linkLabel")).toBe(false);
+  });
+
+  it("an inherited slot is untouched when neither it nor its parent is touched (still not in toDesign)", () => {
+    const cov = coverageFor(graphWith(["nav-item-bg"]), "nav")!; // link NOT designed
+    const ll = cov.slots.find((s) => s.slot === "linkLabel")!;
+    expect(ll.touched).toBe(false);
+    expect(cov.toDesign.some((s) => s.slot === "linkLabel")).toBe(false);
+  });
 });

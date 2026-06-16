@@ -12,6 +12,15 @@ const EXPECTED_STRUCTURAL: Record<string, string[]> = {
   dropdown: ["content", "item"],
 };
 
+// slot → parent it inherits styling from
+const EXPECTED_INHERITED: Record<string, Record<string, string>> = {
+  nav: { linkLabel: "link", childLinkLabel: "childLink" },
+  accordion: { label: "trigger" },
+  modal: {},
+  table: {},
+  dropdown: { itemLabel: "item" },
+};
+
 describe("component-anatomy", () => {
   it("curates exactly the five composites", () => {
     expect(new Set(COMPONENT_ANATOMY.keys())).toEqual(new Set(Object.keys(EXPECTED_STRUCTURAL)));
@@ -32,11 +41,26 @@ describe("component-anatomy", () => {
         expect(new Set(structural)).toEqual(new Set(EXPECTED_STRUCTURAL[comp]));
       });
 
-      it("every slot: valid classification + non-empty controls (<=60 chars)", () => {
+      it("has the locked inherited set with valid parents", () => {
+        const anatomy = anatomyFor(comp)!;
+        const inherited = [...anatomy.entries()]
+          .filter(([, a]) => a.classification === "inherited")
+          .map(([slot]) => slot);
+        expect(new Set(inherited)).toEqual(new Set(Object.keys(EXPECTED_INHERITED[comp]!)));
+        for (const [slot, parent] of Object.entries(EXPECTED_INHERITED[comp]!)) {
+          const a = anatomy.get(slot)!;
+          expect(a.inheritsFrom).toBe(parent);
+          expect(nuxtSlotsFor(comp)!).toContain(parent); // parent is a real slot
+        }
+      });
+
+      it("every slot: valid classification + non-empty controls (<=60 chars); inherited has a parent", () => {
         for (const [, a] of anatomyFor(comp)!) {
-          expect(["structural", "optional"]).toContain(a.classification);
+          expect(["structural", "optional", "inherited"]).toContain(a.classification);
           expect(a.controls.length).toBeGreaterThan(0);
           expect(a.controls.length).toBeLessThanOrEqual(60);
+          if (a.classification === "inherited") expect(a.inheritsFrom).toBeTruthy();
+          else expect(a.inheritsFrom).toBeUndefined();
         }
       });
     });
