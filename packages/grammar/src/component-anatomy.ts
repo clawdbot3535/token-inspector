@@ -3,17 +3,21 @@
 // which parts of a component a design still needs to cover. Keys mirror NUXT_SLOTS exactly
 // (enforced by component-anatomy.test.ts). Curated from the Nuxt UI v4 component themes.
 
-export type SlotClassification = "structural" | "optional";
+export type SlotClassification = "structural" | "optional" | "inherited";
 
 export interface SlotAnatomy {
   /** structural = must design to match the base component; optional = adornment / variant / sub-feature. */
   classification: SlotClassification;
   /** Short (<=60 char) phrase naming the visual the slot governs (for the to-design list). */
   controls: string;
+  /** Parent slot this one inherits its styling from. Set iff classification === "inherited". */
+  inheritsFrom?: string;
 }
 
 const s = (controls: string): SlotAnatomy => ({ classification: "structural", controls });
 const o = (controls: string): SlotAnatomy => ({ classification: "optional", controls });
+const i = (inheritsFrom: string, controls: string): SlotAnatomy =>
+  ({ classification: "inherited", controls, inheritsFrom });
 
 // nav — Nuxt UI v4 NavigationMenu. Under the Must-Design principle only `link` carries a
 // designable surface (bg/text/hover/active/ring/radius); root=gap+layout, list=flex,
@@ -33,7 +37,7 @@ const NAV: ReadonlyMap<string, SlotAnatomy> = new Map([
   ["linkTrailingBadge", o("trailing badge on a link")],
   ["linkTrailingBadgeSize", o("trailing badge size token")],
   ["linkTrailingIcon", o("trailing / chevron icon (rotates on open)")],
-  ["linkLabel", o("link text wrapper (truncate; inherits from link)")],
+  ["linkLabel", i("link", "link text wrapper (truncate; follows link)")],
   ["linkLabelExternalIcon", o("external-link indicator icon")],
   ["childList", o("submenu list container")],
   ["childLabel", o("submenu section label")],
@@ -41,7 +45,7 @@ const NAV: ReadonlyMap<string, SlotAnatomy> = new Map([
   ["childLink", o("submenu link: text, padding, hover, active")],
   ["childLinkWrapper", o("submenu link content wrapper")],
   ["childLinkIcon", o("submenu link icon")],
-  ["childLinkLabel", o("submenu link label text")],
+  ["childLinkLabel", i("childLink", "submenu link label text (follows childLink)")],
   ["childLinkLabelExternalIcon", o("submenu external-link icon")],
   ["childLinkDescription", o("submenu link description text")],
   ["separator", o("divider between items / groups")],
@@ -63,7 +67,7 @@ const ACCORDION: ReadonlyMap<string, SlotAnatomy> = new Map([
   ["body", s("panel body: text, padding")],
   ["leadingIcon", o("leading icon size / colour")],
   ["trailingIcon", o("expand chevron (rotates on open)")],
-  ["label", o("trigger label text (inherits from trigger)")],
+  ["label", i("trigger", "trigger label text (follows trigger)")],
 ]);
 
 // modal — Nuxt UI v4 Modal. structural = the dim overlay, the dialog box, the body padding, the
@@ -117,7 +121,7 @@ const DROPDOWN: ReadonlyMap<string, SlotAnatomy> = new Map([
   ["itemTrailingKbds", o("item trailing keyboard hints")],
   ["itemTrailingKbdsSize", o("item trailing kbd size")],
   ["itemWrapper", o("item content wrapper (layout)")],
-  ["itemLabel", o("item label text (inherits from item)")],
+  ["itemLabel", i("item", "item label text (follows item)")],
   ["itemDescription", o("item description text (secondary)")],
   ["itemLabelExternalIcon", o("item external-link icon")],
 ]);
