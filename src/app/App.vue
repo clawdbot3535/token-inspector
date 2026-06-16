@@ -30,6 +30,8 @@ import LiveAccordion from "./components/LiveAccordion.vue";
 import LiveNav from "./components/LiveNav.vue";
 import LiveSidebar from "./components/LiveSidebar.vue";
 import LiveChip from "./components/LiveChip.vue";
+import CoverageView from "./components/CoverageView.vue";
+import { coverageFor } from "@core/coverage.js";
 import ComponentTree from "./components/ComponentTree.vue";
 import { buildTokenTree, buildLayeredTree, leafIds, ancestorPaths } from "./token-tree.js";
 import ClassificationBadge from "./components/ClassificationBadge.vue";
@@ -164,6 +166,15 @@ watch(
 // the component-tree group rows; falls back to the only currently
 // supported component when nothing has been chosen.
 const selectedComponent = ref<string>("button");
+const paneTab = ref<"preview" | "coverage">("preview");
+const coverage = computed(() =>
+  state.graph.value && selectedComponent.value
+    ? coverageFor(state.graph.value, selectedComponent.value)
+    : null,
+);
+watch(selectedComponent, () => {
+  paneTab.value = "preview";
+});
 
 // LiveButton renders <button> markup with button-specific defaults
 // (transition-colors, fallback blue chrome). Rendering it for badge / nav /
@@ -993,6 +1004,32 @@ function downloadAll() {
                   click a different component group to switch the preview.
                 </div>
               </div>
+              <div v-if="coverage" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
+                <button
+                  type="button"
+                  data-testid="preview-tab"
+                  class="px-3 py-1 text-xs"
+                  :class="paneTab === 'preview' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
+                  @click="paneTab = 'preview'"
+                >Preview</button>
+                <button
+                  type="button"
+                  data-testid="coverage-tab"
+                  class="px-3 py-1 text-xs inline-flex items-center gap-1"
+                  :class="paneTab === 'coverage' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
+                  @click="paneTab = 'coverage'"
+                >
+                  Coverage
+                  <span
+                    v-if="coverage.structuralTotal - coverage.structuralTouched > 0"
+                    class="text-[10px] font-mono px-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                  >{{ coverage.structuralTotal - coverage.structuralTouched }}</span>
+                </button>
+              </div>
+
+              <CoverageView v-if="coverage && paneTab === 'coverage'" :coverage="coverage" />
+
+              <template v-if="!coverage || paneTab === 'preview'">
               <LiveInput
                 v-if="previewSupported && isFieldComponent"
                 :graph="state.graph.value"
@@ -1117,6 +1154,7 @@ function downloadAll() {
                   Component-shaped previews arrive in v0.5.0+.
                 </div>
               </div>
+              </template>
             </div>
             <div v-else class="text-sm text-muted">
               Select a token from the left to inspect.
