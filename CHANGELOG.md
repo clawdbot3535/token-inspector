@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.28.13] — 2026-06-16
+
+### Added
+
+- **Anatomy for the remaining four composites** — `component-anatomy.ts` now curates `accordion`,
+  `dropdown`, `table`, and `modal` (alongside `nav`), completing the five-composite anatomy spec
+  that backs the coverage guide. Each is grounded in the live Nuxt UI v4 theme and covers 100% of
+  its `NUXT_SLOTS`. Structural sets (Must-Design): accordion = `item`/`trigger`/`body`,
+  modal = `overlay`/`content`/`body`/`title`, table = `th`/`td`, dropdown = `content`/`item`.
+  Tests are now data-driven across all five (coverage + structural-set + shape invariants).
+
+### Changed
+
+- **`nav` structural set tightened to `link`** under the locked "Must-Design" principle (a slot is
+  structural only if a designer must supply tokens to match it — bg/border/text/padding). nav's
+  `root` (gap/layout), `list` (flex), and `item` (py-spacing) moved to `optional` (Nuxt's defaults
+  already match; flagging them "design this" would be noise). This is why the guide will show the
+  user's `nav-item-*` tokens (on the optional `item`) next to the empty structural `link` — the
+  "you styled item, design link" insight. Additive/internal — no user-facing behaviour yet.
+
 ## [0.28.12] — 2026-06-16
 
 ### Added
