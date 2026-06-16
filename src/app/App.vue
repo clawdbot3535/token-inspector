@@ -315,6 +315,15 @@ function toggleExpanded(path: string): void {
   persistExpanded(next);
 }
 
+function onCoverageSelectTokens(ids: readonly string[]): void {
+  state.highlightedIds.value = new Set(ids);
+  const next = new Set(expandedPaths.value);
+  const tree = tokenTree.value ?? [];
+  for (const id of ids) for (const p of ancestorPaths(tree, id)) next.add(p);
+  expandedPaths.value = next;
+  persistExpanded(next);
+}
+
 /**
  * Effective expansion set used for rendering. When a search query is
  * active we force-open every group so matches stay visible without the
@@ -1031,7 +1040,11 @@ function downloadAll() {
                 </button>
               </div>
 
-              <CoverageView v-if="coverage && paneTab === 'coverage'" :coverage="coverage" />
+              <CoverageView
+                v-if="coverage && paneTab === 'coverage'"
+                :coverage="coverage"
+                @select-tokens="onCoverageSelectTokens"
+              />
 
               <template v-if="!coverage || paneTab === 'preview'">
               <LiveInput
