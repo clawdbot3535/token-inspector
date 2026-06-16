@@ -112,7 +112,7 @@ function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): P
   // consume it when there are more segments after it — otherwise a token
   // literally called e.g. "button-solid" would lose its utility name.
   const second = parts[1];
-  if (parts.length >= 3 && second !== undefined) {
+  if (parts.length >= 3 && second !== undefined && !componentSlots?.has(second)) {
     if (BUTTON_VARIANT_KEYS.has(second)) { variant = second; start = 2; }
     else if (COLOR_ROLE_KEYS.has(second)) { colorRole = second; start = 2; }
   }
@@ -517,7 +517,11 @@ export function heuristicSlotMapping(
   const overlayShadowsSlot =
     normal?.utilityType === "overlay-bg" &&
     (nuxtSlotsFor(parsed.component)?.has("overlay") ?? false);
-  if (normal && !overlayShadowsSlot) return normal;
+  const variantShadowsSlot =
+    normal?.variantAxis === "variant" &&
+    normal?.variantKey != null &&
+    (nuxtSlotsFor(parsed.component)?.has(normal.variantKey) ?? false);
+  if (normal && !overlayShadowsSlot && !variantShadowsSlot) return normal;
 
   // 2) Fallback: route a leading segment that EXACTLY matches a routable slot of
   //    this component — its Nuxt slots, plus any custom extraSlots. No aliasing —
