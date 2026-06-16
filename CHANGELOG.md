@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.30.1] — 2026-06-16
+
+### Fixed
+
+- **Coverage slot-click highlight now clears an active kind-filter.** When a kind-filter
+  (color/dimension/…) was active in the token tree, clicking a covered slot highlighted tokens that
+  were filtered out of view — a silent no-op. The handler now resets the classification filter to
+  `all` first, so the slot's tokens are revealed and their groups expand. Closes the v0.30.0 known
+  follow-up.
+
 ## [0.30.0] — 2026-06-16
 
 ### Added
