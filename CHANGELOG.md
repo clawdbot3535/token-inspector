@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.28.12] — 2026-06-16
+
+### Added
+
+- **Component-anatomy layer (coverage-guide foundation)** — `packages/grammar/src/component-anatomy.ts`
+  classifies each Nuxt UI theme slot as `structural` (must design to match the base component) or
+  `optional` (adornment / variant / sub-feature), with a one-line "what it controls." Seeded with
+  `nav` (all 30 `NavigationMenu` slots; structural = `root`/`list`/`item`/`link`), grounded in the
+  Nuxt UI v4 theme. A 100%-coverage test ties the anatomy to `NUXT_SLOTS`. Additive data — no
+  user-facing behaviour yet; it backs the upcoming design-coverage guide (see
+  `docs/superpowers/specs/2026-06-16-component-anatomy-nav-design.md` and the office-hours design
+  doc).
+
 ## [0.28.11] — 2026-06-16
 
 ### Fixed
