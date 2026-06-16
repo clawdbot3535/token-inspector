@@ -1004,17 +1004,21 @@ function downloadAll() {
                   click a different component group to switch the preview.
                 </div>
               </div>
-              <div v-if="coverage" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
+              <div v-if="coverage" role="tablist" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
                 <button
                   type="button"
+                  role="tab"
                   data-testid="preview-tab"
+                  :aria-selected="paneTab === 'preview'"
                   class="px-3 py-1 text-xs"
                   :class="paneTab === 'preview' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
                   @click="paneTab = 'preview'"
                 >Preview</button>
                 <button
                   type="button"
+                  role="tab"
                   data-testid="coverage-tab"
+                  :aria-selected="paneTab === 'coverage'"
                   class="px-3 py-1 text-xs inline-flex items-center gap-1"
                   :class="paneTab === 'coverage' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
                   @click="paneTab = 'coverage'"

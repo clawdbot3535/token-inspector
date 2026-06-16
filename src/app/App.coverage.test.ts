@@ -79,8 +79,10 @@ describe("App coverage view", () => {
     const covTab = wrapper.find('[data-testid="coverage-tab"]');
     expect(covTab.exists()).toBe(true);
     expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(false); // default tab = preview
+    expect(covTab.attributes("aria-selected")).toBe("false");
     await covTab.trigger("click");
     expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(true);
+    expect(covTab.attributes("aria-selected")).toBe("true");
   });
 
   it("shows no Coverage tab for a component without anatomy", async () => {
