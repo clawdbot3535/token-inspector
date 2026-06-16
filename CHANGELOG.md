@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.30.2] — 2026-06-16
+
+### Fixed
+
+- **ScanView token highlight now also clears an active kind-filter**, matching the coverage view
+  (v0.30.1). Clicking an issue's tokens in the scan view while a kind-filter (color/dimension/…) was
+  active highlighted tokens that were filtered out of the tree. `onScanSelectTokens` (extracted from
+  the inline handler) resets the classification filter to `all` before selecting, so the highlight
+  and its auto-expand are visible.
+
 ## [0.30.1] — 2026-06-16
 
 ### Fixed
