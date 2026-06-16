@@ -93,4 +93,27 @@ describe("App coverage view", () => {
     await flushPromises();
     expect(wrapper.find('[data-testid="coverage-tab"]').exists()).toBe(false);
   });
+
+  it("highlights a slot's tokens in the tree on click, staying on the coverage view", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "nav");
+    await flushPromises();
+    await wrapper.find('[data-testid="coverage-tab"]').trigger("click");
+    await flushPromises();
+
+    // nav-link-bg routes to the link slot (grammar fix) → the link row is a clickable button
+    const linkRow = wrapper.find('[data-testid="coverage-slot"][data-slot="link"]');
+    expect(linkRow.element.tagName).toBe("BUTTON");
+    await linkRow.trigger("click");
+    await flushPromises();
+
+    const highlighted = tree.props("highlightedIds") as ReadonlySet<string>;
+    expect(highlighted.has("nav-link-bg")).toBe(true);
+    // reveals: the token's ancestor groups get expanded so the highlight is visible
+    expect((tree.props("expandedPaths") as ReadonlySet<string>).size).toBeGreaterThan(0);
+    // stays on the coverage view (no navigation to node-detail)
+    expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(true);
+  });
 });

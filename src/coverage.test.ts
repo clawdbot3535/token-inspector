@@ -71,6 +71,12 @@ describe("coverageFor", () => {
     expect(cov.slots.find((s) => s.slot === "link")!.touched).toBe(false);
   });
 
+  it("populates tokenIds for a routed slot and leaves untouched slots empty", () => {
+    const cov = coverageFor(graphWith(["nav-item-bg"]), "nav")!;
+    expect(cov.slots.find((s) => s.slot === "item")!.tokenIds).toEqual(["nav-item-bg"]);
+    expect(cov.slots.find((s) => s.slot === "link")!.tokenIds).toEqual([]);
+  });
+
   it("covers 100% of the anatomy in slots", () => {
     const cov = coverageFor(graphWith(["modal-content-bg"]), "modal")!;
     const slotNames = new Set(cov.slots.map((s) => s.slot));

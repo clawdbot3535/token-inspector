@@ -9,13 +9,13 @@ const navCoverage: ComponentCoverage = {
   structuralTotal: 1,
   structuralTouched: 0,
   slots: [
-    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false },
-    { slot: "item", classification: "optional", controls: "entry container: spacing", touched: true },
-    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false },
+    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
+    { slot: "item", classification: "optional", controls: "entry container: spacing", touched: true, tokenIds: ["nav-item-bg"] },
+    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false, tokenIds: [] },
   ],
   toDesign: [
-    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false },
-    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false },
+    { slot: "link", classification: "structural", controls: "link: text, bg, hover", touched: false, tokenIds: [] },
+    { slot: "root", classification: "optional", controls: "navbar container: layout", touched: false, tokenIds: [] },
   ],
 };
 
@@ -38,5 +38,21 @@ describe("CoverageView", () => {
     const w = mount(CoverageView, { props: { coverage: navCoverage } });
     expect(w.find('[data-testid="coverage-slot"][data-slot="item"]').attributes("data-touched")).toBe("true");
     expect(w.find('[data-testid="coverage-slot"][data-slot="root"]').attributes("data-touched")).toBe("false");
+  });
+
+  it("renders a covered slot as a button that emits select-tokens with its tokenIds", async () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const item = w.find('[data-testid="coverage-slot"][data-slot="item"]');
+    expect(item.element.tagName).toBe("BUTTON");
+    await item.trigger("click");
+    expect(w.emitted("select-tokens")?.[0]).toEqual([["nav-item-bg"]]);
+  });
+
+  it("renders an untouched slot as a non-button that emits nothing", async () => {
+    const w = mount(CoverageView, { props: { coverage: navCoverage } });
+    const link = w.find('[data-testid="coverage-slot"][data-slot="link"]');
+    expect(link.element.tagName).not.toBe("BUTTON");
+    await link.trigger("click");
+    expect(w.emitted("select-tokens")).toBeUndefined();
   });
 });
