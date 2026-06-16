@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.28.14] — 2026-06-16
+
+### Added
+
+- **Coverage engine** (`src/coverage.ts`) — `coverageFor(graph, component)` joins the
+  five-composite anatomy spec to a live `TokenGraph` and returns, per component, every theme slot
+  with its `structural`/`optional` classification, a `controls` label, and whether any token routes
+  to it (`touched`) — plus a `toDesign` list of the un-designed slots, **structural-missing first**.
+  Pure, read-only projection over the immutable graph (same contract as the renderers); returns
+  `null` for uncurated components. This is Step 2 of the Design-System Coverage Guide; no
+  user-facing view consumes it yet. Validated against the live export: nav still needs `link`,
+  accordion `trigger`/`body`, modal `body`/`title`; table and dropdown are fully covered.
+- Overlay-context deltas (`*-overlay-(dark|light)-*`) are excluded from coverage (they're a separate
+  recipe), while the modal `overlay` **slot** (`modal-overlay-bg`) is correctly counted.
+
+### Notes
+
+- TDD surfaced a **nav `link` collision**: `link` is both nav's structural slot and a Nuxt
+  button-variant value, so `nav-link-*` tokens route to `slots.base` + variant rather than the
+  `link` slot. The engine faithfully reports what the recipe would contain; resolving the collision
+  is a separate grammar/anatomy concern, flagged for the upcoming coverage view.
+
 ## [0.28.13] — 2026-06-16
 
 ### Added
