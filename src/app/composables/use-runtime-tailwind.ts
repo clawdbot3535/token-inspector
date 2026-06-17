@@ -15,7 +15,12 @@ export function ensureRuntimeTailwind(): Promise<void> {
     const style = document.createElement("style");
     style.id = ACTIVATION_ID;
     style.setAttribute("type", "text/tailwindcss");
-    style.textContent = '@import "tailwindcss";';
+    // The runtime compiler observes the WHOLE document, so it also regenerates the inspector
+    // chrome's own `dark:` utilities. A bare `@import "tailwindcss"` defaults to
+    // prefers-color-scheme dark, which (under a dark OS) overrides the app's class-based `.dark`
+    // toggle and flips SKIP tags / code preview to dark. Declare the same class-based dark variant
+    // the app uses (via the Nuxt UI Vite plugin) so runtime `dark:` rules stay scoped to `.dark`.
+    style.textContent = '@import "tailwindcss";\n@custom-variant dark (&:where(.dark, .dark *));';
     document.head.appendChild(style);
   }
   if (booted === null) {

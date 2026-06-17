@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.36.1) — 2026-06-17
+
+### Fixed
+
+- **The Real tab no longer flips the inspector chrome to dark mode under a dark OS.** The runtime
+  `@tailwindcss/browser` compiler observes the whole document, and its bare `@import "tailwindcss"`
+  activation block defaulted to `prefers-color-scheme` dark — so it regenerated the inspector's own
+  `dark:` utilities (SKIP tags, code preview, …) as `@media (prefers-color-scheme: dark)` rules that
+  fired under a dark OS, overriding the app's class-based `.dark` toggle. The activation block now
+  declares the same class-based dark variant the app uses (`@custom-variant dark (&:where(.dark, .dark *))`),
+  so runtime `dark:` rules stay scoped to `.dark`. Verified in-browser: prefers-color-scheme
+  dark-utility rules 43 → 0.
+
 ## [0.36.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.36.0) — 2026-06-17
 
 ### Added
