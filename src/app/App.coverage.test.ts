@@ -4,6 +4,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import App from "./App.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import FilterChips from "./components/FilterChips.vue";
+import LiveRealButton from "./components/LiveRealButton.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -137,5 +138,29 @@ describe("App coverage view", () => {
 
     // the kind-filter is reset to "all" so the highlighted tokens show in the tree
     expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("all");
+  });
+
+  it("offers a Real tab for button and mounts LiveRealButton when clicked", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "button");
+    await flushPromises();
+
+    const realTab = wrapper.find('[data-testid="real-tab"]');
+    expect(realTab.exists()).toBe(true);
+    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(false); // default = preview
+    await realTab.trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(true);
+  });
+
+  it("does not offer a Real tab for a non-button component", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "nav");
+    await flushPromises();
+    expect(wrapper.find('[data-testid="real-tab"]').exists()).toBe(false);
   });
 });
