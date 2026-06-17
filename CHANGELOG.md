@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.37.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.37.1) — 2026-06-17
+
+### Fixed
+
+- **Colour-valued icon tokens now emit `text-[colour]` instead of a nonsensical `size-[#hex]`.**
+  The grammar's icon-size rule is name-based and value-type-blind, so a colour token like
+  `chip-close-icon` was emitted as `size-[#hex]` (an invalid utility). `utilityForMapping` now
+  detects an `icon-size` utility carrying a colour value (`node.type === "color"`) and emits the
+  icon's colour via `text-[…]` (Nuxt UI icons take colour from text-colour), resolving the same
+  var/literal reference the colour path uses. Surfaced by the v0.37.0 Real tab (chip `close 0/2`);
+  verified on the live export: `close 0/2 → 3/3 match`.
+
 ## [0.37.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.37.0) — 2026-06-17
 
 ### Added

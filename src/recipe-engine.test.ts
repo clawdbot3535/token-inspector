@@ -457,6 +457,17 @@ describe("utilityForMapping — highlight/recipe parity", () => {
     const node = graph.nodes.get("button-radius")!;
     expect(utilityForMapping(graph, node, "rounded", "6px")).toBe("rounded-md");
   });
+
+  it("emits an icon COLOUR class (not size-[#hex]) when an icon token carries a colour value", () => {
+    // Regression: a colour-valued icon token (e.g. chip-close-icon) was emitted
+    // value-type-blindly as size-[#hex] by the icon-size rule. A colour on an icon
+    // is the icon's colour — Nuxt UI icons take colour from text-colour.
+    const graph = makeGraph([
+      makeNode({ id: "chip-close-icon", layer: "component", type: "color", source: "global", base: "#FF0000" }),
+    ]);
+    const node = graph.nodes.get("chip-close-icon")!;
+    expect(utilityForMapping(graph, node, "icon-size", "#FF0000")).toBe("text-[#FF0000]");
+  });
 });
 
 describe("buildComponentRecipes — semantic var references for colors", () => {
