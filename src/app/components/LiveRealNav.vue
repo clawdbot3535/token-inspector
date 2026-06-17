@@ -8,10 +8,9 @@ import RenderDeltaTable from "./RenderDeltaTable.vue";
 const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
-const items = [
-  { label: "Home", to: "#" },
-  { label: "Docs", to: "#" },
-];
+// No `to` — the inspector has no vue-router, so a routed item would fail to render
+// (Symbol(route location) injection). Label-only items render as plain links/buttons.
+const items = [{ label: "Home" }, { label: "Docs" }];
 const build = computed(() =>
   recipe.value ? buildSlotSentinels(recipe.value.slots) : { ui: {}, specs: [] },
 );
