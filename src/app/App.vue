@@ -15,6 +15,7 @@ import ScanView from "./components/ScanView.vue";
 import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
+import LiveRealButton from "./components/LiveRealButton.vue";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
 import LiveSwitch from "./components/LiveSwitch.vue";
@@ -166,12 +167,14 @@ watch(
 // the component-tree group rows; falls back to the only currently
 // supported component when nothing has been chosen.
 const selectedComponent = ref<string>("button");
-const paneTab = ref<"preview" | "coverage">("preview");
+const paneTab = ref<"preview" | "coverage" | "real">("preview");
 const coverage = computed(() =>
   state.graph.value && selectedComponent.value
     ? coverageFor(state.graph.value, selectedComponent.value)
     : null,
 );
+// Real-render (runtime-compiled Nuxt UI) tab — button only for this slice.
+const realRenderSupported = computed(() => selectedComponent.value === "button");
 watch(selectedComponent, () => {
   paneTab.value = "preview";
 });
@@ -1027,7 +1030,7 @@ function downloadAll() {
                   click a different component group to switch the preview.
                 </div>
               </div>
-              <div v-if="coverage" role="tablist" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
+              <div v-if="coverage || realRenderSupported" role="tablist" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
                 <button
                   type="button"
                   role="tab"
@@ -1038,6 +1041,7 @@ function downloadAll() {
                   @click="paneTab = 'preview'"
                 >Preview</button>
                 <button
+                  v-if="coverage"
                   type="button"
                   role="tab"
                   data-testid="coverage-tab"
@@ -1052,6 +1056,16 @@ function downloadAll() {
                     class="text-[10px] font-mono px-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
                   >{{ coverage.structuralTotal - coverage.structuralTouched }}</span>
                 </button>
+                <button
+                  v-if="realRenderSupported"
+                  type="button"
+                  role="tab"
+                  data-testid="real-tab"
+                  :aria-selected="paneTab === 'real'"
+                  class="px-3 py-1 text-xs"
+                  :class="paneTab === 'real' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
+                  @click="paneTab = 'real'"
+                >Real</button>
               </div>
 
               <CoverageView
@@ -1060,7 +1074,13 @@ function downloadAll() {
                 @select-tokens="onCoverageSelectTokens"
               />
 
-              <template v-if="!coverage || paneTab === 'preview'">
+              <LiveRealButton
+                v-if="realRenderSupported && paneTab === 'real'"
+                :graph="state.graph.value"
+                :component-name="selectedComponent"
+              />
+
+              <template v-if="(!coverage || paneTab === 'preview') && paneTab !== 'real'">
               <LiveInput
                 v-if="previewSupported && isFieldComponent"
                 :graph="state.graph.value"

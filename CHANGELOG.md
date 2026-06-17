@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.32.0] — 2026-06-17
+
+### Added
+
+- **Real-render tab (fidelity foundation).** Selecting `button` now offers a third **Real** tab
+  (`Preview | Coverage | Real`) that renders an actual Nuxt UI v4 `<UButton>` themed by the
+  generated recipe — not the inline-style `Live*` approximation. A new `@tailwindcss/browser`
+  runtime compiler (lazy-loaded via `use-runtime-tailwind.ts`) compiles the recipe's arbitrary
+  classes (`bg-[var(--color-action-bg)]`, `rounded-[…]`) on the fly, which the build-time compiler
+  can't (they're generated at runtime from dropped tokens); the existing `tokens.css` injection
+  supplies the `var()` values. Verified in a real browser: the rendered button's computed
+  `background-color` equals its `--color-action-bg` token byte-for-byte.
+- This is **Spec 1** of the render-vs-tokens fidelity check (office-hours direction). The
+  `getComputedStyle`→token **diff** (the attributed-delta verdict) and extending the real render to
+  the multi-element composites are the next increments; the seam is generic.
+
 ## [0.31.0] — 2026-06-16
 
 ### Added

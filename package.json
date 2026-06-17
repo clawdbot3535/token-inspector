@@ -1,6 +1,6 @@
 {
   "name": "figma-tokens-nuxt-ui-adapter",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",
+    "@tailwindcss/browser": "4.3.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.2.0",
