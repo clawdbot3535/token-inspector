@@ -20,6 +20,8 @@ import LiveRealTable from "./components/LiveRealTable.vue";
 import LiveRealNav from "./components/LiveRealNav.vue";
 import LiveRealAccordion from "./components/LiveRealAccordion.vue";
 import LiveRealSlotted from "./components/LiveRealSlotted.vue";
+import LiveRealChip from "./components/LiveRealChip.vue";
+import LiveRealSidebar from "./components/LiveRealSidebar.vue";
 import { REAL_SLOTTED_REGISTRY } from "./components/real-slotted-registry.js";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
@@ -180,7 +182,7 @@ const coverage = computed(() =>
 );
 // Real-render (runtime-compiled Nuxt UI) tab — the components with a real-render preview.
 const realRenderSupported = computed(() =>
-  ["button", "table", "nav", "accordion"].includes(selectedComponent.value) ||
+  ["button", "table", "nav", "accordion", "chip", "sidebar"].includes(selectedComponent.value) ||
   selectedComponent.value in REAL_SLOTTED_REGISTRY,
 );
 watch(selectedComponent, () => {
@@ -1102,6 +1104,18 @@ function downloadAll() {
                   v-else-if="selectedComponent === 'accordion'"
                   :graph="state.graph.value"
                   :component-name="selectedComponent"
+                />
+                <LiveRealChip
+                  v-else-if="selectedComponent === 'chip'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                  :custom-parts="customParts"
+                />
+                <LiveRealSidebar
+                  v-else-if="selectedComponent === 'sidebar'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                  :custom-parts="customParts"
                 />
                 <LiveRealSlotted
                   v-else-if="REAL_SLOTTED_REGISTRY[selectedComponent]"

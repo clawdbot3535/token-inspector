@@ -9,6 +9,8 @@ import LiveRealTable from "./components/LiveRealTable.vue";
 import LiveRealNav from "./components/LiveRealNav.vue";
 import LiveRealAccordion from "./components/LiveRealAccordion.vue";
 import LiveRealSlotted from "./components/LiveRealSlotted.vue";
+import LiveRealChip from "./components/LiveRealChip.vue";
+import LiveRealSidebar from "./components/LiveRealSidebar.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -208,11 +210,33 @@ describe("App coverage view", () => {
     expect(wrapper.findComponent(LiveRealSlotted).exists()).toBe(true);
   });
 
-  it("does not offer a Real tab for a non-supported component", async () => {
+  it("offers a Real tab for chip and mounts LiveRealChip", async () => {
     const wrapper = await mountLoaded();
     const tree = wrapper.findComponent(ComponentTree);
     tree.vm.$emit("select", "");
     tree.vm.$emit("select-component", "chip");
+    await flushPromises();
+    await wrapper.find('[data-testid="real-tab"]').trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealChip).exists()).toBe(true);
+  });
+
+  it("offers a Real tab for sidebar and mounts LiveRealSidebar", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "sidebar");
+    await flushPromises();
+    await wrapper.find('[data-testid="real-tab"]').trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealSidebar).exists()).toBe(true);
+  });
+
+  it("does not offer a Real tab for a non-supported component", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "container");
     await flushPromises();
     expect(wrapper.find('[data-testid="real-tab"]').exists()).toBe(false);
   });
