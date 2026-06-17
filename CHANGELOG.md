@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.33.0] — 2026-06-17
+
+### Added
+
+- **Render-vs-tokens fidelity verdict (Spec 2).** The Real tab now shows a per-property delta table
+  under the rendered button: it diffs the real `<UButton>`'s computed **base** styles against the
+  recipe's intent and reports `✓`/`✗` per property with an `N/M match` headline. A pure
+  `diffComputed` (string-equality on `getComputedStyle`-normalized values) feeds a presentational
+  `RenderDeltaTable`; the browser glue (`computeRenderDiff`) resolves the recipe's base classes via
+  `extractArbitrary` → a hidden probe → `getComputedStyle` (the same canonicalizer both sides pass
+  through, so no `rgb()`/unit reconciliation). Catches Nuxt UI's merge overriding or dropping a
+  token-driven class, attributed to the exact property.
+- Verified against the live export: **11/12 properties match**, with the one mismatch correctly
+  surfaced and attributed — `lineHeight: expected 16px → rendered 24px` (Nuxt UI's line-height
+  winning over the recipe). Depth the Coverage Guide can't see. Scope: base slot, button, resting
+  variant; other slots / variants / composites / the Figma-frame diff are later increments.
+
 ## [0.32.0] — 2026-06-17
 
 ### Added

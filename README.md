@@ -168,8 +168,12 @@ The UI shows:
   approximation. A lazy-loaded `@tailwindcss/browser` runtime compiler turns the
   recipe's arbitrary classes into CSS at runtime (the build-time compiler can't —
   they're generated from dropped tokens), and the injected `tokens.css` resolves
-  the `var()` values. The fidelity-check foundation; the computed-style→token
-  diff is the next increment
+  the `var()` values. Under the button, a **fidelity delta table** diffs the
+  rendered base element's computed styles against the recipe's intent
+  (`extractArbitrary` → a hidden probe → `getComputedStyle`, both sides through
+  the same canonicalizer) and reports `✓`/`✗` per property with an `N/M match`
+  headline — catching where Nuxt UI's merge overrides a token-driven class.
+  Depth the Coverage Guide can't see; base slot for now
 - **Live button preview** rendering a full **variant × (size, state)
   matrix** per visual variant. Pseudo-class-prefixed classes
   (`hover:`, `active:`, `disabled:`, `focus:`) are promoted to base
@@ -286,7 +290,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 
 ## Tests
 
-831 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
+840 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
 
 ```bash
 npm test         # full suite
