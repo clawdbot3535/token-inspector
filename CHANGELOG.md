@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.34.0] — 2026-06-17
+
+### Added
+
+- **Fidelity check reaches its first multi-element composite (`table`).** Selecting `table` now offers
+  the **Real** tab: a real Nuxt UI v4 `<UTable>` themed by the generated recipe, with a **per-slot**
+  delta table for `th` and `td`. The new mechanism is **sentinel classes** — each slot's `:ui` class
+  string gets a unique marker (`ti-slot-th`/`ti-slot-td`) appended, so the diff finds each slot's DOM
+  element by our own contract rather than Nuxt UI's internal structure (which exposes no `data-slot`
+  hooks). `computeSlotDiffs(host, specs)` queries each sentinel and reuses Spec 2's `computeRenderDiff`
+  per slot; `RenderDeltaTable` gained an optional slot `label`. This solves the per-slot DOM resolution
+  Spec 2 deferred, generically — every future composite supplies its own `{slot, selector, classes}`.
+- Verified against the live export: a real `<UTable>` renders (sentinels land on th×2 / td×4) and both
+  slots match — `th · 3/3`, `td · 2/2`. Scope: `table` (th/td). nav/accordion (inline) and the portaled
+  modal/dropdown are the next increments.
+
 ## [0.33.0] — 2026-06-17
 
 ### Added
