@@ -30,9 +30,9 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
   <div ref="hostRef" class="p-4">
     <div v-if="!recipe" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <span data-testid="real-chip" class="inline-flex items-center gap-1" :class="build.ui.base">
+      <span data-testid="real-chip" :class="build.ui.base">
         <span :class="build.ui.label">Chip</span>
-        <span class="opacity-60" :class="build.ui.close">×</span>
+        <span :class="build.ui.close">×</span>
       </span>
       <p class="mt-2 text-[10px] text-muted">
         Real custom component themed by your generated recipe (runtime-compiled).

@@ -24,6 +24,7 @@ describe("LiveRealChip", () => {
     const base = w.find('[data-testid="real-chip"]');
     expect(base.exists()).toBe(true);
     expect(base.classes()).toContain("ti-slot-base");
+    expect(base.classes()).toContain("rounded-[999px]");
   });
 
   it("shows a fallback when the graph is null", () => {
