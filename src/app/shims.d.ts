@@ -6,3 +6,6 @@ declare module "*.vue" {
 
 declare const __APP_VERSION__: string;
 declare const __APP_UNPUSHED__: number;
+
+// @tailwindcss/browser ships no types; we import it only for its DOM-observer side effect.
+declare module "@tailwindcss/browser";
