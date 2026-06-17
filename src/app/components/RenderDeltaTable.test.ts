@@ -26,6 +26,11 @@ describe("RenderDeltaTable", () => {
     expect(w.find('[data-testid="render-diff"]').text()).toContain("1/2");
   });
 
+  it("prefixes the headline with the slot label when given", () => {
+    const w = mount(RenderDeltaTable, { props: { deltas, label: "th" } });
+    expect(w.find('[data-testid="render-diff"]').text()).toContain("th · 1/2 match");
+  });
+
   it("renders nothing for an empty delta list", () => {
     const w = mount(RenderDeltaTable, { props: { deltas: [] } });
     expect(w.findAll('[data-testid="render-delta"]')).toHaveLength(0);
