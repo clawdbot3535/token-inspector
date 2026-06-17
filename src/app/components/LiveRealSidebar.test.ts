@@ -26,6 +26,7 @@ describe("LiveRealSidebar", () => {
     const root = w.find('[data-testid="real-sidebar"]');
     expect(root.exists()).toBe(true);
     expect(root.classes()).toContain("ti-slot-base");
+    expect(root.classes().filter((c) => c !== "ti-slot-base").length).toBeGreaterThan(0);
     const item = w.find('[data-testid="real-sidebar-item"]');
     expect(item.exists()).toBe(true);
     expect(item.classes()).toContain("ti-slot-item");

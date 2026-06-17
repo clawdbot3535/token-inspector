@@ -30,9 +30,11 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
   <div ref="hostRef" class="p-4">
     <div v-if="!recipe" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <aside data-testid="real-sidebar" class="flex flex-col gap-1 w-48" :class="build.ui.base">
-        <a data-testid="real-sidebar-item" :class="build.ui.item">Dashboard</a>
-        <a data-testid="real-sidebar-item" :class="build.ui.item">Projects</a>
+      <aside data-testid="real-sidebar" :class="build.ui.base">
+        <div class="flex flex-col gap-1">
+          <a data-testid="real-sidebar-item" :class="build.ui.item">Dashboard</a>
+          <a data-testid="real-sidebar-item" :class="build.ui.item">Projects</a>
+        </div>
       </aside>
       <p class="mt-2 text-[10px] text-muted">
         Real custom component themed by your generated recipe (runtime-compiled).
