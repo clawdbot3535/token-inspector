@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
-import { computeRenderDiff, computeSlotDiffs } from "./use-render-diff.js";
+import { computeRenderDiff, computeSlotDiffs, buildSlotSentinels } from "./use-render-diff.js";
 
 describe("computeRenderDiff", () => {
   it("returns [] when the base classes carry no extractable arbitrary styles", () => {
@@ -38,5 +38,18 @@ describe("computeSlotDiffs", () => {
     expect(diffs.find((d) => d.slot === "th")!.deltas.length).toBeGreaterThan(0); // rounded → borderRadius
     expect(diffs.find((d) => d.slot === "td")!.deltas).toEqual([]); // selector miss
     host.remove();
+  });
+});
+
+describe("buildSlotSentinels", () => {
+  it("emits ui + specs for populated slots, skipping empty ones", () => {
+    const { ui, specs } = buildSlotSentinels({ item: "rounded-[8px]", link: "", base: "p-[4px]" });
+    expect(ui.item).toBe("rounded-[8px] ti-slot-item");
+    expect(ui.base).toBe("p-[4px] ti-slot-base");
+    expect(ui.link).toBeUndefined(); // empty slot skipped
+    expect(specs).toEqual([
+      { slot: "item", selector: ".ti-slot-item", classes: "rounded-[8px]" },
+      { slot: "base", selector: ".ti-slot-base", classes: "p-[4px]" },
+    ]);
   });
 });

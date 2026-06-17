@@ -6,6 +6,8 @@ import ComponentTree from "./components/ComponentTree.vue";
 import FilterChips from "./components/FilterChips.vue";
 import LiveRealButton from "./components/LiveRealButton.vue";
 import LiveRealTable from "./components/LiveRealTable.vue";
+import LiveRealNav from "./components/LiveRealNav.vue";
+import LiveRealAccordion from "./components/LiveRealAccordion.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -170,11 +172,33 @@ describe("App coverage view", () => {
     expect(wrapper.findComponent(LiveRealButton).exists()).toBe(false);
   });
 
-  it("does not offer a Real tab for a non-supported component", async () => {
+  it("offers a Real tab for nav and mounts LiveRealNav", async () => {
     const wrapper = await mountLoaded();
     const tree = wrapper.findComponent(ComponentTree);
     tree.vm.$emit("select", "");
     tree.vm.$emit("select-component", "nav");
+    await flushPromises();
+    await wrapper.find('[data-testid="real-tab"]').trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealNav).exists()).toBe(true);
+  });
+
+  it("offers a Real tab for accordion and mounts LiveRealAccordion", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "accordion");
+    await flushPromises();
+    await wrapper.find('[data-testid="real-tab"]').trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealAccordion).exists()).toBe(true);
+  });
+
+  it("does not offer a Real tab for a non-supported component", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "chip");
     await flushPromises();
     expect(wrapper.find('[data-testid="real-tab"]').exists()).toBe(false);
   });

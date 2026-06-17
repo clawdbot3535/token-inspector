@@ -8,11 +8,9 @@ import RenderDeltaTable from "./RenderDeltaTable.vue";
 const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
-const rows = [
-  { name: "Token", value: "8px" },
-  { name: "Spacing", value: "16px" },
-];
-
+// No `to` — the inspector has no vue-router, so a routed item would fail to render
+// (Symbol(route location) injection). Label-only items render as plain links/buttons.
+const items = [{ label: "Home" }, { label: "Docs" }];
 const build = computed(() =>
   recipe.value ? buildSlotSentinels(recipe.value.slots) : { ui: {}, specs: [] },
 );
@@ -22,11 +20,11 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
 
 <template>
   <div ref="hostRef" class="p-4">
-    <div v-if="!recipe" class="text-xs text-muted">No table recipe to render.</div>
+    <div v-if="!recipe" class="text-xs text-muted">No nav recipe to render.</div>
     <template v-else>
-      <UTable :data="rows" :ui="build.ui" />
+      <UNavigationMenu :items="items" :ui="build.ui" />
       <p class="mt-2 text-[10px] text-muted">
-        Real Nuxt UI v4 table themed by your generated recipe (runtime-compiled).
+        Real Nuxt UI v4 navigation menu themed by your generated recipe (runtime-compiled).
       </p>
       <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
     </template>

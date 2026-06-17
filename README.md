@@ -163,7 +163,7 @@ The UI shows:
   (clearing any active kind-filter so they stay visible). Backed by the
   `coverageFor` engine over a curated, Nuxt-v4-cited component-anatomy spec
   (`@tg/grammar`'s `component-anatomy.ts`)
-- **Real-render tab** (button, table) — a third **`Real`** tab renders an *actual*
+- **Real-render tab** (button, table, nav, accordion) — a third **`Real`** tab renders an *actual*
   Nuxt UI v4 component themed by the generated recipe, not the inline-style
   approximation. A lazy-loaded `@tailwindcss/browser` runtime compiler turns the
   recipe's arbitrary classes into CSS at runtime (the build-time compiler can't —
@@ -292,7 +292,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 
 ## Tests
 
-845 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
+852 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
 
 ```bash
 npm test         # full suite

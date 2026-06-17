@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.35.0] — 2026-06-17
+
+### Added
+
+- **Real-render fidelity for the inline composites `nav` and `accordion`.** Selecting either now
+  offers the **Real** tab with a real `<UNavigationMenu>` / `<UAccordion>` themed by the generated
+  recipe and a per-slot delta table. Two shared helpers landed: `buildSlotSentinels(recipe.slots)`
+  builds the `:ui` + diff specs for every **populated** slot (so the diff targets what's *styled* —
+  `item` — not the structural-but-empty `link`/`trigger`/`body`), and `useRealRender(host, specsFn)`
+  extracts the compiler-paint refresh (`LiveRealTable` refactored onto both). `RenderDeltaTable`
+  gained an optional slot `label`. Accordion force-opens its first panel so `trigger`/`body` render
+  if they carry tokens. Verified live: nav `item · 11/12`, accordion `item · 10/13` + `trailingIcon · 2/2`.
+
+### Fixed
+
+- **Added `vue-router` (memory history, empty routes) in `main.ts`.** Nuxt UI's router-link-based
+  components — `NavigationMenu` in particular — require a router to provide the route-location
+  injection; without one, nav items silently failed to render (caught by the `/browse` fidelity
+  verdict, which jsdom unit tests couldn't). This unblocks nav's real render and any future
+  router-dependent component.
+
 ## [0.34.0] — 2026-06-17
 
 ### Added
