@@ -16,6 +16,7 @@ import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import LiveRealButton from "./components/LiveRealButton.vue";
+import LiveRealTable from "./components/LiveRealTable.vue";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
 import LiveSwitch from "./components/LiveSwitch.vue";
@@ -173,8 +174,8 @@ const coverage = computed(() =>
     ? coverageFor(state.graph.value, selectedComponent.value)
     : null,
 );
-// Real-render (runtime-compiled Nuxt UI) tab — button only for this slice.
-const realRenderSupported = computed(() => selectedComponent.value === "button");
+// Real-render (runtime-compiled Nuxt UI) tab — the components with a real-render preview.
+const realRenderSupported = computed(() => ["button", "table"].includes(selectedComponent.value));
 watch(selectedComponent, () => {
   paneTab.value = "preview";
 });
@@ -1074,11 +1075,18 @@ function downloadAll() {
                 @select-tokens="onCoverageSelectTokens"
               />
 
-              <LiveRealButton
-                v-if="realRenderSupported && paneTab === 'real'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-              />
+              <template v-if="realRenderSupported && paneTab === 'real'">
+                <LiveRealButton
+                  v-if="selectedComponent === 'button'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                />
+                <LiveRealTable
+                  v-else-if="selectedComponent === 'table'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                />
+              </template>
 
               <template v-if="(!coverage || paneTab === 'preview') && paneTab !== 'real'">
               <LiveInput

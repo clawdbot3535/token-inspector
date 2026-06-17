@@ -5,6 +5,7 @@ import App from "./App.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import FilterChips from "./components/FilterChips.vue";
 import LiveRealButton from "./components/LiveRealButton.vue";
+import LiveRealTable from "./components/LiveRealTable.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -155,7 +156,21 @@ describe("App coverage view", () => {
     expect(wrapper.findComponent(LiveRealButton).exists()).toBe(true);
   });
 
-  it("does not offer a Real tab for a non-button component", async () => {
+  it("offers a Real tab for table and mounts LiveRealTable (not LiveRealButton)", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "table");
+    await flushPromises();
+    const realTab = wrapper.find('[data-testid="real-tab"]');
+    expect(realTab.exists()).toBe(true);
+    await realTab.trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealTable).exists()).toBe(true);
+    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(false);
+  });
+
+  it("does not offer a Real tab for a non-supported component", async () => {
     const wrapper = await mountLoaded();
     const tree = wrapper.findComponent(ComponentTree);
     tree.vm.$emit("select", "");
