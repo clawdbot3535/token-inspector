@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.37.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.37.0) — 2026-06-17
+
+### Added
+
+- **Real-render fidelity for the custom components `chip` and `sidebar`.** Selecting either now
+  offers the **Real** tab. Since these are custom (no stock Nuxt UI component to mount), two bespoke
+  components — `LiveRealChip` / `LiveRealSidebar` — render the hand-built anatomy and apply the
+  custom recipe's slot classes through the real runtime Tailwind compiler, then diff each slot.
+  Real-render now covers **all 15 components** (4 bespoke + 9 generic + 2 custom). For custom
+  components the diff validates that the emitted recipe classes actually compile and paint as
+  intended (rather than catching third-party-base override) — verified in-browser: chip
+  `base 11/12 · label 1/1 · close 0/2`, sidebar `base 8/9 · item 6/6`. The chip `close 0/2` is a
+  genuine finding — it surfaces the known `chip-close-icon` data-quality issue (a color token
+  emitted as an invalid `size-[#hex]`).
+
+### Notes
+
+- Sentinel-bearing elements carry only their recipe slot classes; layout scaffolding lives on
+  non-sentinel wrappers, so a static class can never pre-satisfy a computed property and mask a
+  real per-slot delta. v1 diffs resting slots only (chip color variants deferred).
+
 ## [0.36.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.36.1) — 2026-06-17
 
 ### Fixed
