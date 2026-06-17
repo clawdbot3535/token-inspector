@@ -99,3 +99,9 @@ Unit/mount tests (vitest + jsdom) — mirror `LiveRealNav.test.ts` / `App.covera
 - Variant and interaction-state diffs (checkbox checked, switch on, hover/focus).
 - chip, sidebar (custom components — no faithful real `U<X>`).
 - tooltip, popover (0 tokens in the export — moot).
+
+## Correction (browser verification, 2026-06-17)
+
+The architecture above assumed `<component :is="entry.tag">` (a string tag) would resolve against globally-registered Nuxt UI components. **It does not.** Nuxt UI's Vite plugin (`@nuxt/ui/vue-plugin` + `@nuxt/ui/vite`) AUTO-IMPORTS components by scanning LITERAL template tags at compile time; a dynamic string `:is` is invisible to that scan, so `<component :is="'UBadge'">` renders an unresolved `<ubadge>` native element (no console warning). Verified in-browser before release.
+
+**Implemented instead:** `LiveRealSlotted.vue` uses a `v-if`/`v-else-if` chain of 9 literal tags (`<UCard>`, `<UKbd>`, …), each bound `v-bind="entry.props" :ui="build.ui"`. The registry's `tag` field is retained as documentation of the intended Nuxt UI component (and is asserted by the registry test); it no longer drives rendering. Tests stub by literal tag name via `global.stubs` (the proven idiom from `LiveRealAccordion.test.ts`). Browser sweep result — all 9 render the real component with populated per-slot fidelity diffs (e.g. badge `base 4/4`, checkbox `base 3/4 · indicator 1/1 · icon 1/1 · label 1/1`).
