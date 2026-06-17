@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref, watch, nextTick } from "vue";
 import type { TokenGraph } from "@core/token-graph.js";
 import { usePreviewRecipe, representativeSizeClasses } from "../composables/use-preview-recipe.js";
 import { ensureRuntimeTailwind } from "../composables/use-runtime-tailwind.js";
+import { computeRenderDiff } from "../composables/use-render-diff.js";
+import RenderDeltaTable from "./RenderDeltaTable.vue";
+import type { RenderDelta } from "../render-diff.js";
 
 const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
 
@@ -30,18 +33,33 @@ const ui = computed<Record<string, string> | null>(() => {
   return out;
 });
 
-// Boot the runtime compiler so the generated arbitrary classes get CSS.
-onMounted(() => {
-  void ensureRuntimeTailwind();
-});
+const hostRef = ref<HTMLElement | null>(null);
+const deltas = ref<RenderDelta[]>([]);
+
+// After the runtime compiler paints the recipe classes, diff the real button's computed
+// base styles against the recipe's intent.
+async function refreshDiff(): Promise<void> {
+  await ensureRuntimeTailwind();
+  await nextTick();
+  await new Promise<void>((r) => requestAnimationFrame(() => r()));
+  const el = hostRef.value?.querySelector("button");
+  const base = ui.value?.base;
+  deltas.value = el && base ? computeRenderDiff(el, base) : [];
+}
+
+onMounted(refreshDiff);
+watch([() => props.graph, () => props.componentName], refreshDiff);
 </script>
 
 <template>
-  <div class="p-4">
+  <div ref="hostRef" class="p-4">
     <div v-if="!ui" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
-    <UButton v-else :ui="ui" :variant="variantKey ?? undefined" size="md">Button</UButton>
-    <p class="mt-2 text-[10px] text-muted">
-      Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
-    </p>
+    <template v-else>
+      <UButton :ui="ui" :variant="variantKey ?? undefined" size="md">Button</UButton>
+      <p class="mt-2 text-[10px] text-muted">
+        Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
+      </p>
+      <RenderDeltaTable :deltas="deltas" />
+    </template>
   </div>
 </template>
