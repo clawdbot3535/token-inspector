@@ -21,9 +21,17 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
   <div ref="hostRef" class="p-4">
     <div v-if="!recipe || !entry" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <component :is="entry.tag" v-bind="entry.props" :ui="build.ui">
+      <UCard v-if="componentName === 'card'" v-bind="entry.props" :ui="build.ui">
         <template v-if="entry.slot">{{ entry.slot }}</template>
-      </component>
+      </UCard>
+      <UKbd v-else-if="componentName === 'kbd'" v-bind="entry.props" :ui="build.ui" />
+      <UBadge v-else-if="componentName === 'badge'" v-bind="entry.props" :ui="build.ui" />
+      <UProgress v-else-if="componentName === 'progress'" v-bind="entry.props" :ui="build.ui" />
+      <USwitch v-else-if="componentName === 'switch'" v-bind="entry.props" :ui="build.ui" />
+      <UCheckbox v-else-if="componentName === 'checkbox'" v-bind="entry.props" :ui="build.ui" />
+      <URadioGroup v-else-if="componentName === 'radio'" v-bind="entry.props" :ui="build.ui" />
+      <UInput v-else-if="componentName === 'input'" v-bind="entry.props" :ui="build.ui" />
+      <UTextarea v-else-if="componentName === 'textarea'" v-bind="entry.props" :ui="build.ui" />
       <p class="mt-2 text-[10px] text-muted">
         Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
       </p>

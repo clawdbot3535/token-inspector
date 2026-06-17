@@ -15,7 +15,7 @@ const BadgeStub = {
   props: ["ui", "label"],
   template: '<span data-testid="real-slotted" :data-ui="JSON.stringify(ui)"></span>',
 };
-const mountOpts = { global: { components: { UBadge: BadgeStub } } };
+const mountOpts = { global: { stubs: { UBadge: BadgeStub } } };
 
 describe("LiveRealSlotted", () => {
   it("mounts the registry tag and stamps populated slots with sentinels in :ui", () => {
