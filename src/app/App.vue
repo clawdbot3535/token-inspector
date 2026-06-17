@@ -17,6 +17,8 @@ import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveButton from "./components/LiveButton.vue";
 import LiveRealButton from "./components/LiveRealButton.vue";
 import LiveRealTable from "./components/LiveRealTable.vue";
+import LiveRealNav from "./components/LiveRealNav.vue";
+import LiveRealAccordion from "./components/LiveRealAccordion.vue";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
 import LiveSwitch from "./components/LiveSwitch.vue";
@@ -175,7 +177,9 @@ const coverage = computed(() =>
     : null,
 );
 // Real-render (runtime-compiled Nuxt UI) tab — the components with a real-render preview.
-const realRenderSupported = computed(() => ["button", "table"].includes(selectedComponent.value));
+const realRenderSupported = computed(() =>
+  ["button", "table", "nav", "accordion"].includes(selectedComponent.value),
+);
 watch(selectedComponent, () => {
   paneTab.value = "preview";
 });
@@ -1083,6 +1087,16 @@ function downloadAll() {
                 />
                 <LiveRealTable
                   v-else-if="selectedComponent === 'table'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                />
+                <LiveRealNav
+                  v-else-if="selectedComponent === 'nav'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                />
+                <LiveRealAccordion
+                  v-else-if="selectedComponent === 'accordion'"
                   :graph="state.graph.value"
                   :component-name="selectedComponent"
                 />
