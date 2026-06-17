@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.36.0] — 2026-06-17
+
+### Added
+
+- **Real-render fidelity for 9 standard components** (`card`, `kbd`, `badge`, `progress`,
+  `switch`, `checkbox`, `radio`, `input`, `textarea`). Selecting any of them now offers the
+  **Real** tab: the actual Nuxt UI v4 component, themed by the generated recipe, with a per-slot
+  fidelity delta table. Driven by one generic `LiveRealSlotted.vue` + a `real-slotted-registry.ts`
+  (component → `{ tag, props, slot? }`); `App.vue`'s `realRenderSupported` and a `v-else-if` branch
+  route the 9 to it. Custom components (`chip`, `sidebar`) are deferred — they diverge from any
+  stock Nuxt UI component, so there is no faithful `U<X>` to diff against. All 9 verified in-browser
+  (e.g. badge `base 4/4`, checkbox `base 3/4 · indicator/icon/label 1/1`).
+
+### Notes
+
+- Components render via literal Nuxt UI tags in a `v-if` chain, not a dynamic `<component :is>`:
+  Nuxt UI's Vite plugin auto-imports by scanning literal template tags at compile time, so a
+  string `:is` renders an unresolved native element. Caught and fixed during in-browser verification.
+
 ## [0.35.0] — 2026-06-17
 
 ### Added
