@@ -21,7 +21,9 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
   <div ref="hostRef" class="p-4">
     <div v-if="!recipe || !entry" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <component :is="entry.tag" v-bind="entry.props" :ui="build.ui">{{ entry.slot }}</component>
+      <component :is="entry.tag" v-bind="entry.props" :ui="build.ui">
+        <template v-if="entry.slot">{{ entry.slot }}</template>
+      </component>
       <p class="mt-2 text-[10px] text-muted">
         Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
       </p>
