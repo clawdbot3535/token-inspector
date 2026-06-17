@@ -2,15 +2,18 @@
 import { computed } from "vue";
 import type { RenderDelta } from "../render-diff.js";
 
-const props = defineProps<{ deltas: readonly RenderDelta[] }>();
+const props = defineProps<{ deltas: readonly RenderDelta[]; label?: string }>();
 
 const matched = computed(() => props.deltas.filter((d) => d.match).length);
+const headline = computed(
+  () => `${props.label ? `${props.label} · ` : "Fidelity · "}${matched.value}/${props.deltas.length} match`,
+);
 </script>
 
 <template>
   <div v-if="deltas.length" data-testid="render-diff" class="mt-3 space-y-1">
     <div class="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
-      Fidelity · {{ matched }}/{{ deltas.length }} match
+      {{ headline }}
     </div>
     <div role="list" class="space-y-0.5">
       <div

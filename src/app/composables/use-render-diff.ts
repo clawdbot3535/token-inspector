@@ -30,3 +30,19 @@ export function computeRenderDiff(el: Element, baseClasses: string): RenderDelta
   probe.remove();
   return diffComputed(expected, actual);
 }
+
+export interface SlotDiff {
+  slot: string;
+  deltas: RenderDelta[];
+}
+
+/** For each spec, find the sentinel-marked element within host and diff it against its recipe classes. */
+export function computeSlotDiffs(
+  host: ParentNode,
+  specs: ReadonlyArray<{ slot: string; selector: string; classes: string }>,
+): SlotDiff[] {
+  return specs.map((s) => {
+    const el = host.querySelector(s.selector);
+    return { slot: s.slot, deltas: el ? computeRenderDiff(el, s.classes) : [] };
+  });
+}
