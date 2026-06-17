@@ -11,14 +11,15 @@ export interface RealSlottedEntry {
   slot?: string;
 }
 
-export const REAL_SLOTTED_REGISTRY: Readonly<Record<string, RealSlottedEntry>> = {
+export const REAL_SLOTTED_REGISTRY: Readonly<Record<string, RealSlottedEntry>> = Object.freeze({
   card: { tag: "UCard", props: {}, slot: "Card body" },
   kbd: { tag: "UKbd", props: { value: "K" } },
   badge: { tag: "UBadge", props: { label: "Badge" } },
   progress: { tag: "UProgress", props: { modelValue: 50 } },
   switch: { tag: "USwitch", props: { modelValue: true } },
   checkbox: { tag: "UCheckbox", props: { modelValue: true, label: "Checkbox" } },
+  // radio maps to URadioGroup (Nuxt UI v4 has no standalone URadio) — breaks the otherwise 1:1 U<PascalKey> naming.
   radio: { tag: "URadioGroup", props: { modelValue: "a", items: [{ label: "Option", value: "a" }] } },
   input: { tag: "UInput", props: { modelValue: "Text" } },
   textarea: { tag: "UTextarea", props: { modelValue: "Text" } },
-};
+});
