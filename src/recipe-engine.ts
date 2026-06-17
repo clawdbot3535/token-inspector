@@ -105,6 +105,16 @@ export function utilityForMapping(
   resolvedValue: string,
   remBase?: number,
 ): string | null {
+  // A colour-valued icon token (e.g. chip-close-icon) carries the icon's COLOUR,
+  // not its size. The icon-size rule is name-based and value-type-blind, so without
+  // this it would emit a nonsensical size-[#hex]. Nuxt UI icons take colour from
+  // text-colour, so resolve it the same way the colour path does and emit text-[…].
+  if (utilityType === "icon-size" && node.type === "color") {
+    const ref = resolveColorReference(graph, node.id);
+    const inner =
+      ref.kind === "var" ? `var(--${ref.targetId})` : ref.kind === "literal" ? ref.value : resolvedValue;
+    return `${prefixForUtility("text-color")}[${escapeArbitrary(inner)}]`;
+  }
   if (COLOR_UTILITY_TYPES.has(utilityType)) {
     const colorRef = resolveColorReference(graph, node.id);
     const inner =
