@@ -1626,7 +1626,7 @@ For consumers of the legacy output:
 - Replace `nuxt-ui.app.config.ts` with the new `output/nuxt/app.config.ts`
   (or merge if you have customizations).
 
-## [0.2.0] — 2026-05-14
+## [0.2.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.2.0) — 2026-05-14
 
 Initial LiveButton preview pipeline, Figma embed integration, version
 badge in header. See git log for details.
