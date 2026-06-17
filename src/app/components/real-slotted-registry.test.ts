@@ -8,6 +8,8 @@ describe("REAL_SLOTTED_REGISTRY", () => {
     expect(Object.keys(REAL_SLOTTED_REGISTRY).sort()).toEqual([...STANDARD].sort());
   });
 
+  // `tag` is documentation-only — rendering uses literal tags in LiveRealSlotted.vue.
+  // This asserts the registry stays internally consistent with Nuxt UI naming, not render correctness.
   it("each entry has a U-prefixed tag and a props object", () => {
     for (const [name, entry] of Object.entries(REAL_SLOTTED_REGISTRY)) {
       expect(entry.tag, name).toMatch(/^U[A-Z]/);
