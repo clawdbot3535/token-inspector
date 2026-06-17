@@ -8,6 +8,7 @@ import LiveRealButton from "./components/LiveRealButton.vue";
 import LiveRealTable from "./components/LiveRealTable.vue";
 import LiveRealNav from "./components/LiveRealNav.vue";
 import LiveRealAccordion from "./components/LiveRealAccordion.vue";
+import LiveRealSlotted from "./components/LiveRealSlotted.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -192,6 +193,19 @@ describe("App coverage view", () => {
     await wrapper.find('[data-testid="real-tab"]').trigger("click");
     await flushPromises();
     expect(wrapper.findComponent(LiveRealAccordion).exists()).toBe(true);
+  });
+
+  it("offers a Real tab for a registry component (card) and mounts LiveRealSlotted", async () => {
+    const wrapper = await mountLoaded();
+    const tree = wrapper.findComponent(ComponentTree);
+    tree.vm.$emit("select", "");
+    tree.vm.$emit("select-component", "card");
+    await flushPromises();
+    const realTab = wrapper.find('[data-testid="real-tab"]');
+    expect(realTab.exists()).toBe(true);
+    await realTab.trigger("click");
+    await flushPromises();
+    expect(wrapper.findComponent(LiveRealSlotted).exists()).toBe(true);
   });
 
   it("does not offer a Real tab for a non-supported component", async () => {

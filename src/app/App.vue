@@ -19,6 +19,8 @@ import LiveRealButton from "./components/LiveRealButton.vue";
 import LiveRealTable from "./components/LiveRealTable.vue";
 import LiveRealNav from "./components/LiveRealNav.vue";
 import LiveRealAccordion from "./components/LiveRealAccordion.vue";
+import LiveRealSlotted from "./components/LiveRealSlotted.vue";
+import { REAL_SLOTTED_REGISTRY } from "./components/real-slotted-registry.js";
 import LiveBadge from "./components/LiveBadge.vue";
 import LiveInput from "./components/LiveInput.vue";
 import LiveSwitch from "./components/LiveSwitch.vue";
@@ -178,7 +180,8 @@ const coverage = computed(() =>
 );
 // Real-render (runtime-compiled Nuxt UI) tab — the components with a real-render preview.
 const realRenderSupported = computed(() =>
-  ["button", "table", "nav", "accordion"].includes(selectedComponent.value),
+  ["button", "table", "nav", "accordion"].includes(selectedComponent.value) ||
+  selectedComponent.value in REAL_SLOTTED_REGISTRY,
 );
 watch(selectedComponent, () => {
   paneTab.value = "preview";
@@ -1097,6 +1100,11 @@ function downloadAll() {
                 />
                 <LiveRealAccordion
                   v-else-if="selectedComponent === 'accordion'"
+                  :graph="state.graph.value"
+                  :component-name="selectedComponent"
+                />
+                <LiveRealSlotted
+                  v-else-if="REAL_SLOTTED_REGISTRY[selectedComponent]"
                   :graph="state.graph.value"
                   :component-name="selectedComponent"
                 />
