@@ -40,7 +40,7 @@
   verdict, which jsdom unit tests couldn't). This unblocks nav's real render and any future
   router-dependent component.
 
-## [0.34.0] — 2026-06-17
+## [0.34.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.34.0) — 2026-06-17
 
 ### Added
 
@@ -56,7 +56,7 @@
   slots match — `th · 3/3`, `td · 2/2`. Scope: `table` (th/td). nav/accordion (inline) and the portaled
   modal/dropdown are the next increments.
 
-## [0.33.0] — 2026-06-17
+## [0.33.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.33.0) — 2026-06-17
 
 ### Added
 
@@ -73,7 +73,7 @@
   winning over the recipe). Depth the Coverage Guide can't see. Scope: base slot, button, resting
   variant; other slots / variants / composites / the Figma-frame diff are later increments.
 
-## [0.32.0] — 2026-06-17
+## [0.32.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.32.0) — 2026-06-17
 
 ### Added
 
@@ -89,7 +89,7 @@
   `getComputedStyle`→token **diff** (the attributed-delta verdict) and extending the real render to
   the multi-element composites are the next increments; the seam is generic.
 
-## [0.31.0] — 2026-06-16
+## [0.31.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.31.0) — 2026-06-16
 
 ### Added
 
@@ -103,7 +103,7 @@
   `<parent>`" tag. Structural counts are unchanged. Completes the Coverage-Guide arc (anatomy →
   engine → view → highlight → filter fixes → inherited).
 
-## [0.30.2] — 2026-06-16
+## [0.30.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.30.2) — 2026-06-16
 
 ### Fixed
 
@@ -113,7 +113,7 @@
   the inline handler) resets the classification filter to `all` before selecting, so the highlight
   and its auto-expand are visible.
 
-## [0.30.1] — 2026-06-16
+## [0.30.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.30.1) — 2026-06-16
 
 ### Fixed
 
@@ -123,7 +123,7 @@
   `all` first, so the slot's tokens are revealed and their groups expand. Closes the v0.30.0 known
   follow-up.
 
-## [0.30.0] — 2026-06-16
+## [0.30.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.30.0) — 2026-06-16
 
 ### Added
 
@@ -133,7 +133,7 @@
   node-detail). Untouched slots stay inert. Backed by a new `SlotCoverage.tokenIds` on the coverage
   engine — the token ids that route to each slot, collected in `coverageFor`.
 
-## [0.29.0] — 2026-06-16
+## [0.29.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.29.0) — 2026-06-16
 
 First user-facing slice of the **Design-System Coverage Guide**: the inspector now tells a designer
 which Nuxt UI theme slots of a component are still un-designed.
@@ -159,7 +159,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   has no `link` slot) is unchanged. This makes nav's flagship "design the link slot" insight reachable
   — supplying `nav-link-*` tokens now turns it green in the coverage view.
 
-## [0.28.14] — 2026-06-16
+## [0.28.14](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.14) — 2026-06-16
 
 ### Added
 
@@ -181,7 +181,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   `link` slot. The engine faithfully reports what the recipe would contain; resolving the collision
   is a separate grammar/anatomy concern, flagged for the upcoming coverage view.
 
-## [0.28.13] — 2026-06-16
+## [0.28.13](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.13) — 2026-06-16
 
 ### Added
 
@@ -201,7 +201,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   user's `nav-item-*` tokens (on the optional `item`) next to the empty structural `link` — the
   "you styled item, design link" insight. Additive/internal — no user-facing behaviour yet.
 
-## [0.28.12] — 2026-06-16
+## [0.28.12](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.12) — 2026-06-16
 
 ### Added
 
@@ -214,7 +214,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   `docs/superpowers/specs/2026-06-16-component-anatomy-nav-design.md` and the office-hours design
   doc).
 
-## [0.28.11] — 2026-06-16
+## [0.28.11](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.11) — 2026-06-16
 
 ### Fixed
 
@@ -230,7 +230,7 @@ which Nuxt UI theme slots of a component are still un-designed.
 - Separate remaining chip item: `chip-close-icon` (a colour-valued token) mis-emits an inert
   `size-[#hex]` because the `icon` rule is value-type-blind — a different, low-priority follow-up.
 
-## [0.28.10] — 2026-06-15
+## [0.28.10](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.10) — 2026-06-15
 
 ### Fixed
 
@@ -248,7 +248,7 @@ which Nuxt UI theme slots of a component are still un-designed.
 - Remaining nav follow-ups (unmapped): `nav-item-ring-radius`, `nav-item-focus-offset`,
   `nav-item-outline-text-inverted`, `nav-item-link-text-visited` — separate, lower-priority.
 
-## [0.28.9] — 2026-06-15
+## [0.28.9](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.9) — 2026-06-15
 
 ### Added
 
@@ -266,7 +266,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   `LiveAccordion` have no open/closed projection yet). Other data-state mappings
   (`active` / `selected` → data-variants) remain a separate semantic decision.
 
-## [0.28.8] — 2026-06-15
+## [0.28.8](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.8) — 2026-06-15
 
 ### Fixed
 
@@ -286,7 +286,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   `data-[state=open]:` prefix form) and `nav-item-icon-size` (nav's icon slot is
   `linkLeadingIcon`) are still routed as before — separate, lower-priority work.
 
-## [0.28.7] — 2026-06-15
+## [0.28.7](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.7) — 2026-06-15
 
 ### Fixed
 
@@ -306,7 +306,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   item renders ~20px wide, and `accordion-item-bg` is dropped so the item is transparent).
   Those change emitted `app.config.ts` output and are a separate follow-up.
 
-## [0.28.6] — 2026-06-15
+## [0.28.6](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.6) — 2026-06-15
 
 ### Fixed
 
@@ -319,7 +319,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   arbitrary-value path was missing it.) Regression test added — this is the JIT-class preview
   pitfall, now guarded for the shorthand.
 
-## [0.28.5] — 2026-06-15
+## [0.28.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.5) — 2026-06-15
 
 ### Docs
 
@@ -329,7 +329,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   reported as a `malformed-value` issue. Confirmed by-design — the inspector is a Figma-export
   adapter, not a general DTCG validator; only `color` requires the object form.
 
-## [0.28.4] — 2026-06-15
+## [0.28.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.4) — 2026-06-15
 
 ### Tests
 
@@ -343,7 +343,7 @@ which Nuxt UI theme slots of a component are still un-designed.
 - The scan/issues toggle button gains `data-testid="scan-toggle"` (test hook). Additive — no
   behavior change.
 
-## [0.28.3] — 2026-06-15
+## [0.28.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.3) — 2026-06-15
 
 ### Tests
 
@@ -358,7 +358,7 @@ which Nuxt UI theme slots of a component are still un-designed.
 - The clear-graph (Re-drop) button gains `data-testid="clear-graph"` (test hook). Additive — no
   behavior change.
 
-## [0.28.2] — 2026-06-15
+## [0.28.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.2) — 2026-06-15
 
 ### Tests
 
@@ -373,7 +373,7 @@ which Nuxt UI theme slots of a component are still un-designed.
 - Output-tab buttons now carry `role="tab"` + `aria-selected` (a tablist a11y fix and the test
   seam). Additive — no behavior change.
 
-## [0.28.1] — 2026-06-15
+## [0.28.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.1) — 2026-06-15
 
 ### Tests
 
@@ -385,7 +385,7 @@ which Nuxt UI theme slots of a component are still un-designed.
   component (`tooltip`) renders no preview. Closes the one untested seam in `App.vue` — the
   routing footgun where a forgotten branch silently renders button-shaped. No production change.
 
-## [0.28.0] — 2026-06-15
+## [0.28.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.28.0) — 2026-06-15
 
 Live previews for `chip` and `sidebar` — the two custom-recipe components. **Every component now has
 a live preview in the Inspector.**
@@ -412,7 +412,7 @@ into both Inspector preview panes.
   data-blocked items remain — `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the
   `data-[state=…]:` prefix form — all waiting on tokens that don't exist in the export yet.
 
-## [0.27.0] — 2026-06-15
+## [0.27.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.27.0) — 2026-06-15
 
 Live previews for the five multi-element components — `modal`, `dropdown`, `accordion`, `nav`,
 `table` now render in the Inspector instead of showing an info pill.
@@ -438,7 +438,7 @@ Inspector preview panes.
 - Tier-3 custom-recipe previews (`chip`, `sidebar`, rendered from `custom-components.ts` rather than
   `ui.*`) remain deferred, along with the data-blocked items (`tooltip`/`popover`, `compoundVariants`).
 
-## [0.26.0] — 2026-06-15
+## [0.26.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.26.0) — 2026-06-15
 
 Live previews for `card`, `kbd`, and `progress` — you can now *see* these recipes render in the
 Inspector, not just read their classes. Built on a shared preview composable.
@@ -465,7 +465,7 @@ show a fallback message when the component has no tokens. Wired into both Inspec
 - Deferred to later releases: Tier-2 previews (`modal`, `dropdown`, `accordion`, `nav`, `table`) and
   Tier-3 custom-recipe previews (`chip`, `sidebar`).
 
-## [0.25.0] — 2026-06-15
+## [0.25.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.25.0) — 2026-06-15
 
 Checked×color fills route to the `indicator` slot — `checkbox`/`radio` checked-state color tokens now
 emit where Nuxt UI v4 actually styles them. (The `compoundVariants` emit path was investigated and
@@ -495,7 +495,7 @@ deferred — see Notes.)
   other Reka components is a broader state-syntax concern, out of scope here.
 - Verified against the live export: checkbox/radio error+success fills on `indicator`; switch unchanged.
 
-## [0.24.0] — 2026-06-14
+## [0.24.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.24.0) — 2026-06-14
 
 Progress component recipe — the `progress-fill-bg` / `progress-track-bg` tokens now route to their
 Nuxt UI v4 slots, completing the `ui.progress` recipe (6/6 tokens mapped, was 4/6).
@@ -519,7 +519,7 @@ Nuxt UI v4 slots, completing the `ui.progress` recipe (6/6 tokens mapped, was 4/
   speculative vocab). **`kbd`** already emits a correct `slots.base` recipe (Nuxt base slot *is* `base`)
   — unchanged.
 
-## [0.23.0] — 2026-06-14
+## [0.23.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.23.0) — 2026-06-14
 
 Inspector badge parity — the live view now classifies typography-role and layout-primitive tokens as
 `theme`, matching the `--text-*` / `--container-*` / `--spacing-*` / `--radius-*` vars the renderer
@@ -545,7 +545,7 @@ emits (v0.20.0 + v0.21.0). Closes the loose end shared by those two features.
   component-recipe tokens (card/dropdown/modal/button/…, which already surface their recipe classes)
   correctly stay `skip`.
 
-## [0.22.0] — 2026-06-14
+## [0.22.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.22.0) — 2026-06-14
 
 Component recipes for `card` / `dropdown` / `modal` — a per-component default base slot so their
 bare tokens route to the correct Nuxt UI v4 slot, plus modal's overlay backdrop on its own slot.
@@ -571,7 +571,7 @@ bare tokens route to the correct Nuxt UI v4 slot, plus modal's overlay backdrop 
 - No `COMPONENT_ALLOW_LIST` or renderer change — the three were already allow-listed; this fixes the
   slot they emit to.
 
-## [0.21.0] — 2026-06-14
+## [0.21.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.21.0) — 2026-06-14
 
 Layout-primitive theme export — the `container` / `page` / `grid` / `stack` / `section` primitives now
 emit as Tailwind v4 `@theme` utilities, completing the CSS-var emit that v0.17.0 (Bucket E) deferred.
@@ -601,7 +601,7 @@ emit as Tailwind v4 `@theme` utilities, completing the CSS-var emit that v0.17.0
 - `output/css/tokens.css` is a gitignored build artifact; the local `components/` fixture has none of
   these tokens (they exist only in the live export), so unit tests on synthetic ids are authoritative.
 
-## [0.20.0] — 2026-06-14
+## [0.20.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.20.0) — 2026-06-14
 
 Typography theme export — the per-role type scale now emits as Tailwind v4 canonical composite
 `--text-<role>` custom properties, and the primitive letter-spacing / line-height tokens are routed
@@ -637,7 +637,7 @@ under Typography instead of leaking into Primitive Colors.
   the in-app download (same renderer) include the composites. Inspector badge parity is a follow-up.
 - `output/css/tokens.css` is a gitignored build artifact (regenerate with `npm run build:tokens`).
 
-## [0.19.0] — 2026-06-14
+## [0.19.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.19.0) — 2026-06-14
 
 Honour part aliases in slot routing — a Figma part name (`row`, `divider`, `check`, `dot`) routes to
 its Nuxt slot, so `radio-dot-*` tokens map to the `indicator` slot instead of reading as NULL.
@@ -666,7 +666,7 @@ its Nuxt slot, so `radio-dot-*` tokens map to the `indicator` slot instead of re
   `build:tokens` rename hints disappear) but no `radio-dot-*`; the unit tests on synthetic ids are
   authoritative for the new mappings.
 
-## [0.18.0] — 2026-06-14
+## [0.18.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.18.0) — 2026-06-14
 
 Sidebar as a known-custom component (Bucket D, part 2) — the export's `sidebar` tokens emit a custom
 recipe, since Nuxt UI v4 (free) has no sidebar component. This completes all five new-export mapping
@@ -695,7 +695,7 @@ buckets (A–E).
   tokens (including the committed `components/` fixture) emits no empty `sidebarRecipe` — a no-op
   there; the unit tests on synthetic graphs are authoritative.
 
-## [0.17.0] — 2026-06-14
+## [0.17.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.17.0) — 2026-06-14
 
 Reclassify layout / typography primitives (Bucket E) — the export's type-scale and layout tokens
 (`typography-*`, `container-*`, `page-*`, `grid-*`, `stack-*`, `section-*`) stop reading as "unmapped
@@ -725,7 +725,7 @@ components" and are reported honestly as theme/CSS primitives.
 - `NON_COMPONENT_PREFIXES` is a closed set matched to the current export; a future primitive family
   would read as an unmapped component until added — a visible, self-correcting signal.
 
-## [0.16.0] — 2026-06-13
+## [0.16.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.16.0) — 2026-06-13
 
 Accordion as a Nuxt-native component (Bucket D) — the new export's `accordion-item-*` tokens now map
 to a `ui.accordion` recipe by registering `accordion` in the component vocabulary. `sidebar`
@@ -756,7 +756,7 @@ to a `ui.accordion` recipe by registering `accordion` in the component vocabular
   fixture, so this is a no-op on the local `build:tokens` digest; the unit tests (synthetic graph)
   are authoritative.
 
-## [0.15.0] — 2026-06-13
+## [0.15.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.15.0) — 2026-06-13
 
 Trailing colour-roles on the general path (Bucket C) — form-control tokens whose Nuxt colour-role is
 named last (`checkbox-bg-error`, `switch-thumb-color-success`, `checkbox-bg-checked-error`) now map
@@ -800,7 +800,7 @@ path already handled `chip`.
   `components/` fixture: the `build:tokens` digest loses its `validation-color-via-prop` warnings and
   gains `variants.color.*` blocks, and the `recipe-engine` golden snapshot was regenerated.
 
-## [0.14.0] — 2026-06-13
+## [0.14.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.14.0) — 2026-06-13
 
 Variant-after-sub-element mapping (Bucket B) — `nav` component tokens whose Nuxt variant or `overlay`
 marker sits *after* a sub-element slot (e.g. `nav-item-ghost-bg`, `nav-item-overlay-dark-ghost-bg`)
@@ -845,7 +845,7 @@ finally emit.
   fixture, so the unit tests are authoritative; the local CLI scan digest is unchanged (a no-op
   there).
 
-## [0.13.0] — 2026-06-12
+## [0.13.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.13.0) — 2026-06-12
 
 Typo / did-you-mean detector — a designer who misspells a token segment (`line-heigth`,
 `badge-letter-spaching`) now gets a concrete "did you mean `height`?" warning instead of the token
@@ -886,7 +886,7 @@ silently falling to a NULL mapping.
   consistent and still emits a value; the detector targets the inconsistent one-off that diverges
   from its siblings.
 
-## [0.12.0] — 2026-06-12
+## [0.12.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.12.0) — 2026-06-12
 
 Overlay-surface recipes — when the export carries `overlay-light`/`overlay-dark` component tokens,
 the inspector emits the genuine ones as sparse delta recipes instead of dropping them as unmappable.
@@ -923,7 +923,7 @@ the inspector emits the genuine ones as sparse delta recipes instead of dropping
 - The recipe reuse is delegated to the existing `buildComponentRecipes` via a per-token override
   (keyed by the original id), so ring-pairing, size defaulting, and icon-mirror behave unchanged.
 
-## [0.11.0] — 2026-06-12
+## [0.11.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.11.0) — 2026-06-12
 
 Stage C — components that look custom now emit their **full anatomy** to a dedicated
 `custom-components.ts` artifact instead of a misleading, half-empty `ui.<name>` override.
@@ -962,7 +962,7 @@ Stage C — components that look custom now emit their **full anatomy** to a ded
   remain unmapped and are intentionally dropped, exactly as they were before. The custom recipe still
   captures the close **size** and all label/base content.
 
-## [0.10.0] — 2026-06-12
+## [0.10.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.10.0) — 2026-06-12
 
 A scan that flags components which look hand-built, a sidebar that narrows to the live previews,
 a version badge that knows whether `main` is pushed, and the grammar lifted out of `src/` into its
@@ -993,7 +993,7 @@ own workspace package.
   consumes them as a published workspace dependency. Behaviour is byte-identical — this is a
   module-boundary refactor, not a logic change.
 
-## [0.9.0] — 2026-06-10
+## [0.9.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.9.0) — 2026-06-10
 
 Grammar + preview fidelity (`size` utility, icon slot mirror), a leaner `App.vue` with gate
 tests, and visible toggle states.
@@ -1025,7 +1025,7 @@ tests, and visible toggle states.
   button) shows a pressed treatment with `aria-pressed`; the `Commit…` panel toggle shows its open
   state with `aria-expanded`.
 
-## [0.8.0] — 2026-06-09
+## [0.8.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.8.0) — 2026-06-09
 
 The **git workflow round-trip** — load Figma tokens straight from a repo, commit the generated
 Nuxt output back.
@@ -1049,7 +1049,7 @@ Nuxt output back.
 - Import is public and token-less; export needs a write token — GitHub fine-grained
   **Contents: Read and write** (or classic `repo` / `public_repo`), GitLab `write_repository`.
 
-## [0.7.0] — 2026-06-06
+## [0.7.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.7.0) — 2026-06-06
 
 Live previews for the core form controls (`textarea`, `badge`, `switch`, `checkbox`, `radio` —
 joining `button`/`input`), **sub-element slot routing**, and the **`capability-gap`** scan hint.
@@ -1079,7 +1079,7 @@ joining `button`/`input`), **sub-element slot routing**, and the **`capability-g
 - **`button` preview aligned with `badge`** — the size-axis row is replaced by a recipe-derived
   `xs/sm/md/lg` size switch + a header completeness score.
 
-## [0.6.0] — 2026-06-06
+## [0.6.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.6.0) — 2026-06-06
 
 A large post-`0.5.0` batch: the scan-area rework, `button` variant-conditional rings with
 correct `border-width`/`ring-width` semantics, prop-driven state handling, dropping
@@ -1125,7 +1125,7 @@ scan hint.
   `border-[var(--color-transparent)]`; opacity is detected by a shared `isOpaqueColor`
   (`color-opacity.ts`).
 
-## [0.5.0] — 2026-06-04
+## [0.5.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.5.0) — 2026-06-04
 
 The v0.5.0 milestone: the first component recipe past `button` (`input` + `LiveInput`),
 the cycle-B deviation work (semantic-alias fix, `border`→`ring` for ring-framed
@@ -1192,7 +1192,7 @@ sections.
 Full detector/resolution analysis:
 `docs/superpowers/specs/2026-06-03-cycle-b-deviation-detection-seeds.md`.
 
-## [0.4.5] — 2026-05-31
+## [0.4.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.5) — 2026-05-31
 
 ### Fixed
 
@@ -1215,7 +1215,7 @@ Full detector/resolution analysis:
   `ComponentRecipe.variants.state`, `CompletenessScore.axis: "state"`, and the
   app-config state branch.
 
-## [0.4.4] — 2026-05-31
+## [0.4.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.4) — 2026-05-31
 
 ### Fixed
 
@@ -1233,7 +1233,7 @@ Full detector/resolution analysis:
   tests; verified end-to-end against the real export (the dead `variants.state`
   block is gone, `focus:rounded-md` now lands in `slots.base`).
 
-## [0.4.3] — 2026-05-31
+## [0.4.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.3) — 2026-05-31
 
 Tooling, test-safety, and a preview-display fix.
 
@@ -1266,7 +1266,7 @@ Tooling, test-safety, and a preview-display fix.
   `slot-mapping`, `recipe-engine`, and the `deriveRoles`/`nearestUtilityHint`
   reserved stubs.
 
-## [0.4.2] — 2026-05-31
+## [0.4.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.2) — 2026-05-31
 
 Scan-quality and test-infrastructure patch.
 
@@ -1288,7 +1288,7 @@ Scan-quality and test-infrastructure patch.
   `src/app/project-to-state.ts` and added unit + mounted-component tests. Suite
   grows to 270 tests.
 
-## [0.4.1] — 2026-05-31
+## [0.4.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.1) — 2026-05-31
 
 Preview-fidelity and output-parity patch. No new features. Fixes a class of
 silent rendering bugs in the live preview, aligns the Inspector's output with
@@ -1335,7 +1335,7 @@ the CLI, removes a scanner false positive, and hardens input boundaries.
 - Regression tests: `extract-arbitrary` font cases, scanner orphan x2,
   `slot-mapping-loader` malformed input, new `load-sources.test.ts` (258 tests).
 
-## [0.4.0] — 2026-05-27
+## [0.4.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.4.0) — 2026-05-27
 
 Multi-component recipe output + Token Scan view. The allow-list expands
 from `button` only to the full 15-component standard set. A new permanent
@@ -1562,7 +1562,7 @@ when token data is present. v0.5.0+ adds engine-side recognition of the
 (outside `ui.*`), so divergent and Nuxt-standard components can coexist
 cleanly.
 
-## [0.3.0] — 2026-05-21
+## [0.3.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.3.0) — 2026-05-21
 
 The Tailwind-utility-first refactor. Two-PR effort spanning the
 classification engine, new renderers, and the Nuxt UI v4 recipe emission.
