@@ -1631,7 +1631,7 @@ For consumers of the legacy output:
 Initial LiveButton preview pipeline, Figma embed integration, version
 badge in header. See git log for details.
 
-## [0.1.0] — 2026-05-13
+## [0.1.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.1.0) — 2026-05-13
 
 Initial Token Inspector — drag-and-drop Figma DTCG export, alias chain
 visualization, code preview, issues view.
