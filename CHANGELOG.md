@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.36.0] — 2026-06-17
+## [0.36.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.36.0) — 2026-06-17
 
 ### Added
 
@@ -19,7 +19,7 @@
   Nuxt UI's Vite plugin auto-imports by scanning literal template tags at compile time, so a
   string `:is` renders an unresolved native element. Caught and fixed during in-browser verification.
 
-## [0.35.0] — 2026-06-17
+## [0.35.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.35.0) — 2026-06-17
 
 ### Added
 
