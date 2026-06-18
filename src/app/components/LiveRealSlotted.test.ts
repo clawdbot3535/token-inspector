@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { buildGraph } from "@core/build-graph.js";
 import type { SourceFile } from "@core/token-graph.js";
 import LiveRealSlotted from "./LiveRealSlotted.vue";
+import RealVariantCell from "./RealVariantCell.vue";
 
 function badgeGraph() {
   const global = { badge: { bg: { $value: "#3b82f6", $type: "color" } } };
@@ -51,5 +52,28 @@ describe("LiveRealSlotted", () => {
     const el = w.find('[data-testid="real-card"]');
     expect(el.exists()).toBe(true);
     expect(el.text()).toContain("Card body");
+  });
+});
+
+function disabledInputGraph() {
+  const global = { input: { bg: { disabled: { $value: "#eeeeee", $type: "color" } } } };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+const InputStub = {
+  props: ["ui", "disabled", "modelValue"],
+  template: '<input data-testid="real-input" :data-disabled="disabled" :data-ui="JSON.stringify(ui)" />',
+};
+
+describe("LiveRealSlotted — state cells", () => {
+  it("renders a disabled cell with the real component disabled", () => {
+    const w = mount(LiveRealSlotted, {
+      props: { graph: disabledInputGraph(), componentName: "input" },
+      global: { stubs: { UInput: InputStub } },
+    });
+    const inputs = w.findAll('[data-testid="real-input"]');
+    expect(inputs.length).toBeGreaterThanOrEqual(2); // resting + disabled cell
+    expect(inputs.some((i) => i.attributes("data-disabled") === "true")).toBe(true);
+    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2);
   });
 });
