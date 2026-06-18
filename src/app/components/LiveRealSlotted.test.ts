@@ -77,3 +77,46 @@ describe("LiveRealSlotted — state cells", () => {
     expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+function checkedCheckboxGraph() {
+  const global = { checkbox: { border: { checked: { $value: "#ffffff", $type: "color" } } } };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+const CheckboxStub = {
+  props: ["ui", "modelValue", "label"],
+  template:
+    '<input type="checkbox" data-testid="real-checkbox" :data-modelvalue="String(modelValue)" :data-ui="JSON.stringify(ui)" />',
+};
+
+function checkedRadioGraph() {
+  const global = { radio: { border: { checked: { $value: "#ffffff", $type: "color" } } } };
+  const sources: SourceFile[] = [{ name: "global", data: global }];
+  return buildGraph(sources);
+}
+const RadioStub = {
+  props: ["ui", "modelValue", "items"],
+  template: '<div data-testid="real-radio" :data-modelvalue="String(modelValue)" :data-ui="JSON.stringify(ui)"></div>',
+};
+
+describe("LiveRealSlotted — checked cell", () => {
+  it("renders an unchecked resting cell and a checked cell (checkbox)", () => {
+    const w = mount(LiveRealSlotted, {
+      props: { graph: checkedCheckboxGraph(), componentName: "checkbox" },
+      global: { stubs: { UCheckbox: CheckboxStub } },
+    });
+    const boxes = w.findAll('[data-testid="real-checkbox"]');
+    expect(boxes.length).toBeGreaterThanOrEqual(2); // resting + checked
+    expect(boxes.some((b) => b.attributes("data-modelvalue") === "false")).toBe(true); // unchecked baseline
+    expect(boxes.some((b) => b.attributes("data-modelvalue") === "true")).toBe(true); // checked cell
+  });
+
+  it("passes componentName so radio's checked cell uses modelValue 'a' (the item value)", () => {
+    const w = mount(LiveRealSlotted, {
+      props: { graph: checkedRadioGraph(), componentName: "radio" },
+      global: { stubs: { URadioGroup: RadioStub } },
+    });
+    const radios = w.findAll('[data-testid="real-radio"]');
+    expect(radios.some((r) => r.attributes("data-modelvalue") === "a")).toBe(true); // override applied via wiring
+  });
+});

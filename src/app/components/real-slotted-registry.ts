@@ -16,10 +16,11 @@ export const REAL_SLOTTED_REGISTRY: Readonly<Record<string, RealSlottedEntry>> =
   kbd: { tag: "UKbd", props: { value: "K" } },
   badge: { tag: "UBadge", props: { label: "Badge" } },
   progress: { tag: "UProgress", props: { modelValue: 50 } },
-  switch: { tag: "USwitch", props: { modelValue: true } },
-  checkbox: { tag: "UCheckbox", props: { modelValue: true, label: "Checkbox" } },
+  switch: { tag: "USwitch", props: { modelValue: false } },
+  checkbox: { tag: "UCheckbox", props: { modelValue: false, label: "Checkbox" } },
   // radio maps to URadioGroup (Nuxt UI v4 has no standalone URadio) — breaks the otherwise 1:1 U<PascalKey> naming.
-  radio: { tag: "URadioGroup", props: { modelValue: "a", items: [{ label: "Option", value: "a" }] } },
+  // No modelValue → no selection → unchecked resting baseline (the checked cell sets modelValue to the item value).
+  radio: { tag: "URadioGroup", props: { items: [{ label: "Option", value: "a" }] } },
   input: { tag: "UInput", props: { modelValue: "Text" } },
   textarea: { tag: "UTextarea", props: { modelValue: "Text" } },
 });
