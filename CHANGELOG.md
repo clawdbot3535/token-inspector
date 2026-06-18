@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.41.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.41.0) — 2026-06-18
+
+### Added
+
+- **Real-tab v2 Phase B.3 — accordion `open`-state cell.** The accordion now renders **closed** at
+  rest and the Real tab adds a dedicated **open** cell that force-opens a panel so its
+  `data-[state=open]:` classes fire and get diffed against the projected intent. `buildStateCells`
+  gains an `open` state (detected via `data-[state=open]:`) with an accordion override that supplies
+  `default-value` activation; `projectToState` accepts the `open` state; `LiveRealAccordion` is
+  refactored from its single open-at-rest render to the unified `[resting, …buildStateCells]` cells
+  model (via `RealVariantCell`, like `LiveRealSlotted`). Verified in-browser against the live export
+  (`accordion-item/text-opened`): resting `item` text `✓ rgb(65,80,141)` (closed/base color), open
+  cell `item` text `✓ rgb(161,161,170)` (the opened color — `data-[state=open]:text-[…]` fires) with
+  the panel body rendered. A `disabled` cell also appears (the accordion carries disabled tokens).
+
+### Fixed
+
+- **Resolves the accordion's open-at-rest probe artifact.** Previously `LiveRealAccordion` rendered
+  open-at-rest with a base-only probe, so the opened styling fired but couldn't be represented in the
+  diff. With the closed baseline + dedicated open cell, the resting probe matches the closed render
+  and the open intent gets its own correct cell — the same class of fix as B.2b for checked.
+
 ## [0.40.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.40.0) — 2026-06-18
 
 ### Added

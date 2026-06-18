@@ -63,4 +63,9 @@ describe("projectToState", () => {
     // existing pseudo-prefix behavior still works alongside
     expect(projectToState("bg-[#A] hover:bg-[#C]", "hover")).toBe("bg-[#A] bg-[#C]");
   });
+
+  it("promotes data-[state=open]: classes under the open state and drops them otherwise", () => {
+    expect(projectToState("text-[#A] data-[state=open]:text-[#B]", "open")).toBe("text-[#A] text-[#B]");
+    expect(projectToState("text-[#A] data-[state=open]:text-[#B]", "default")).toBe("text-[#A]");
+  });
 });

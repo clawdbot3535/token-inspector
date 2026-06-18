@@ -121,4 +121,25 @@ describe("buildStateCells", () => {
     const recipe = recipeWith({}, { base: "disabled:opacity-[0.5] data-[state=checked]:bg-[#fff]" });
     expect(buildStateCells(recipe).map((c) => c.state)).toEqual(["disabled", "checked"]);
   });
+
+  it("emits an open cell when the recipe has data-[state=open]: classes — props default to {}", () => {
+    const recipe = recipeWith({}, { base: "text-[#000] data-[state=open]:text-[#fff]" });
+    const cells = buildStateCells(recipe);
+    expect(cells.map((c) => c.state)).toEqual(["open"]);
+    const c = cells[0]!;
+    expect(c.props).toEqual({});
+    expect(c.ui.base).toBe("text-[#000] data-[state=open]:text-[#fff] ti-slot-base"); // full classes + sentinel
+    expect(c.specs[0]!.classes).toBe("text-[#000] text-[#fff]"); // projectToState(...,"open"): promoted, prefix dropped
+  });
+
+  it("uses the accordion open override (defaultValue is the item value)", () => {
+    const recipe = recipeWith({}, { base: "text-[#000] data-[state=open]:text-[#fff]" });
+    const cells = buildStateCells(recipe, "accordion");
+    expect(cells[0]!.props).toEqual({ defaultValue: "a" });
+  });
+
+  it("emits disabled, checked, open in SETTABLE_STATES order when the recipe carries all three", () => {
+    const recipe = recipeWith({}, { base: "disabled:opacity-[0.5] data-[state=checked]:bg-[#c] data-[state=open]:text-[#o]" });
+    expect(buildStateCells(recipe).map((c) => c.state)).toEqual(["disabled", "checked", "open"]);
+  });
 });

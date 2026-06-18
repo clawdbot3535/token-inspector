@@ -102,15 +102,16 @@ export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
   return cells;
 }
 
-const SETTABLE_STATES = ["disabled", "checked"] as const;
+const SETTABLE_STATES = ["disabled", "checked", "open"] as const;
 type SettableState = (typeof SETTABLE_STATES)[number];
 
 // The class prefix that marks each state in the emitted recipe. `disabled` is a Tailwind
-// pseudo-prefix; `checked` is emitted as a Reka data-attribute variant (B.2a) so it fires on
-// Nuxt UI v4's checkbox/switch/radio (driven by data-state="checked", not a native :checked input).
+// pseudo-prefix; `checked` and `open` are emitted as Reka data-attribute variants so they fire on
+// Nuxt UI v4 components (driven by data-state="checked"/"open", not native pseudo-classes).
 const STATE_DETECT_PREFIX: Record<SettableState, string> = {
   disabled: "disabled:",
   checked: "data-[state=checked]:",
+  open: "data-[state=open]:",
 };
 
 // Props that put the real component into each state. Per-component differences (radio's checked
@@ -118,9 +119,11 @@ const STATE_DETECT_PREFIX: Record<SettableState, string> = {
 const STATE_PROPS: Record<SettableState, Record<string, unknown>> = {
   disabled: { disabled: true },
   checked: { modelValue: true },
+  open: {}, // no universal activation prop for open state
 };
 const STATE_PROPS_OVERRIDE: Record<string, Partial<Record<SettableState, Record<string, unknown>>>> = {
   radio: { checked: { modelValue: "a" } }, // URadioGroup selects by item value (registry item value is "a")
+  accordion: { open: { defaultValue: "a" } }, // UAccordion opens by item value (default-value); item value is "a"
 };
 
 export interface StateCell {
