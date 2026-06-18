@@ -66,5 +66,8 @@ describe("LiveRealButton — variant cells", () => {
     });
     expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2); // solid + ghost
     expect(w.findAll('[data-testid="real-ubutton"]').length).toBeGreaterThanOrEqual(2);
+    // Each cell forwards its variant key as the real Nuxt `variant` prop (cell.props).
+    const variants = w.findAll('[data-testid="real-ubutton"]').map((b) => b.attributes("data-variant"));
+    expect(variants).toEqual(expect.arrayContaining(["solid", "ghost"]));
   });
 });

@@ -27,6 +27,9 @@ const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.val
 const hostRef = ref<HTMLElement | null>(null);
 const deltas = ref<RenderDelta[]>([]);
 
+// Resting diff: base+size only, no variant prop on the resting <UButton>. Nuxt UI applies its
+// own default variant ("solid") internally, so color/background deltas here may reflect that
+// default rather than the recipe — intentional: variant intent is diffed per-cell below.
 async function refreshDiff(): Promise<void> {
   await ensureRuntimeTailwind();
   await nextTick();
@@ -54,7 +57,7 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
 
       <RealVariantCell
         v-for="cell in variantCells"
-        :key="cell.axis + cell.key"
+        :key="cell.axis + ':' + cell.key"
         :label="`${cell.axis}: ${cell.key}`"
         :specs="cell.specs"
       >
