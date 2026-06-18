@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
 import { computeRenderDiff, computeSlotDiffs, buildSlotSentinels } from "./use-render-diff.js";
-import { buildVariantCells } from "./use-render-diff.js";
+import { buildVariantCells, buildStateCells } from "./use-render-diff.js";
 import type { ComponentRecipe } from "@core/recipe-engine.js";
 
 describe("computeRenderDiff", () => {
@@ -83,5 +83,21 @@ describe("buildVariantCells", () => {
   it("returns [] for a recipe with no variant/color axis", () => {
     expect(buildVariantCells(recipeWith({}))).toEqual([]);
     expect(buildVariantCells(recipeWith({ size: { md: { base: "p-2" } } }))).toEqual([]);
+  });
+});
+
+describe("buildStateCells", () => {
+  it("emits a disabled cell when the recipe has disabled: classes — ui keeps full classes, specs use the projected intent", () => {
+    const recipe = recipeWith({}, { base: "text-[#000] disabled:text-[#999]" });
+    const cells = buildStateCells(recipe);
+    expect(cells.map((c) => c.state)).toEqual(["disabled"]);
+    const d = cells[0]!;
+    expect(d.props).toEqual({ disabled: true });
+    expect(d.ui.base).toBe("text-[#000] disabled:text-[#999] ti-slot-base"); // full classes + sentinel
+    expect(d.specs[0]!.classes).toBe("text-[#000] text-[#999]"); // projectToState(...,"disabled"): promoted, prefix dropped
+  });
+
+  it("returns [] when the recipe has no disabled: classes", () => {
+    expect(buildStateCells(recipeWith({}, { base: "text-[#000] hover:text-[#111]" }))).toEqual([]);
   });
 });
