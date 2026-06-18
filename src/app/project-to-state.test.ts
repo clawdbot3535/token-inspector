@@ -55,4 +55,12 @@ describe("projectToState", () => {
       "focus",
     ]);
   });
+
+  it("promotes data-[state=checked]: classes under the matching state and drops them otherwise", () => {
+    expect(projectToState("bg-[#A] data-[state=checked]:bg-[#B]", "checked")).toBe("bg-[#A] bg-[#B]");
+    const hov = projectToState("bg-[#A] data-[state=checked]:bg-[#B]", "hover");
+    expect(hov).toBe("bg-[#A]");
+    // existing pseudo-prefix behavior still works alongside
+    expect(projectToState("bg-[#A] hover:bg-[#C]", "hover")).toBe("bg-[#A] bg-[#C]");
+  });
 });

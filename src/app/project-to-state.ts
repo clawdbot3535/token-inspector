@@ -41,6 +41,14 @@ export function projectToState(classString: string, state: PreviewState | "check
   const stateClasses: string[] = [];
 
   for (const cls of classString.split(/\s+/).filter(Boolean)) {
+    // Reka data-state variant, e.g. `data-[state=checked]:bg-[#x]` / `data-[state=open]:…`.
+    // The bracketed state name is the prefix-state; promote when it matches, drop otherwise.
+    const dm = cls.match(/^data-\[state=([a-z]+)\]:(.+)$/);
+    if (dm !== null) {
+      if (dm[1] === state) stateClasses.push(dm[2]!);
+      continue;
+    }
+
     const m = cls.match(/^([a-z-]+):(.+)$/);
     if (m === null) {
       // No state prefix — part of the base look, always included.
