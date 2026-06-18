@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
 import { computeRenderDiff, computeSlotDiffs, buildSlotSentinels } from "./use-render-diff.js";
+import { buildVariantCells } from "./use-render-diff.js";
+import type { ComponentRecipe } from "@core/recipe-engine.js";
 
 describe("computeRenderDiff", () => {
   it("returns [] when the base classes carry no extractable arbitrary styles", () => {
@@ -51,5 +53,35 @@ describe("buildSlotSentinels", () => {
       { slot: "item", selector: ".ti-slot-item", classes: "rounded-[8px]" },
       { slot: "base", selector: ".ti-slot-base", classes: "p-[4px]" },
     ]);
+  });
+});
+
+function recipeWith(variants: ComponentRecipe["variants"], slots: Record<string, string> = { base: "rounded-[4px]" }): ComponentRecipe {
+  return { slots, variants } as unknown as ComponentRecipe;
+}
+
+describe("buildVariantCells", () => {
+  it("emits one cell per variant+color key, composed base+variant classes, sentinel-stamped, with the Nuxt prop", () => {
+    const recipe = recipeWith({
+      variant: { solid: { base: "bg-[#A]" }, ghost: { base: "bg-transparent" } },
+      color: { error: { base: "text-[#E]" } },
+    });
+    const cells = buildVariantCells(recipe);
+    expect(cells.map((c) => `${c.axis}:${c.key}`)).toEqual(["variant:solid", "variant:ghost", "color:error"]);
+
+    const solid = cells[0]!;
+    expect(solid.props).toEqual({ variant: "solid" });
+    expect(solid.ui.base).toContain("rounded-[4px]"); // base slot composed in
+    expect(solid.ui.base).toContain("bg-[#A]"); // variant slot composed in
+    expect(solid.ui.base).toContain("ti-slot-base"); // sentinel appended
+    expect(solid.specs[0]!.classes).toBe("rounded-[4px] bg-[#A]"); // probe = composed classes, NO sentinel
+
+    const error = cells[2]!;
+    expect(error.props).toEqual({ color: "error" });
+  });
+
+  it("returns [] for a recipe with no variant/color axis", () => {
+    expect(buildVariantCells(recipeWith({}))).toEqual([]);
+    expect(buildVariantCells(recipeWith({ size: { md: { base: "p-2" } } }))).toEqual([]);
   });
 });

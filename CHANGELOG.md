@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.38.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.38.0) — 2026-06-18
+
+### Added
+
+- **Real-tab v2 Phase A — per-variant fidelity diffs.** The Real tab now diffs each `variant`/`color`
+  recipe key per slot (not just the resting look), rendering the real component *in that variant* so
+  Nuxt UI's own variant theming is active and any override is caught. Data-driven `buildVariantCells`
+  turns the recipe's `variant`/`color` axes into per-key cells (composed sentinel `:ui` + diff specs +
+  the real Nuxt variant prop); a shared `RealVariantCell` renders each block (host + per-slot diff +
+  label). Live for **button** (variant) and the custom **chip** (color). Verified on the live export:
+  button `solid 5/5 · outline 3/5 · ghost 3/4 · link 3/6`; chip `error`/`success` each
+  `base 11/12 · label 0/1 · close 3/3` — the partial matches are legitimate findings (variant tokens
+  not fully painting / Nuxt variant override), exactly what the diff surfaces.
+
+### Notes
+
+- `size` stays the representative resting diff. Settable interaction states (disabled/checked/open) =
+  Phase B; pseudo-class states (hover/focus/active) = Phase C, blocked by the `/browse` CDP allowlist.
+  `badge` (color, in the generic `LiveRealSlotted`) deferred to a Phase A.1 follow-up.
+
 ## [0.37.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.37.1) — 2026-06-17
 
 ### Fixed

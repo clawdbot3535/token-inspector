@@ -3,41 +3,33 @@ import { computed, onMounted, ref, watch, nextTick } from "vue";
 import type { TokenGraph } from "@core/token-graph.js";
 import { usePreviewRecipe, representativeSizeClasses } from "../composables/use-preview-recipe.js";
 import { ensureRuntimeTailwind } from "../composables/use-runtime-tailwind.js";
-import { computeRenderDiff } from "../composables/use-render-diff.js";
+import { computeRenderDiff, buildVariantCells } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
+import RealVariantCell from "./RealVariantCell.vue";
 import type { RenderDelta } from "../render-diff.js";
 
 const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
-
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
-// Pick a representative variant (solid if defined, else the first) for v1's resting render.
-const variantKey = computed<string | null>(() => {
-  const v = recipe.value?.variants.variant ?? {};
-  const keys = Object.keys(v);
-  return keys.includes("solid") ? "solid" : keys[0] ?? null;
-});
-
-// The :ui prop is a slot→classes override map. Compose the generated base + representative
-// size base + the chosen variant's base so the real UButton paints with the user's tokens.
+// Resting look: base + representative size only (no variant — variants get their own cells below).
 const ui = computed<Record<string, string> | null>(() => {
   const r = recipe.value;
   if (!r) return null;
-  const variantBase = variantKey.value ? r.variants.variant?.[variantKey.value]?.["base"] ?? "" : "";
-  const base = [r.slots["base"] ?? "", representativeSizeClasses(r), variantBase]
-    .filter(Boolean)
-    .join(" ");
+  const base = [r.slots["base"] ?? "", representativeSizeClasses(r)].filter(Boolean).join(" ");
   const out: Record<string, string> = { base };
   if (r.slots["label"]) out.label = r.slots["label"];
   if (r.slots["leadingIcon"]) out.leadingIcon = r.slots["leadingIcon"];
   return out;
 });
 
+const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.value) : []));
+
 const hostRef = ref<HTMLElement | null>(null);
 const deltas = ref<RenderDelta[]>([]);
 
-// After the runtime compiler paints the recipe classes, diff the real button's computed
-// base styles against the recipe's intent.
+// Resting diff: base+size only, no variant prop on the resting <UButton>. Nuxt UI applies its
+// own default variant ("solid") internally, so color/background deltas here may reflect that
+// default rather than the recipe — intentional: variant intent is diffed per-cell below.
 async function refreshDiff(): Promise<void> {
   await ensureRuntimeTailwind();
   await nextTick();
@@ -52,14 +44,25 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
 </script>
 
 <template>
-  <div ref="hostRef" class="p-4">
+  <div class="p-4">
     <div v-if="!ui" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <UButton :ui="ui" :variant="variantKey ?? undefined" size="md">Button</UButton>
+      <div ref="hostRef">
+        <UButton :ui="ui" size="md">Button</UButton>
+      </div>
       <p class="mt-2 text-[10px] text-muted">
         Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
       </p>
       <RenderDeltaTable :deltas="deltas" />
+
+      <RealVariantCell
+        v-for="cell in variantCells"
+        :key="cell.axis + ':' + cell.key"
+        :label="`${cell.axis}: ${cell.key}`"
+        :specs="cell.specs"
+      >
+        <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
+      </RealVariantCell>
     </template>
   </div>
 </template>

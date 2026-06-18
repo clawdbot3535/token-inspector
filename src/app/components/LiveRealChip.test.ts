@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { buildGraph } from "@core/build-graph.js";
 import type { SourceFile } from "@core/token-graph.js";
 import LiveRealChip from "./LiveRealChip.vue";
+import RealVariantCell from "./RealVariantCell.vue";
 
 function chipGraph() {
   const global = {
@@ -31,5 +32,24 @@ describe("LiveRealChip", () => {
     const w = mount(LiveRealChip, { props: { graph: null, customParts: parts } });
     expect(w.find('[data-testid="real-chip"]').exists()).toBe(false);
     expect(w.text()).toContain("No chip recipe");
+  });
+});
+
+// chip graph with colour variants (error/success) so buildVariantCells yields cells
+function chipColorGraph() {
+  const global = {
+    chip: {
+      bg: { $value: "#E4E4E7", $type: "color" },
+      "bg-error": { $value: "#FECACA", $type: "color" },
+      "bg-success": { $value: "#BBF7D0", $type: "color" },
+    },
+  };
+  return buildGraph([{ name: "global", data: global }]);
+}
+
+describe("LiveRealChip — colour cells", () => {
+  it("renders a RealVariantCell per colour variant", () => {
+    const w = mount(LiveRealChip, { props: { graph: chipColorGraph(), customParts: parts } });
+    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2); // error + success
   });
 });

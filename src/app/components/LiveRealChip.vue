@@ -2,8 +2,9 @@
 import { computed, ref } from "vue";
 import type { TokenGraph } from "@core/token-graph.js";
 import { useCustomPreviewRecipe } from "../composables/use-preview-recipe.js";
-import { buildSlotSentinels, useRealRender } from "../composables/use-render-diff.js";
+import { buildSlotSentinels, useRealRender, buildVariantCells } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
+import RealVariantCell from "./RealVariantCell.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +25,7 @@ const build = computed(() =>
 );
 const hostRef = ref<HTMLElement | null>(null);
 const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
+const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.value) : []));
 </script>
 
 <template>
@@ -38,6 +40,18 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
         Real custom component themed by your generated recipe (runtime-compiled).
       </p>
       <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+
+      <RealVariantCell
+        v-for="cell in variantCells"
+        :key="cell.axis + ':' + cell.key"
+        :label="`${cell.axis}: ${cell.key}`"
+        :specs="cell.specs"
+      >
+        <span :class="cell.ui.base">
+          <span :class="cell.ui.label">Chip</span>
+          <span :class="cell.ui.close">×</span>
+        </span>
+      </RealVariantCell>
     </template>
   </div>
 </template>

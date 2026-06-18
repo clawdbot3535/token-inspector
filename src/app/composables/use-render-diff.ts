@@ -4,6 +4,7 @@
 // Browser-only (getComputedStyle); jsdom returns empty computed values, so the real verdict is /browse.
 
 import { onMounted, ref, watch, nextTick, type Ref } from "vue";
+import type { ComponentRecipe } from "@core/recipe-engine.js";
 import { extractArbitrary } from "../extract-arbitrary.js";
 import { diffComputed, type RenderDelta } from "../render-diff.js";
 import { ensureRuntimeTailwind } from "./use-runtime-tailwind.js";
@@ -64,6 +65,40 @@ export function buildSlotSentinels(slots: Readonly<Record<string, string | undef
     specs.push({ slot, selector: `.ti-slot-${slot}`, classes });
   }
   return { ui, specs };
+}
+
+export interface VariantCell {
+  axis: "variant" | "color";
+  key: string;
+  ui: Record<string, string>;
+  specs: SentinelBuild["specs"];
+  props: Record<string, string>;
+}
+
+/**
+ * Turn a recipe's `variant` and `color` axes into per-key diff cells. Each cell
+ * composes the base slot classes with the variant's slot overrides, stamps the
+ * sentinels (via buildSlotSentinels), and carries `{ [axis]: key }` as the real
+ * Nuxt variant prop (recipe axis names equal Nuxt prop names). `size` is excluded.
+ */
+export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
+  const cells: VariantCell[] = [];
+  const baseSlots = recipe.slots as Record<string, string | undefined>;
+  for (const axis of ["variant", "color"] as const) {
+    const bucket = recipe.variants[axis];
+    if (!bucket) continue;
+    for (const key of Object.keys(bucket)) {
+      const variantSlots = bucket[key] as Record<string, string | undefined>;
+      const composed: Record<string, string | undefined> = {};
+      for (const slot of new Set([...Object.keys(baseSlots), ...Object.keys(variantSlots)])) {
+        const merged = [baseSlots[slot], variantSlots[slot]].filter(Boolean).join(" ");
+        composed[slot] = merged || undefined;
+      }
+      const { ui, specs } = buildSlotSentinels(composed);
+      cells.push({ axis, key, ui, specs, props: { [axis]: key } });
+    }
+  }
+  return cells;
 }
 
 /** Drive the per-slot diff once the runtime compiler has painted. Browser-only. */
