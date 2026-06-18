@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { buildGraph } from "@core/build-graph.js";
 import type { SourceFile } from "@core/token-graph.js";
 import LiveRealButton from "./LiveRealButton.vue";
+import RealVariantCell from "./RealVariantCell.vue";
 
 function buttonGraph() {
   const global = {
@@ -19,7 +20,8 @@ function buttonGraph() {
 // Capture the :ui prop the real UButton would receive.
 const UButtonStub = {
   props: ["ui", "variant", "size"],
-  template: '<button data-testid="real-ubutton" :data-ui="JSON.stringify(ui)"><slot /></button>',
+  template:
+    '<button data-testid="real-ubutton" :data-variant="variant" :data-ui="JSON.stringify(ui)"><slot /></button>',
 };
 const mountOpts = { global: { stubs: { UButton: UButtonStub, UIcon: true } } };
 
@@ -42,5 +44,27 @@ describe("LiveRealButton", () => {
       ...mountOpts,
     });
     expect(w.find('[data-testid="real-ubutton"]').exists()).toBe(false);
+  });
+});
+
+function variantButtonGraph() {
+  const global = {
+    button: {
+      radius: { $value: 6, $type: "number" },
+      solid: { bg: { $value: "#3b82f6", $type: "color" } },
+      ghost: { bg: { $value: "#000000", $type: "color" } },
+    },
+  };
+  return buildGraph([{ name: "global", data: global }]);
+}
+
+describe("LiveRealButton — variant cells", () => {
+  it("renders a RealVariantCell per variant key, each carrying the variant prop", () => {
+    const w = mount(LiveRealButton, {
+      props: { graph: variantButtonGraph(), componentName: "button" },
+      ...mountOpts,
+    });
+    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2); // solid + ghost
+    expect(w.findAll('[data-testid="real-ubutton"]').length).toBeGreaterThanOrEqual(2);
   });
 });
