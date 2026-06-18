@@ -6,6 +6,7 @@
 import { onMounted, ref, watch, nextTick, type Ref } from "vue";
 import type { ComponentRecipe } from "@core/recipe-engine.js";
 import { extractArbitrary } from "../extract-arbitrary.js";
+import { projectToState } from "../project-to-state.js";
 import { diffComputed, type RenderDelta } from "../render-diff.js";
 import { ensureRuntimeTailwind } from "./use-runtime-tailwind.js";
 
@@ -97,6 +98,43 @@ export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
       const { ui, specs } = buildSlotSentinels(composed);
       cells.push({ axis, key, ui, specs, props: { [axis]: key } });
     }
+  }
+  return cells;
+}
+
+const SETTABLE_STATES = ["disabled"] as const;
+type SettableState = (typeof SETTABLE_STATES)[number];
+const STATE_PROPS: Record<SettableState, Record<string, unknown>> = { disabled: { disabled: true } };
+
+export interface StateCell {
+  state: SettableState;
+  ui: Record<string, string>;
+  specs: SentinelBuild["specs"];
+  props: Record<string, unknown>;
+}
+
+/**
+ * One cell per supported settable state the recipe actually carries (B.1: `disabled`).
+ * `ui` keeps the FULL slot classes (prefixes intact) so the state fires when the component
+ * is put in it; the diff `specs` use `projectToState(classes, state)` — the promoted intent.
+ */
+export function buildStateCells(recipe: ComponentRecipe): StateCell[] {
+  const cells: StateCell[] = [];
+  const slots = recipe.slots as Record<string, string | undefined>;
+  for (const state of SETTABLE_STATES) {
+    const prefix = `${state}:`;
+    const present = Object.values(slots).some(
+      (cls) => cls?.split(/\s+/).some((c) => c.startsWith(prefix)) ?? false,
+    );
+    if (!present) continue;
+    const ui: Record<string, string> = {};
+    const specs: SentinelBuild["specs"] = [];
+    for (const [slot, classes] of Object.entries(slots)) {
+      if (!classes) continue;
+      ui[slot] = `${classes} ti-slot-${slot}`;
+      specs.push({ slot, selector: `.ti-slot-${slot}`, classes: projectToState(classes, state) });
+    }
+    cells.push({ state, ui, specs, props: STATE_PROPS[state] });
   }
   return cells;
 }

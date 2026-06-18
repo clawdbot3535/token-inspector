@@ -19,9 +19,9 @@ function buttonGraph() {
 
 // Capture the :ui prop the real UButton would receive.
 const UButtonStub = {
-  props: ["ui", "variant", "size"],
+  props: ["ui", "variant", "size", "disabled"],
   template:
-    '<button data-testid="real-ubutton" :data-variant="variant" :data-ui="JSON.stringify(ui)"><slot /></button>',
+    '<button data-testid="real-ubutton" :data-variant="variant" :data-disabled="disabled" :data-ui="JSON.stringify(ui)"><slot /></button>',
 };
 const mountOpts = { global: { stubs: { UButton: UButtonStub, UIcon: true } } };
 
@@ -69,5 +69,18 @@ describe("LiveRealButton — variant cells", () => {
     // Each cell forwards its variant key as the real Nuxt `variant` prop (cell.props).
     const variants = w.findAll('[data-testid="real-ubutton"]').map((b) => b.attributes("data-variant"));
     expect(variants).toEqual(expect.arrayContaining(["solid", "ghost"]));
+  });
+});
+
+function disabledButtonGraph() {
+  const global = { button: { bg: { disabled: { $value: "#eeeeee", $type: "color" } } } };
+  return buildGraph([{ name: "global", data: global }]);
+}
+
+describe("LiveRealButton — disabled cell", () => {
+  it("renders a disabled RealVariantCell with the button disabled", () => {
+    const w = mount(LiveRealButton, { props: { graph: disabledButtonGraph(), componentName: "button" }, ...mountOpts });
+    const disabledBtns = w.findAll('[data-testid="real-ubutton"]').filter((b) => b.attributes("data-disabled") === "true");
+    expect(disabledBtns.length).toBeGreaterThanOrEqual(1);
   });
 });

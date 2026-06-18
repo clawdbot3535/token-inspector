@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.39.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.39.0) — 2026-06-18
+
+### Added
+
+- **Real-tab v2 Phase B.1 — per-slot `disabled`-state diffs.** The Real tab now renders each
+  component **disabled** (real `disabled` prop) so the recipe's `disabled:` classes and Nuxt UI's own
+  disabled styling both fire, then diffs each slot against the projected intent
+  (`projectToState(slot, "disabled")`). Data-driven `buildStateCells` emits a disabled cell only when
+  the recipe carries `disabled:` classes (the grammar recognizes the trailing-state form, e.g.
+  `input-bg-disabled`). Verified on the live export: `switch` `base 5/6 · thumb 2/4`, `checkbox`
+  `icon 0/1 · label 0/1`, `radio` `indicator 1/2`, `input`/`textarea` `base 9/10` — the partial
+  matches are legitimate findings (Nuxt UI's own disabled dimming vs the recipe's intent).
+- **`LiveRealSlotted` unified onto a cell loop** (`[resting, ...state, ...variant]` through one
+  `RealVariantCell`-wrapped literal-tag chain). This also makes the generic components' **variant/color
+  cells** render — `badge` now shows its `variant`/`color` diffs (closing the deferred Phase A.1), and
+  `input`/`textarea` their variant/color cells.
+
+### Notes
+
+- `checked` (the checkable components render checked-at-rest, so it needs an unchecked-baseline
+  redesign), `open` (needs a `projectToState` `data-[state=open]` extension), and `selected`
+  (item-level) remain Phase B.2+.
+
 ## [0.38.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.38.0) — 2026-06-18
 
 ### Added

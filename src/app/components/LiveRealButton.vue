@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch, nextTick } from "vue";
 import type { TokenGraph } from "@core/token-graph.js";
 import { usePreviewRecipe, representativeSizeClasses } from "../composables/use-preview-recipe.js";
 import { ensureRuntimeTailwind } from "../composables/use-runtime-tailwind.js";
-import { computeRenderDiff, buildVariantCells } from "../composables/use-render-diff.js";
+import { computeRenderDiff, buildVariantCells, buildStateCells } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
 import RealVariantCell from "./RealVariantCell.vue";
 import type { RenderDelta } from "../render-diff.js";
@@ -23,6 +23,7 @@ const ui = computed<Record<string, string> | null>(() => {
 });
 
 const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.value) : []));
+const stateCells = computed(() => (recipe.value ? buildStateCells(recipe.value) : []));
 
 const hostRef = ref<HTMLElement | null>(null);
 const deltas = ref<RenderDelta[]>([]);
@@ -59,6 +60,15 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
         v-for="cell in variantCells"
         :key="cell.axis + ':' + cell.key"
         :label="`${cell.axis}: ${cell.key}`"
+        :specs="cell.specs"
+      >
+        <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
+      </RealVariantCell>
+
+      <RealVariantCell
+        v-for="cell in stateCells"
+        :key="cell.state"
+        :label="cell.state"
         :specs="cell.specs"
       >
         <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
