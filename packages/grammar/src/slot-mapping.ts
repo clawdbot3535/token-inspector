@@ -190,6 +190,7 @@ interface BuildContext {
 function normalizeState(s: string): string {
   if (s === "hovered") return "hover";
   if (s === "opened" || s === "open") return "data-[state=open]";
+  if (s === "checked") return "data-[state=checked]";
   return s;
 }
 
@@ -432,13 +433,14 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
   for (const rule of HEURISTIC_RULES) {
     if (rule.match(parsed.utility)) {
       const entry = rule.build(ctx);
-      // A `checked` bg-color fill belongs on the `indicator` slot for components
-      // that have one (checkbox/radio): the indicator embodies the checked state,
-      // so the fill drops the `checked` prefix and moves off `base`. Components
-      // without an indicator slot (switch) keep the base `checked:` behaviour.
+      // A `data-[state=checked]` bg-color fill belongs on the `indicator` slot for
+      // components that have one (checkbox/radio): the indicator embodies the checked
+      // state, so the fill drops the `data-[state=checked]` prefix and moves off
+      // `base`. Components without an indicator slot (switch) keep the base
+      // `data-[state=checked]:` behaviour.
       if (
         slot === "base" &&
-        entry.statePrefix === "checked" &&
+        entry.statePrefix === "data-[state=checked]" &&
         entry.utilityType === "bg-color" &&
         (nuxtSlotsFor(parsed.component)?.has("indicator") ?? false)
       ) {
