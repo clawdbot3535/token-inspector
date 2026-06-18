@@ -423,9 +423,9 @@ describe("color-role variant axis (prefix position)", () => {
 });
 
 describe("extra state keys", () => {
-  it("recognizes checked as a state, emitting a base `checked:` prefix on a component with no indicator slot", () => {
+  it("recognizes checked as a state, emitting a base `data-[state=checked]:` prefix on a component with no indicator slot", () => {
     expect(heuristicSlotMapping("switch-bg-checked")).toEqual({
-      slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null, statePrefix: "checked",
+      slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null, statePrefix: "data-[state=checked]",
     });
   });
   it("normalizes hovered to a hover state prefix under a variant", () => {
@@ -615,7 +615,7 @@ describe("heuristicSlotMapping — border→ring for ring-framed components", ()
   it("maps checkbox-border-checked to ring-color with a checked prefix", () => {
     expect(heuristicSlotMapping("checkbox-border-checked")).toEqual({
       slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null,
-      statePrefix: "checked",
+      statePrefix: "data-[state=checked]",
     });
   });
 
@@ -1063,12 +1063,12 @@ describe("checked bg-color → indicator slot", () => {
   });
   it("leaves switch-bg-checked-error on the base slot (no indicator slot)", () => {
     expect(heuristicSlotMapping("switch-bg-checked-error", "color")).toEqual({
-      slot: "base", utilityType: "bg-color", variantAxis: "color", variantKey: "error", statePrefix: "checked",
+      slot: "base", utilityType: "bg-color", variantAxis: "color", variantKey: "error", statePrefix: "data-[state=checked]",
     });
   });
   it("does not move a checked border (ring-color) off base", () => {
     expect(heuristicSlotMapping("checkbox-border-checked")).toEqual({
-      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null, statePrefix: "checked",
+      slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null, statePrefix: "data-[state=checked]",
     });
   });
 });
