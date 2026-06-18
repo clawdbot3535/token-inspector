@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.39.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.39.1) — 2026-06-18
+
+### Fixed
+
+- **Checked-state tokens now emit `data-[state=checked]:` instead of `checked:`.** Nuxt UI v4's
+  checkbox/switch/radio are Reka components driven by the `data-state="checked"` attribute, not a
+  native `:checked` input — so the recipe's `checked:` classes (Tailwind `:checked`) never fired.
+  `normalizeState` now maps `checked` → `data-[state=checked]` (mirroring `open` →
+  `data-[state=open]`; confirmed against Nuxt UI's own theme), and `projectToState` learns the
+  `data-[state=X]:` form so the mock previews stay consistent (and `open` is covered for free). The
+  checked-bg→indicator routing was updated to the normalized value. Verified in-browser: the rendered
+  switch now carries firing `data-[state=checked]:` classes, **0 bare `checked:`** remain.
+
+### Notes
+
+- Because checkbox/switch render checked-at-rest while the Real tab's *resting* probe is base-only,
+  their resting diff now reads slightly lower (the checked classes correctly fire but the base-only
+  probe can't represent them). This is a measurement artifact, not an output regression — **Phase B.2b**
+  (unchecked-baseline flip + a dedicated checked cell) resolves it next.
+
 ## [0.39.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.39.0) — 2026-06-18
 
 ### Added
