@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.40.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.40.0) — 2026-06-18
+
+### Added
+
+- **Real-tab v2 Phase B.2b — unchecked baseline + dedicated `checked` cell.** The checkable
+  components (checkbox, switch, radio) now render **unchecked** at rest, and the Real tab adds a
+  dedicated **checked** cell that renders the real component checked so its `data-[state=checked]:`
+  classes fire and get diffed against the projected intent. `buildStateCells` gains a `checked` state
+  detected via a per-state prefix map (`checked → data-[state=checked]:`, the Reka form from B.2a, not
+  the inert Tailwind `checked:`), plus a `componentName` param so radio's checked cell uses its item
+  value (`modelValue:"a"`) instead of the `true` default. Verified in-browser against the live export:
+  checkbox `checked` cell `indicator 1/1` (`rgb(86,103,167)`) + `icon 1/1`; switch `checked` `base`
+  `backgroundColor ✓ rgb(86,103,167)`; radio `checked` `base` ring fires the accent color.
+
+### Fixed
+
+- **Resolves the B.2a resting-diff artifact.** With the unchecked baseline, the resting probe (base
+  only) now matches the unchecked render instead of being undercut by checked classes firing at rest —
+  e.g. the switch resting `thumb` diff is back to `3/4` (was `2/4` under B.2a). Not an output change;
+  the recipe emit was already correct.
+
 ## [0.39.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.39.1) — 2026-06-18
 
 ### Fixed
