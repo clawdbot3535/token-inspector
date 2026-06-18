@@ -23,7 +23,7 @@ const ui = computed<Record<string, string> | null>(() => {
 });
 
 const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.value) : []));
-const stateCells = computed(() => (recipe.value ? buildStateCells(recipe.value) : []));
+const stateCells = computed(() => (recipe.value ? buildStateCells(recipe.value, props.componentName) : []));
 
 const hostRef = ref<HTMLElement | null>(null);
 const deltas = ref<RenderDelta[]>([]);

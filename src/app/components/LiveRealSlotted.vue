@@ -23,7 +23,7 @@ const cells = computed<Cell[]>(() => {
   if (!r || !e) return [];
   const resting = buildSlotSentinels(r.slots);
   const out: Cell[] = [{ label: "resting", props: e.props, ui: resting.ui, specs: resting.specs }];
-  for (const c of buildStateCells(r)) {
+  for (const c of buildStateCells(r, props.componentName)) {
     out.push({ label: c.state, props: { ...e.props, ...c.props }, ui: c.ui, specs: c.specs });
   }
   for (const c of buildVariantCells(r)) {
