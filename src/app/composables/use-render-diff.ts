@@ -102,9 +102,26 @@ export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
   return cells;
 }
 
-const SETTABLE_STATES = ["disabled"] as const;
+const SETTABLE_STATES = ["disabled", "checked"] as const;
 type SettableState = (typeof SETTABLE_STATES)[number];
-const STATE_PROPS: Record<SettableState, Record<string, unknown>> = { disabled: { disabled: true } };
+
+// The class prefix that marks each state in the emitted recipe. `disabled` is a Tailwind
+// pseudo-prefix; `checked` is emitted as a Reka data-attribute variant (B.2a) so it fires on
+// Nuxt UI v4's checkbox/switch/radio (driven by data-state="checked", not a native :checked input).
+const STATE_DETECT_PREFIX: Record<SettableState, string> = {
+  disabled: "disabled:",
+  checked: "data-[state=checked]:",
+};
+
+// Props that put the real component into each state. Per-component differences (radio's checked
+// value is the selected item value, not `true`) live in STATE_PROPS_OVERRIDE, keyed by componentName.
+const STATE_PROPS: Record<SettableState, Record<string, unknown>> = {
+  disabled: { disabled: true },
+  checked: { modelValue: true },
+};
+const STATE_PROPS_OVERRIDE: Record<string, Partial<Record<SettableState, Record<string, unknown>>>> = {
+  radio: { checked: { modelValue: "a" } }, // URadioGroup selects by item value (registry item value is "a")
+};
 
 export interface StateCell {
   state: SettableState;
@@ -114,15 +131,16 @@ export interface StateCell {
 }
 
 /**
- * One cell per supported settable state the recipe actually carries (B.1: `disabled`).
- * `ui` keeps the FULL slot classes (prefixes intact) so the state fires when the component
- * is put in it; the diff `specs` use `projectToState(classes, state)` — the promoted intent.
+ * One cell per supported settable state the recipe actually carries (`disabled`, `checked`).
+ * `ui` keeps the FULL slot classes (prefixes intact) so the state fires when the component is put
+ * in it; the diff `specs` use `projectToState(classes, state)` — the promoted intent. `componentName`
+ * selects per-component state props (radio's checked value differs from the `true` default).
  */
-export function buildStateCells(recipe: ComponentRecipe): StateCell[] {
+export function buildStateCells(recipe: ComponentRecipe, componentName?: string): StateCell[] {
   const cells: StateCell[] = [];
   const slots = recipe.slots as Record<string, string | undefined>;
   for (const state of SETTABLE_STATES) {
-    const prefix = `${state}:`;
+    const prefix = STATE_DETECT_PREFIX[state];
     const present = Object.values(slots).some(
       (cls) => cls?.split(/\s+/).some((c) => c.startsWith(prefix)) ?? false,
     );
@@ -134,7 +152,8 @@ export function buildStateCells(recipe: ComponentRecipe): StateCell[] {
       ui[slot] = `${classes} ti-slot-${slot}`;
       specs.push({ slot, selector: `.ti-slot-${slot}`, classes: projectToState(classes, state) });
     }
-    cells.push({ state, ui, specs, props: STATE_PROPS[state] });
+    const props = STATE_PROPS_OVERRIDE[componentName ?? ""]?.[state] ?? STATE_PROPS[state];
+    cells.push({ state, ui, specs, props });
   }
   return cells;
 }

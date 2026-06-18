@@ -100,4 +100,25 @@ describe("buildStateCells", () => {
   it("returns [] when the recipe has no disabled: classes", () => {
     expect(buildStateCells(recipeWith({}, { base: "text-[#000] hover:text-[#111]" }))).toEqual([]);
   });
+
+  it("emits a checked cell when the recipe has data-[state=checked]: classes — props default to modelValue:true", () => {
+    const recipe = recipeWith({}, { base: "bg-[#000] data-[state=checked]:bg-[#fff]" });
+    const cells = buildStateCells(recipe);
+    expect(cells.map((c) => c.state)).toEqual(["checked"]);
+    const c = cells[0]!;
+    expect(c.props).toEqual({ modelValue: true });
+    expect(c.ui.base).toBe("bg-[#000] data-[state=checked]:bg-[#fff] ti-slot-base"); // full classes + sentinel
+    expect(c.specs[0]!.classes).toBe("bg-[#000] bg-[#fff]"); // projectToState(...,"checked"): promoted, prefix dropped
+  });
+
+  it("uses the radio checked override (modelValue is the item value, not true)", () => {
+    const recipe = recipeWith({}, { base: "bg-[#000] data-[state=checked]:bg-[#fff]" });
+    const cells = buildStateCells(recipe, "radio");
+    expect(cells[0]!.props).toEqual({ modelValue: "a" });
+  });
+
+  it("emits both cells in SETTABLE_STATES order when the recipe carries disabled and checked", () => {
+    const recipe = recipeWith({}, { base: "disabled:opacity-[0.5] data-[state=checked]:bg-[#fff]" });
+    expect(buildStateCells(recipe).map((c) => c.state)).toEqual(["disabled", "checked"]);
+  });
 });
