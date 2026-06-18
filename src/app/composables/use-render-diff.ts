@@ -103,10 +103,11 @@ export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
 }
 
 const SETTABLE_STATES = ["disabled"] as const;
-const STATE_PROPS: Record<string, Record<string, unknown>> = { disabled: { disabled: true } };
+type SettableState = (typeof SETTABLE_STATES)[number];
+const STATE_PROPS: Record<SettableState, Record<string, unknown>> = { disabled: { disabled: true } };
 
 export interface StateCell {
-  state: string;
+  state: SettableState;
   ui: Record<string, string>;
   specs: SentinelBuild["specs"];
   props: Record<string, unknown>;
@@ -133,7 +134,7 @@ export function buildStateCells(recipe: ComponentRecipe): StateCell[] {
       ui[slot] = `${classes} ti-slot-${slot}`;
       specs.push({ slot, selector: `.ti-slot-${slot}`, classes: projectToState(classes, state) });
     }
-    cells.push({ state, ui, specs, props: STATE_PROPS[state] ?? {} });
+    cells.push({ state, ui, specs, props: STATE_PROPS[state] });
   }
   return cells;
 }
