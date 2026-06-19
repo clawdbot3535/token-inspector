@@ -58,7 +58,6 @@ function unsupportedStateForId(id: string): { state: string } | null {
   return { state: last };
 }
 
-
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   const issues: ScanIssue[] = [];
   const allowSet = new Set(options.components);
@@ -106,6 +105,8 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
           componentName: prefix,
         });
       }
+      // Independent of the `pd` check above: a component is in PROP_DRIVEN_STATES or
+      // STATELESS_COMPONENTS, never both, so at most one of pd/us fires per token.
       const us = unsupportedStateForId(node.id);
       if (us !== null) {
         issues.push({

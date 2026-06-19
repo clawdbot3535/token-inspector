@@ -572,6 +572,14 @@ describe("scanGraph — unsupported-state hint (stateless components)", () => {
     const report = scanGraph(graph, { components: ["button"] });
     expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
   });
+
+  it("does not flag kbd-bg (a non-state kbd token maps, never reaching the null branch)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "kbd-bg", layer: "component", type: "color", source: "global", base: "#27272A" }),
+    ]);
+    const report = scanGraph(graph, { components: ["kbd"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
+  });
 });
 
 describe("scanGraph — unsupported-part hint (slot inventory)", () => {
