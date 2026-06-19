@@ -78,7 +78,7 @@ export interface SlotMappingEntry {
 
 export type SlotMappingOverride = Readonly<Record<string, SlotMappingEntry | null>>;
 
-import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, nuxtSlotsFor, leadingIconSlotFor, defaultBaseSlot, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
+import { BUTTON_VARIANT_KEYS, COLOR_ROLE_KEYS, SIZE_KEYS, STATE_KEYS, RING_FRAMED_COMPONENTS, RING_FRAMED_VARIANTS, isRingFramedVariant, propDrivenStateFor, STATELESS_COMPONENTS, nuxtSlotsFor, leadingIconSlotFor, defaultBaseSlot, FIGMA_NUXT_PART_ALIAS } from "./component-vocab.js";
 
 interface ParsedSegments {
   component: string;
@@ -385,6 +385,12 @@ function matchParsed(parsed: ParsedSegments, valueType?: string): SlotMappingEnt
   // Prop-driven states (input `active` → `highlight` prop) are applied by Nuxt
   // via a prop, not a recipe class — drop them; the scanner flags the deviation.
   if (propDrivenStateFor(parsed.component, parsed.state) !== null) {
+    return null;
+  }
+
+  // Stateless components (kbd) expose NO interaction states — a state token here can't be
+  // expressed as a recipe class; drop it. The scanner flags it as `unsupported-state`.
+  if (parsed.state !== null && parsed.state !== "default" && STATELESS_COMPONENTS.has(parsed.component)) {
     return null;
   }
 

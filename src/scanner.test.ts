@@ -551,6 +551,37 @@ describe("scanGraph — prop-driven state hint (capability)", () => {
   });
 });
 
+describe("scanGraph — unsupported-state hint (stateless components)", () => {
+  it("flags kbd-bg-active as an unsupported state (kbd is stateless)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "kbd-bg-active", layer: "component", type: "color", source: "global", base: "#27272A" }),
+    ]);
+    const report = scanGraph(graph, { components: ["kbd"] });
+    const hint = report.issues.find((i) => i.kind === "unsupported-state");
+    expect(hint).toBeDefined();
+    expect(hint?.severity).toBe("warning");
+    expect(hint?.componentName).toBe("kbd");
+    expect(hint?.message).toContain("stateless");
+    expect(hint?.tokenIds).toContain("kbd-bg-active");
+  });
+
+  it("does not flag button-solid-bg-active as unsupported-state (button has :active)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "button-solid-bg-active", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
+  });
+
+  it("does not flag kbd-bg (a non-state kbd token maps, never reaching the null branch)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "kbd-bg", layer: "component", type: "color", source: "global", base: "#27272A" }),
+    ]);
+    const report = scanGraph(graph, { components: ["kbd"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
+  });
+});
+
 describe("scanGraph — unsupported-part hint (slot inventory)", () => {
   it("flags chip label/close parts (Nuxt chip has no such slot), not bg", () => {
     const graph = makeGraph([

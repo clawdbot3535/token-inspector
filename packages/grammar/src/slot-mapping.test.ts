@@ -716,6 +716,13 @@ describe("heuristicSlotMapping — prop-driven states (capability)", () => {
     expect(heuristicSlotMapping("nav-item-link-text", "color")).not.toBeNull(); // non-active nav token unaffected
     expect(heuristicSlotMapping("button-solid-bg-active", "color")).not.toBeNull(); // button press is a real :active
   });
+  it("drops kbd state tokens (UKbd is stateless — no :active/:hover/etc.)", () => {
+    expect(heuristicSlotMapping("kbd-bg-active", "color")).toBeNull();
+  });
+  it("leaves kbd non-state and non-stateless components' states intact", () => {
+    expect(heuristicSlotMapping("kbd-bg", "color")).not.toBeNull(); // base bg, no state — unaffected
+    expect(heuristicSlotMapping("button-solid-bg-active", "color")).not.toBeNull(); // button :active is real
+  });
 });
 
 describe("heuristicSlotMapping — bare size utility", () => {

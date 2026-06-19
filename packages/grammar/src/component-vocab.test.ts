@@ -9,6 +9,7 @@ import {
   isRingFramedVariant,
   PROP_DRIVEN_STATES,
   propDrivenStateFor,
+  STATELESS_COMPONENTS,
   NUXT_SLOTS,
   nuxtSlotsFor,
   defaultBaseSlot,
@@ -75,6 +76,15 @@ describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
   });
   it("marks nav `active` as prop/variant-driven (Nuxt applies it via the active variant)", () => {
     expect(propDrivenStateFor("nav", "active")).toBe("active");
+  });
+});
+
+describe("STATELESS_COMPONENTS", () => {
+  it("includes kbd (UKbd has no interaction states)", () => {
+    expect(STATELESS_COMPONENTS.has("kbd")).toBe(true);
+  });
+  it("excludes components that do have states (button)", () => {
+    expect(STATELESS_COMPONENTS.has("button")).toBe(false);
   });
 });
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.43.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.43.0) — 2026-06-19
+
+### Added
+
+- **Unsupported-state detector — completes the capability-deviation trilogy.** A state token on a
+  component that has *no* interaction states at all (kbd → Nuxt UI v4's `UKbd` is a static key
+  display) was emitting an inert `active:` prefix (`kbd-bg-active` → `active:bg-[…]`, which never
+  fires). A new `STATELESS_COMPONENTS` set (seeded with `kbd`) makes the grammar drop these tokens
+  and the scanner flag a new `unsupported-state` deviation: *"`kbd` is a stateless component (no
+  hover/active/focus/disabled) — so no `ui.kbd` override is emitted."* This is distinct from
+  `state-via-prop` (Bucket 2): there a prop drives the state; here the state does not exist. Together
+  with real pseudo-classes (Bucket 1) and prop-driven states (Bucket 2, input/textarea/nav), the
+  three buckets now share one scanner seam — all dispatched by *why* the grammar mapping is null.
+
+### Notes
+
+- `kbd` is the only seed (the live-export case). `badge`/`card`/`progress` are candidate additions
+  when an export carries their state tokens; custom components (chip/sidebar, designer-controlled)
+  are excluded, and dropdown/table have real states.
+
 ## [0.42.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.42.0) — 2026-06-19
 
 ### Fixed

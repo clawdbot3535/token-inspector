@@ -17,7 +17,7 @@ import {
   utilityPrefix,
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
-import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, KNOWN_CUSTOM_COMPONENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
+import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, STATELESS_COMPONENTS, STATE_KEYS, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, KNOWN_CUSTOM_COMPONENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
 import { detectPossibleTypos } from "./data-quality.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
@@ -47,6 +47,16 @@ function propDrivenStateForId(id: string): { state: string; prop: string } | nul
   return prop === null ? null : { state: last, prop };
 }
 
+/** {state} when the token's trailing segment is an interaction state on a stateless component, else null. */
+function unsupportedStateForId(id: string): { state: string } | null {
+  const segs = id.split("-");
+  if (segs.length < 2) return null;
+  const component = segs[0]!;
+  const last = segs[segs.length - 1]!;
+  if (!STATELESS_COMPONENTS.has(component)) return null;
+  if (last === "default" || !STATE_KEYS.has(last)) return null;
+  return { state: last };
+}
 
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   const issues: ScanIssue[] = [];
@@ -91,6 +101,22 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
             `the \`${pd.prop}\` prop (set programmatically), not a recipe slot — ` +
             `\`${prefix}\` has no \`:${pd.state}\` pseudo-class state, so no \`ui.${prefix}\` ` +
             `override is emitted.`,
+          tokenIds: [node.id],
+          componentName: prefix,
+        });
+      }
+      // Independent of the `pd` check above: a component is in PROP_DRIVEN_STATES or
+      // STATELESS_COMPONENTS, never both, so at most one of pd/us fires per token.
+      const us = unsupportedStateForId(node.id);
+      if (us !== null) {
+        issues.push({
+          id: `us-${node.id}`,
+          category: "classification-hint",
+          severity: "warning",
+          kind: "unsupported-state",
+          message:
+            `\`${node.id}\` targets the \`${us.state}\` state, but Nuxt UI v4's \`${prefix}\` is a ` +
+            `stateless component (no hover/active/focus/disabled) — so no \`ui.${prefix}\` override is emitted.`,
           tokenIds: [node.id],
           componentName: prefix,
         });

@@ -62,6 +62,14 @@ describe("buildComponentRecipes", () => {
     expect(JSON.stringify(recipes.nav ?? {})).not.toContain("active:");
   });
 
+  it("emits no `active:` classes for kbd (UKbd is stateless)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "kbd-bg-active", layer: "component", type: "color", source: "global", base: "#27272A" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["kbd"] });
+    expect(JSON.stringify(recipes.kbd ?? {})).not.toContain("active:");
+  });
+
   it("assembles a minimal button recipe from size variants", () => {
     const graph = makeGraph([
       makeNode({

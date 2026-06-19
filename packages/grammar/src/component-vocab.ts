@@ -103,6 +103,16 @@ export function propDrivenStateFor(component: string, state: string | null): str
 }
 
 /**
+ * Components mapped to Nuxt UI v4 components that expose NO interaction states at all
+ * (UKbd is a static key display — no hover/active/focus/disabled). Any state token on these
+ * is unexpressible: the grammar drops it and the scanner flags an `unsupported-state` deviation.
+ * Distinct from PROP_DRIVEN_STATES (there a prop drives the state; here the state does not exist).
+ * Seed: kbd (the live-export case `kbd-bg-active`). badge/card/progress are candidate additions
+ * when an export carries their state tokens; custom components (chip/sidebar) are excluded.
+ */
+export const STATELESS_COMPONENTS: ReadonlySet<string> = new Set(["kbd"]);
+
+/**
  * Per-Figma-component → the Nuxt UI v4 theme slot ("part") names that component
  * defines. Hand-authored from each component's theme `slots` keys (Nuxt UI MCP;
  * Nuxt UI v4 is the pinned target). Keyed by the Figma component name as it
