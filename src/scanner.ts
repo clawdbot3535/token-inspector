@@ -302,11 +302,15 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   // Cross-check the declared Figma collection against the anatomy heuristic.
   const collections = componentCollections(graph);
   const looksCustom = new Set(
-    issues.filter((i) => i.kind === "component-looks-custom").map((i) => i.componentName),
+    issues
+      .filter(
+        (i): i is ScanIssue & { componentName: string } =>
+          i.kind === "component-looks-custom" && i.componentName !== undefined,
+      )
+      .map((i) => i.componentName),
   );
   // Looks custom but declared components/global → likely mis-filed; heuristic wins, we warn.
   for (const comp of looksCustom) {
-    if (comp === undefined) continue;
     if (collections.get(comp) === "components/custom") continue; // agreement
     if (!collections.has(comp)) continue; // no collection metadata → nothing to reconcile
     issues.push({
@@ -332,7 +336,8 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       kind: "custom-without-parts",
       message:
         `\`${comp}\` is declared \`components/custom\` but no foreign parts could be derived — ` +
-        `its custom recipe may be empty (part-derivation for components without a Nuxt analog is not yet supported).`,
+        `its custom recipe may be empty. Define its parts in the component registry ` +
+        `(auto-derivation for components without a Nuxt analog is not yet available).`,
       tokenIds: [],
       componentName: comp,
     });
