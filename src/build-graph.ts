@@ -299,6 +299,7 @@ function assembleNodes(
           nodeId: id,
           path,
           message: `unresolved alias: ${aliasAttempt.rawTarget}`,
+          target: aliasAttempt.rawTarget,
         });
       }
 

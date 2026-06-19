@@ -59,6 +59,7 @@ describe("scanGraph — build-time issues", () => {
           kind: "unresolved-alias",
           nodeId: "missing-target",
           message: "unresolved alias: missing-target",
+          target: "missing-target",
         },
       ],
     );
@@ -67,6 +68,55 @@ describe("scanGraph — build-time issues", () => {
     expect(buildTime).toHaveLength(1);
     expect(buildTime[0]?.severity).toBe("error");
     expect(buildTime[0]?.kind).toBe("unresolved-alias");
+  });
+
+  it("groups unresolved-alias issues by target family with a cause hint", () => {
+    const graph = makeGraph(
+      [],
+      [
+        { kind: "unresolved-alias", nodeId: "sem-a-light", message: "unresolved alias: color/white/alpha/500-8", target: "color/white/alpha/500-8" },
+        { kind: "unresolved-alias", nodeId: "sem-a-dark", message: "unresolved alias: color/white/alpha/500-8", target: "color/white/alpha/500-8" },
+        { kind: "unresolved-alias", nodeId: "sem-b", message: "unresolved alias: color/white/alpha/500-15", target: "color/white/alpha/500-15" },
+        { kind: "unresolved-alias", nodeId: "sem-c", message: "unresolved alias: color/black/alpha/500-60", target: "color/black/alpha/500-60" },
+        { kind: "malformed-value", nodeId: "mv-1", message: "malformed-value for mv-1 (type=color)" },
+      ],
+    );
+    const buildTime = scanGraph(graph, { components: ["button"] }).issues.filter(
+      (i: ScanIssue) => i.category === "build-time",
+    );
+    const ua = buildTime.filter((i: ScanIssue) => i.kind === "unresolved-alias");
+    expect(ua).toHaveLength(2); // two families: white/alpha and black/alpha
+
+    const white = ua.find((i) => i.message.includes("color/white/alpha/*"));
+    expect(white).toBeDefined();
+    expect(white!.severity).toBe("error");
+    expect(white!.tokenIds).toEqual(["sem-a-light", "sem-a-dark", "sem-b"]); // 3 aliasing tokens, deduped
+    expect(white!.message).toContain("3 alias(es)");
+    expect(white!.message).toContain("(500-8, 500-15)"); // unique leaves, encounter order
+    expect(white!.message).toContain("library/remote");
+
+    const black = ua.find((i) => i.message.includes("color/black/alpha/*"));
+    expect(black!.tokenIds).toEqual(["sem-c"]);
+
+    // a non-alias build-time issue is NOT grouped — stays 1:1
+    expect(buildTime.filter((i) => i.kind === "malformed-value")).toHaveLength(1);
+  });
+
+  it("gives distinct ids to families that slug to the same string", () => {
+    const graph = makeGraph(
+      [],
+      [
+        { kind: "unresolved-alias", nodeId: "x", message: "u", target: "color/a.b/1" },
+        { kind: "unresolved-alias", nodeId: "y", message: "u", target: "color/a-b/2" },
+      ],
+    );
+    const ua = scanGraph(graph, { components: ["button"] }).issues.filter(
+      (i: ScanIssue) => i.kind === "unresolved-alias",
+    );
+    // "color/a.b" and "color/a-b" are distinct families but slug identically;
+    // ids must still be unique (used as a Vue :key).
+    expect(ua).toHaveLength(2);
+    expect(new Set(ua.map((i) => i.id)).size).toBe(2);
   });
 });
 

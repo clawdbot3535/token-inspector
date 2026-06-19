@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.47.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.0) — 2026-06-19
+
+### Changed
+
+- **Actionable `unresolved-alias` diagnostic.** Dangling-alias errors (an alias pointing at a target
+  absent from all loaded sources) are now grouped by missing target-family into one issue per family
+  with a cause hint, instead of one opaque error per alias. On the live export the 6 separate
+  `unresolved alias: color/white|black/alpha/…` errors collapse into 2 actionable issues
+  (`color/white/alpha/*` ×3, `color/black/alpha/*` ×2), each naming the missing leaves + the aliasing
+  tokens and explaining the likely cause: a library/remote variable the local-only Figma export did
+  not include (export it or include the library), or a dangling reference. Severity stays `error` —
+  de-noised, not hidden. Root-caused via /investigate: the resolver is correct (index + lookup both
+  normalize to slash-form, 0 resolution bugs); the gap is that white/black alpha primitives are absent
+  from the exported sources. `GraphIssue` gained a structured `target` field so the scanner groups on
+  data, not parsed message text. Adds `scripts/probe-unresolved-alias.ts` (reusable diagnostic). 929 tests.
+
 ## [0.46.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.46.1) — 2026-06-19
 
 ### Changed

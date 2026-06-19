@@ -132,6 +132,8 @@ export interface GraphIssue {
   message: string;
   /** Original path for tracing back to the Figma export. */
   path?: readonly string[];
+  /** For unresolved-alias: the raw alias target (slash path) that could not be resolved. */
+  target?: string;
 }
 
 /** The complete, immutable graph — single source of truth for all renderers. */
