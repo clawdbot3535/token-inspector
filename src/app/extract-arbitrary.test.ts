@@ -114,8 +114,9 @@ describe("extractArbitrary", () => {
     const widthOnly = extractArbitrary("ring-[1px]");
     expect(widthOnly.style.boxShadow).toBe("0 0 0 1px currentColor");
 
+    // colour only → width defaults to Tailwind v4's 1px (matches the real ring).
     const colorOnly = extractArbitrary("ring-[#4F63D2]");
-    expect(colorOnly.style.boxShadow).toBe("0 0 0 2px #4F63D2");
+    expect(colorOnly.style.boxShadow).toBe("0 0 0 1px #4F63D2");
 
     // order-independent: colour before width composes the same single ring.
     const reversed = extractArbitrary("ring-[#4F63D2] ring-[1px]");
@@ -124,7 +125,7 @@ describe("extractArbitrary", () => {
 
   it("treats ring-[var(--c)] as a color (boxShadow), not a width", () => {
     const { style } = extractArbitrary("ring-[var(--brand)]");
-    expect(style.boxShadow).toBe("0 0 0 2px var(--brand)");
+    expect(style.boxShadow).toBe("0 0 0 1px var(--brand)");
     expect(style.outlineWidth).toBeUndefined();
   });
 
