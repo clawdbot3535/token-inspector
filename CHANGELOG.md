@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.48.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.48.1) — 2026-06-20
+
+### Changed (internal)
+
+- **Removed a dead `PROP_DRIVEN_STATES` import** from `packages/grammar/src/component-vocab.test.ts`.
+  The test exercises `propDrivenStateFor` (which stays); the set import was unused. Pre-existing dead
+  code — the pre-commit `typecheck` excludes `.test.ts`, so only the IDE flagged it. Test-only, no
+  behaviour change. 946 tests.
+
 ## [0.48.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.48.0) — 2026-06-20
 
 ### Added
