@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REAL_SLOTTED_REGISTRY } from "./real-slotted-registry.js";
+import { REAL_SLOTTED_REGISTRY, RADIO_ITEM_VALUE } from "./real-slotted-registry.js";
 
 const STANDARD = ["card", "kbd", "badge", "progress", "switch", "checkbox", "radio", "input", "textarea"];
 
@@ -20,5 +20,11 @@ describe("REAL_SLOTTED_REGISTRY", () => {
   it("excludes the custom components chip and sidebar", () => {
     expect(REAL_SLOTTED_REGISTRY).not.toHaveProperty("chip");
     expect(REAL_SLOTTED_REGISTRY).not.toHaveProperty("sidebar");
+  });
+
+  it("radio's registry item value uses the shared RADIO_ITEM_VALUE constant", () => {
+    expect(RADIO_ITEM_VALUE).toBe("a");
+    const radioItems = (REAL_SLOTTED_REGISTRY.radio.props as { items: { value: string }[] }).items;
+    expect(radioItems[0]!.value).toBe(RADIO_ITEM_VALUE);
   });
 });

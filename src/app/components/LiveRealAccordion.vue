@@ -4,11 +4,12 @@ import type { TokenGraph } from "@core/token-graph.js";
 import { usePreviewRecipe } from "../composables/use-preview-recipe.js";
 import { buildSlotSentinels, buildStateCells, type SentinelBuild } from "../composables/use-render-diff.js";
 import RealVariantCell from "./RealVariantCell.vue";
+import { ACCORDION_ITEM_VALUE } from "./real-slotted-registry.js";
 
 const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
-const items = [{ label: "Section", content: "Body text for the panel.", value: "a" }];
+const items = [{ label: "Section", content: "Body text for the panel.", value: ACCORDION_ITEM_VALUE }];
 
 interface Cell {
   label: string;

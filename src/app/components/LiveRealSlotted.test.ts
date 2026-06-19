@@ -117,6 +117,9 @@ describe("LiveRealSlotted — checked cell", () => {
       global: { stubs: { URadioGroup: RadioStub } },
     });
     const radios = w.findAll('[data-testid="real-radio"]');
-    expect(radios.some((r) => r.attributes("data-modelvalue") === "a")).toBe(true); // override applied via wiring
+    // checked cell uses the item value (override applied via the componentName wiring)…
+    expect(radios.filter((r) => r.attributes("data-modelvalue") === "a").length).toBe(1);
+    // …and the resting radio has no selection (unchecked baseline — registry drops modelValue).
+    expect(radios.some((r) => r.attributes("data-modelvalue") === "undefined")).toBe(true);
   });
 });

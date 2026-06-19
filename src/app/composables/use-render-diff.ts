@@ -9,6 +9,7 @@ import { extractArbitrary } from "../extract-arbitrary.js";
 import { projectToState } from "../project-to-state.js";
 import { diffComputed, type RenderDelta } from "../render-diff.js";
 import { ensureRuntimeTailwind } from "./use-runtime-tailwind.js";
+import { RADIO_ITEM_VALUE, ACCORDION_ITEM_VALUE } from "../components/real-slotted-registry.js";
 
 export function computeRenderDiff(el: Element, baseClasses: string): RenderDelta[] {
   if (typeof document === "undefined") return [];
@@ -122,8 +123,8 @@ const STATE_PROPS: Record<SettableState, Record<string, unknown>> = {
   open: {}, // no universal activation prop for open state
 };
 const STATE_PROPS_OVERRIDE: Record<string, Partial<Record<SettableState, Record<string, unknown>>>> = {
-  radio: { checked: { modelValue: "a" } }, // URadioGroup selects by item value (registry item value is "a")
-  accordion: { open: { defaultValue: "a" } }, // UAccordion opens by item value (default-value); item value is "a"
+  radio: { checked: { modelValue: RADIO_ITEM_VALUE } }, // URadioGroup selects by item value
+  accordion: { open: { defaultValue: ACCORDION_ITEM_VALUE } }, // UAccordion opens by item value (default-value)
 };
 
 export interface StateCell {
