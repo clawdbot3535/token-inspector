@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { scanGraph, customPartsByComponent, componentCollections, declaredCustomComponents } from "./scanner.js";
+import { KNOWN_CUSTOM_COMPONENTS } from "@tg/grammar";
 import { detectPossibleTypos } from "./data-quality.js";
 import type {
   TokenGraph,
@@ -883,6 +884,28 @@ describe("customPartsByComponent — known-custom registry (sidebar)", () => {
     const map = customPartsByComponent(scanGraph(graph, { components: ["chip"] }));
     expect(map.get("sidebar")).toEqual(["item"]);
     expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
+  });
+});
+
+describe("customPartsByComponent — declaredCustom membership", () => {
+  it("adds a declared-custom component as a membership-only entry ([] parts)", () => {
+    const map = customPartsByComponent({ issues: [] }, new Set(["fancywidget"]));
+    expect(map.has("fancywidget")).toBe(true);
+    expect([...(map.get("fancywidget") ?? [])]).toEqual([]);
+  });
+
+  it("does not clobber a component-looks-custom component's parts", () => {
+    const report = { issues: [
+      { id: "clc-chip", category: "classification-hint", severity: "hint",
+        kind: "component-looks-custom", componentName: "chip", customParts: ["close", "label"],
+        message: "", tokenIds: [] },
+    ] } as unknown as { issues: ScanIssue[] };
+    const map = customPartsByComponent(report, new Set(["chip"]));
+    expect([...(map.get("chip") ?? [])].sort()).toEqual(["close", "label"]);
+  });
+
+  it("is backward-compatible without the declaredCustom arg", () => {
+    expect(customPartsByComponent({ issues: [] }).size).toBe(KNOWN_CUSTOM_COMPONENTS.size);
   });
 });
 

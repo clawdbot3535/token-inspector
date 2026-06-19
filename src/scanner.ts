@@ -816,6 +816,7 @@ function computeForecast(
  */
 export function customPartsByComponent(
   report: { issues: ReadonlyArray<ScanIssue> },
+  declaredCustom?: ReadonlySet<string>,
 ): ReadonlyMap<string, readonly string[]> {
   const out = new Map<string, string[]>();
   for (const [component, parts] of KNOWN_CUSTOM_COMPONENTS) {
@@ -825,6 +826,11 @@ export function customPartsByComponent(
     if (i.kind !== "component-looks-custom") continue;
     if (i.componentName === undefined || i.customParts === undefined) continue;
     out.set(i.componentName, [...i.customParts]);
+  }
+  // Declared-custom (Figma `components/custom`): add membership-only WITHOUT clobbering
+  // a richer parts list from the registry or the anatomy heuristic. Parts deferred ([]).
+  for (const component of declaredCustom ?? []) {
+    if (!out.has(component)) out.set(component, []);
   }
   return out;
 }
