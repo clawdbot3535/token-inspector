@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.2) — 2026-06-19
+
+### Fixed
+
+- **Real-tab `ring-offset` box-shadow (resolves the v0.47.1 residual).** `extract-arbitrary` now models
+  `ring-offset-[N]` as Tailwind's two-layer offset composite (offset layer at `N`, ring layer at
+  `calc(N + width)`, `#fff` offset colour by default), instead of ignoring it and emitting a single
+  ring layer. `canonicalizeShadow` also normalizes the `inset` keyword — Nuxt UI renders form-control
+  rings inset, but the recipe has no inset concept to express, so inset ≈ outset for the comparison.
+  Together these clear the box-shadow false-positives on input/textarea/checkbox/radio (textarea and
+  radio now fully match) and on button/kbd. Remaining box-shadow deltas are now **genuine** signal,
+  not tooling noise — e.g. chip shows the recipe's ring vs the real custom-chip's `none`. 938 tests.
+
 ## [0.47.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.1) — 2026-06-19
 
 ### Fixed

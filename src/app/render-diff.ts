@@ -2,12 +2,11 @@
 // element's computed styles (actual). One delta per expected property. Both sides arrive
 // already getComputedStyle-normalized (see use-render-diff), so plain string equality is
 // sound — EXCEPT box-shadow: Tailwind composes it from layered CSS vars and emits transparent
-// placeholder layers, while the probe (extract-arbitrary) emits a single ring layer.
-// canonicalizeShadow strips the empty layers so the two compare on their meaningful shadow(s).
-// KNOWN RESIDUAL: extract-arbitrary does not model `ring-offset`/inset, so a component with a
-// ring-offset still shows a box-shadow delta (its real inset offset layers vs the probe's single
-// ring). That's a probe-modelling gap, not a recipe defect; modelling Tailwind's full ring math
-// was judged too brittle for the diagnostic. See the v0.47.1 changelog.
+// placeholder layers, while the probe (extract-arbitrary) emits the ring layers directly.
+// canonicalizeShadow strips the empty layers AND the `inset` keyword so the two compare on their
+// meaningful shadow(s). (extract-arbitrary models ring-offset as the same two-layer composite
+// Tailwind emits; the `inset` is normalized because Nuxt UI renders form-control rings inset while
+// the recipe has no inset concept to express — a systematic convention, not a per-recipe defect.)
 
 export interface RenderDelta {
   property: string;
@@ -42,13 +41,15 @@ function isEmptyShadowLayer(layer: string): boolean {
   return /^(inset )?rgba\(0, 0, 0, 0\) 0px 0px 0px 0px( inset)?$/.test(n);
 }
 
-/** Drop the transparent placeholder layers Tailwind always emits, so a 5-layer ring
- *  composite compares against the probe's single ring layer. Empty/`none` → "none". */
+/** Normalize a box-shadow for comparison: drop Tailwind's transparent placeholder
+ *  layers and the `inset` keyword (the recipe can't express inset; Nuxt UI's
+ *  form-control inset rings are a systematic convention, so inset ≈ outset here),
+ *  so a multi-layer ring composite compares against the probe's layers. Empty/`none` → "none". */
 export function canonicalizeShadow(value: string): string {
   const v = (value ?? "").trim();
   if (!v || v === "none") return "none";
   const layers = splitShadowLayers(v)
-    .map((l) => l.trim())
+    .map((l) => l.replace(/\binset\b/g, "").replace(/\s+/g, " ").trim())
     .filter((l) => l && !isEmptyShadowLayer(l));
   return layers.length > 0 ? layers.join(", ") : "none";
 }

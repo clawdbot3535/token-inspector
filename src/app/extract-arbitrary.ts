@@ -131,6 +131,8 @@ export function extractArbitrary(classString: string): Extracted {
   const classes: string[] = [];
   let ringColor: string | undefined;
   let ringWidth: string | undefined;
+  let ringOffsetWidth: string | undefined;
+  let ringOffsetColor: string | undefined;
   for (const cls of classString.split(/\s+/).filter(Boolean)) {
     if (cls.includes(":")) {
       classes.push(cls);
@@ -159,6 +161,12 @@ export function extractArbitrary(classString: string): Extracted {
       if (isLengthValue(value)) ringWidth = value;
       else ringColor = value;
       continue;
+    } else if (prefix === "ring-offset") {
+      // ring-offset-[length] = offset width, ring-offset-[colour] = offset colour
+      // (Tailwind default #fff); composed into the ring's offset layer below.
+      if (isLengthValue(value)) ringOffsetWidth = value;
+      else ringOffsetColor = value;
+      continue;
     } else if (prefix === "border") {
       if (isLengthValue(value)) {
         style.borderWidth = value;
@@ -178,11 +186,20 @@ export function extractArbitrary(classString: string): Extracted {
     }
   }
 
-  // Compose the ring (D2e): one boxShadow carrying the token's width + colour.
-  // Defaults: 1px width (Tailwind v4's default ring width) and currentColor when
-  // only one half is present. ring-[length] no longer emits a competing CSS outline.
+  // Compose the ring (D2e): a boxShadow carrying the token's width + colour, plus a
+  // ring-offset layer when present — matching Tailwind's two-layer offset composite
+  // (offset layer at `offset`, ring layer at `offset + width`; `calc` lets the browser
+  // sum the lengths). Defaults: 1px width (Tailwind v4), currentColor, #fff offset colour.
+  // ring-[length] emits no competing CSS outline.
   if (ringColor !== undefined || ringWidth !== undefined) {
-    style.boxShadow = `0 0 0 ${ringWidth ?? "1px"} ${ringColor ?? "currentColor"}`;
+    const width = ringWidth ?? "1px";
+    const color = ringColor ?? "currentColor";
+    if (ringOffsetWidth !== undefined) {
+      const offsetColor = ringOffsetColor ?? "#fff";
+      style.boxShadow = `0 0 0 ${ringOffsetWidth} ${offsetColor}, 0 0 0 calc(${ringOffsetWidth} + ${width}) ${color}`;
+    } else {
+      style.boxShadow = `0 0 0 ${width} ${color}`;
+    }
   }
 
   // Tailwind preflight zeroes border-width on every element, so a bare

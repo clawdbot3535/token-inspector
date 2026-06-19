@@ -50,6 +50,15 @@ describe("canonicalizeShadow", () => {
     expect(canonicalizeShadow("none")).toBe("none");
     expect(canonicalizeShadow("rgba(0, 0, 0, 0) 0px 0px 0px 0px")).toBe("none");
   });
+
+  it("normalizes the inset keyword and strips empty layers (real form-control composite)", () => {
+    const real =
+      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 4px inset, " +
+      "rgb(228, 228, 231) 0px 0px 0px 5px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px";
+    expect(canonicalizeShadow(real)).toBe(
+      "rgb(255, 255, 255) 0px 0px 0px 4px, rgb(228, 228, 231) 0px 0px 0px 5px",
+    );
+  });
 });
 
 describe("diffComputed — box-shadow canonicalization", () => {
@@ -67,5 +76,15 @@ describe("diffComputed — box-shadow canonicalization", () => {
     const expected = { boxShadow: "rgb(228, 228, 231) 0px 0px 0px 2px" };
     const actual = { boxShadow: "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(228, 228, 231) 0px 0px 0px 1px" };
     expect(diffComputed(expected, actual)[0]!.match).toBe(false);
+  });
+
+  it("matches a probe's outset offset composite against the real inset composite", () => {
+    const expected = { boxShadow: "rgb(255, 255, 255) 0px 0px 0px 4px, rgb(228, 228, 231) 0px 0px 0px 5px" };
+    const actual = {
+      boxShadow:
+        "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 4px inset, " +
+        "rgb(228, 228, 231) 0px 0px 0px 5px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+    };
+    expect(diffComputed(expected, actual)[0]!.match).toBe(true);
   });
 });
