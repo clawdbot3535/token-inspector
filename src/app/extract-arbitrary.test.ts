@@ -123,6 +123,17 @@ describe("extractArbitrary", () => {
     expect(reversed.style.boxShadow).toBe("0 0 0 1px #4F63D2");
   });
 
+  it("composes ring-offset into Tailwind's two-layer offset composite", () => {
+    // offset layer at `offset`, ring layer at `offset + width` (calc lets the browser sum).
+    const { style } = extractArbitrary("ring-[1px] ring-[#E4E4E7] ring-offset-[4px]");
+    expect(style.boxShadow).toBe("0 0 0 4px #fff, 0 0 0 calc(4px + 1px) #E4E4E7");
+  });
+
+  it("defaults ring-offset colour to #fff and ring width to 1px", () => {
+    const { style } = extractArbitrary("ring-[var(--c)] ring-offset-[4px]");
+    expect(style.boxShadow).toBe("0 0 0 4px #fff, 0 0 0 calc(4px + 1px) var(--c)");
+  });
+
   it("treats ring-[var(--c)] as a color (boxShadow), not a width", () => {
     const { style } = extractArbitrary("ring-[var(--brand)]");
     expect(style.boxShadow).toBe("0 0 0 1px var(--brand)");
