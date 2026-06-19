@@ -1122,14 +1122,14 @@ describe("non-trailing state parsing", () => {
     expect(m?.statePrefix).toBe("hover");
   });
   it("leaves trailing-state tokens unchanged (button-solid-bg-active)", () => {
-    const m = heuristicSlotMapping("button-solid-bg-active", undefined, "color");
+    const m = heuristicSlotMapping("button-solid-bg-active", "color");
     expect(m?.utilityType).toBe("bg-color");
     expect(m?.statePrefix).toBe("active");
   });
   it("drops badge-disabled-bg (badge stateless; leading disabled recognized)", () => {
-    expect(heuristicSlotMapping("badge-disabled-bg", undefined, "color")).toBeNull();
+    expect(heuristicSlotMapping("badge-disabled-bg", "color")).toBeNull();
   });
   it("still maps badge non-state tokens (badge-bg → base)", () => {
-    expect(heuristicSlotMapping("badge-bg", undefined, "color")?.slot).toBe("base");
+    expect(heuristicSlotMapping("badge-bg", "color")?.slot).toBe("base");
   });
 });
