@@ -37,25 +37,26 @@ interface ComponentEntry {
   value: string;
 }
 
-/** {state, prop} when the token's trailing state is prop-driven for its component, else null. */
+/** {state, prop} when any non-component segment is a prop-driven state for its component, else null. */
 function propDrivenStateForId(id: string): { state: string; prop: string } | null {
   const segs = id.split("-");
   if (segs.length < 2) return null;
   const component = segs[0]!;
-  const last = segs[segs.length - 1]!;
-  const prop = propDrivenStateFor(component, last);
-  return prop === null ? null : { state: last, prop };
+  for (const seg of segs.slice(1)) {
+    const prop = propDrivenStateFor(component, seg);
+    if (prop !== null) return { state: seg, prop };
+  }
+  return null;
 }
 
-/** {state} when the token's trailing segment is an interaction state on a stateless component, else null. */
+/** {state} when any non-component segment is an interaction state on a stateless component, else null. */
 function unsupportedStateForId(id: string): { state: string } | null {
   const segs = id.split("-");
   if (segs.length < 2) return null;
   const component = segs[0]!;
-  const last = segs[segs.length - 1]!;
   if (!STATELESS_COMPONENTS.has(component)) return null;
-  if (last === "default" || !STATE_KEYS.has(last)) return null;
-  return { state: last };
+  const state = segs.slice(1).find((s) => s !== "default" && STATE_KEYS.has(s));
+  return state === undefined ? null : { state };
 }
 
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
