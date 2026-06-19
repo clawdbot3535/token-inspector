@@ -7,7 +7,6 @@ import {
   STATE_KEYS,
   RING_FRAMED_VARIANTS,
   isRingFramedVariant,
-  PROP_DRIVEN_STATES,
   propDrivenStateFor,
   STATELESS_COMPONENTS,
   NUXT_SLOTS,
