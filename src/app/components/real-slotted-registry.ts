@@ -2,6 +2,11 @@
 // Nuxt UI tag plus the minimal props (and optional default-slot text) needed to paint a resting
 // state. Custom components (chip, sidebar) are intentionally absent — they have no faithful U<X>.
 
+/** The preview item value used by the radio registry entry and its checked-state override. */
+export const RADIO_ITEM_VALUE = "a";
+/** The preview item value used by LiveRealAccordion's items and its open-state override. */
+export const ACCORDION_ITEM_VALUE = "a";
+
 export interface RealSlottedEntry {
   /** Globally-registered Nuxt UI component name, e.g. "UCard". */
   tag: string;
@@ -20,7 +25,7 @@ export const REAL_SLOTTED_REGISTRY: Readonly<Record<string, RealSlottedEntry>> =
   checkbox: { tag: "UCheckbox", props: { modelValue: false, label: "Checkbox" } },
   // radio maps to URadioGroup (Nuxt UI v4 has no standalone URadio) — breaks the otherwise 1:1 U<PascalKey> naming.
   // No modelValue → no selection → unchecked resting baseline (the checked cell sets modelValue to the item value).
-  radio: { tag: "URadioGroup", props: { items: [{ label: "Option", value: "a" }] } },
+  radio: { tag: "URadioGroup", props: { items: [{ label: "Option", value: RADIO_ITEM_VALUE }] } },
   input: { tag: "UInput", props: { modelValue: "Text" } },
   textarea: { tag: "UTextarea", props: { modelValue: "Text" } },
 });
