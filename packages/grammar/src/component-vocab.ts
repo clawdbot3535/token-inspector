@@ -242,6 +242,10 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
   ["dot", "indicator"],
   ["fill", "indicator"],
   ["track", "base"],
+  // Composite (2-segment) part name: a `close` element that IS a button → the `close` slot.
+  // Consulted by the 2-segment composite lookup in slot-mapping; the `button` descriptor is
+  // thereby consumed so e.g. `chip-close-button-size` → close slot + size utility.
+  ["close-button", "close"],
 ]);
 
 /**

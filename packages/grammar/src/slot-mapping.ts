@@ -117,12 +117,24 @@ function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): P
     else if (COLOR_ROLE_KEYS.has(second)) { colorRole = second; start = 2; }
   }
 
-  // Seam: after variant/color-role detection, consume the next segment when it
-  // EXACTLY matches a known Nuxt slot for this component. When componentSlots is
+  // Seam: after variant/color-role detection, consume the next segment(s) when they
+  // match a known Nuxt slot for this component. When componentSlots is
   // omitted (normal first pass), nothing is consumed — today's behaviour.
   let slotPrefix: RecipeSlot | null = null;
   const slotSeg = parts[start];
-  if (slotSeg !== undefined && slotSeg !== "base" && componentSlots !== undefined) {
+  // Curated multi-segment composite part name (e.g. `close-button` → `close`): try the
+  // 2-segment alias FIRST so a trailing descriptor segment is consumed with the slot.
+  // Only consults the curated alias map (not a dynamic match against all slots), and only
+  // in the custom/extraSlots pass (componentSlots provided).
+  if (slotSeg !== undefined && parts[start + 1] !== undefined && componentSlots !== undefined) {
+    const composite = `${slotSeg}-${parts[start + 1]}`;
+    const aliased = FIGMA_NUXT_PART_ALIAS.get(composite);
+    if (aliased !== undefined && componentSlots.has(aliased)) {
+      slotPrefix = aliased;
+      start += 2;
+    }
+  }
+  if (slotPrefix === null && slotSeg !== undefined && slotSeg !== "base" && componentSlots !== undefined) {
     if (componentSlots.has(slotSeg)) {
       slotPrefix = slotSeg;
       start += 1;

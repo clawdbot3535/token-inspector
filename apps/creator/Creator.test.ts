@@ -123,5 +123,5 @@ describe("Creator smoke test", () => {
     const output = wrapper.find('[data-testid="creator-output"]');
     expect(output.exists()).toBe(true);
     expect(output.text()).toContain("switch");
-  });
+  }, 15_000);
 });

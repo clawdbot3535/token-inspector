@@ -136,6 +136,9 @@ describe("NON_PART_SEGMENTS / FIGMA_NUXT_PART_ALIAS", () => {
     expect(FIGMA_NUXT_PART_ALIAS.get("divider")).toBe("separator");
     expect(FIGMA_NUXT_PART_ALIAS.get("check")).toBe("icon");
   });
+  it("aliases the close-button composite part to the close slot", () => {
+    expect(FIGMA_NUXT_PART_ALIAS.get("close-button")).toBe("close");
+  });
 });
 
 describe("SLOT_PAIRS", () => {
