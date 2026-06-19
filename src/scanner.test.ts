@@ -929,3 +929,33 @@ describe("componentCollections / declaredCustomComponents", () => {
     expect([...set]).toEqual(["sidebar"]);
   });
 });
+
+describe("scanGraph — collection/anatomy disagreement", () => {
+  function clcNode(id: string, collection: string) {
+    return { ...makeNode({ id, layer: "component", type: "color", source: "global", base: "#fff" }), collection };
+  }
+
+  it("flags a component that looks custom but is declared components/global (chip-like)", () => {
+    const graph = makeGraph([clcNode("chip-close-bg", "components/global")]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const m = report.issues.find((i) => i.kind === "collection-anatomy-mismatch");
+    expect(m).toBeDefined();
+    expect(m?.severity).toBe("warning");
+    expect(m?.componentName).toBe("chip");
+    expect(m?.message).toContain("components/custom");
+  });
+
+  it("does NOT flag a looks-custom component already declared components/custom", () => {
+    const graph = makeGraph([clcNode("chip-close-bg", "components/custom")]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    expect(report.issues.find((i) => i.kind === "collection-anatomy-mismatch")).toBeUndefined();
+  });
+
+  it("flags a declared-custom component with no derivable parts (custom-without-parts)", () => {
+    const graph = makeGraph([clcNode("fancywidget-bg", "components/custom")]);
+    const report = scanGraph(graph, { components: ["fancywidget"] });
+    const w = report.issues.find((i) => i.kind === "custom-without-parts");
+    expect(w).toBeDefined();
+    expect(w?.componentName).toBe("fancywidget");
+  });
+});

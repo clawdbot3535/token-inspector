@@ -299,6 +299,45 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
     });
   }
 
+  // Cross-check the declared Figma collection against the anatomy heuristic.
+  const collections = componentCollections(graph);
+  const looksCustom = new Set(
+    issues.filter((i) => i.kind === "component-looks-custom").map((i) => i.componentName),
+  );
+  // Looks custom but declared components/global → likely mis-filed; heuristic wins, we warn.
+  for (const comp of looksCustom) {
+    if (comp === undefined) continue;
+    if (collections.get(comp) === "components/custom") continue; // agreement
+    if (!collections.has(comp)) continue; // no collection metadata → nothing to reconcile
+    issues.push({
+      id: `cam-${comp}`,
+      category: "classification-hint",
+      severity: "warning",
+      kind: "collection-anatomy-mismatch",
+      message:
+        `\`${comp}\` is in Figma collection \`${collections.get(comp)}\` but has custom parts ` +
+        `with no Nuxt \`${comp}\` slot — consider moving it to \`components/custom\`.`,
+      tokenIds: [],
+      componentName: comp,
+    });
+  }
+  // Declared components/custom but no parts derivable (not in registry, not heuristic-flagged).
+  for (const comp of declaredCustomComponents(graph)) {
+    if (!allowSet.has(comp)) continue;
+    if (KNOWN_CUSTOM_COMPONENTS.has(comp) || looksCustom.has(comp)) continue;
+    issues.push({
+      id: `cwp-${comp}`,
+      category: "classification-hint",
+      severity: "warning",
+      kind: "custom-without-parts",
+      message:
+        `\`${comp}\` is declared \`components/custom\` but no foreign parts could be derived — ` +
+        `its custom recipe may be empty (part-derivation for components without a Nuxt analog is not yet supported).`,
+      tokenIds: [],
+      componentName: comp,
+    });
+  }
+
   // ─── 3. Per-component analysis ────────────────────────────────────────────
   const completeness: CompletenessScore[] = [];
 
