@@ -246,6 +246,7 @@ describe("buildGraph — alias resolution", () => {
     const unresolved = g.issues.filter((i) => i.kind === "unresolved-alias");
     expect(unresolved).toHaveLength(1);
     expect(unresolved[0].nodeId).toBe("button-ghost-background");
+    expect(unresolved[0].target).toBe("color/does-not-exist/500");
   });
 });
 
