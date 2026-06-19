@@ -6,7 +6,10 @@ import { buildSlotSentinels, buildStateCells, type SentinelBuild } from "../comp
 import RealVariantCell from "./RealVariantCell.vue";
 import { ACCORDION_ITEM_VALUE } from "./real-slotted-registry.js";
 
-const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
+const props = withDefaults(
+  defineProps<{ graph: TokenGraph | null; componentName: string; showDiagnostics?: boolean }>(),
+  { showDiagnostics: false },
+);
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
 const items = [{ label: "Section", content: "Body text for the panel.", value: ACCORDION_ITEM_VALUE }];
@@ -37,7 +40,7 @@ const cells = computed<Cell[]>(() => {
   <div class="p-4">
     <div v-if="!recipe" class="text-xs text-muted">No accordion recipe to render.</div>
     <template v-else>
-      <RealVariantCell v-for="cell in cells" :key="cell.label" :label="cell.label" :specs="cell.specs">
+      <RealVariantCell v-for="cell in cells" :key="cell.label" :label="cell.label" :specs="cell.specs" :show-diagnostics="showDiagnostics">
         <UAccordion :items="items" v-bind="cell.props" :ui="cell.ui" />
       </RealVariantCell>
     </template>

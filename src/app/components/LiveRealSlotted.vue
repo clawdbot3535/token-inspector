@@ -6,7 +6,10 @@ import { buildSlotSentinels, buildStateCells, buildVariantCells, type SentinelBu
 import { REAL_SLOTTED_REGISTRY } from "./real-slotted-registry.js";
 import RealVariantCell from "./RealVariantCell.vue";
 
-const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
+const props = withDefaults(
+  defineProps<{ graph: TokenGraph | null; componentName: string; showDiagnostics?: boolean }>(),
+  { showDiagnostics: false },
+);
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 const entry = computed(() => REAL_SLOTTED_REGISTRY[props.componentName] ?? null);
 
@@ -37,7 +40,7 @@ const cells = computed<Cell[]>(() => {
   <div class="p-4">
     <div v-if="!recipe || !entry" class="text-xs text-muted">No {{ componentName }} recipe to render.</div>
     <template v-else>
-      <RealVariantCell v-for="cell in cells" :key="cell.label" :label="cell.label" :specs="cell.specs">
+      <RealVariantCell v-for="cell in cells" :key="cell.label" :label="cell.label" :specs="cell.specs" :show-diagnostics="showDiagnostics">
         <UCard v-if="componentName === 'card'" v-bind="cell.props" :ui="cell.ui">
           <template v-if="entry.slot">{{ entry.slot }}</template>
         </UCard>

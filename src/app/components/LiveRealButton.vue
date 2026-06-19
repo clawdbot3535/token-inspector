@@ -8,7 +8,10 @@ import RenderDeltaTable from "./RenderDeltaTable.vue";
 import RealVariantCell from "./RealVariantCell.vue";
 import type { RenderDelta } from "../render-diff.js";
 
-const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
+const props = withDefaults(
+  defineProps<{ graph: TokenGraph | null; componentName: string; showDiagnostics?: boolean }>(),
+  { showDiagnostics: false },
+);
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
 // Resting look: base + representative size only (no variant — variants get their own cells below).
@@ -56,13 +59,16 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
       <p class="mt-2 text-[10px] text-muted">
         Real Nuxt UI v4 component themed by your generated recipe (runtime-compiled).
       </p>
-      <RenderDeltaTable :deltas="deltas" />
+      <div v-if="showDiagnostics" data-testid="resting-diagnostics">
+        <RenderDeltaTable :deltas="deltas" />
+      </div>
 
       <RealVariantCell
         v-for="cell in variantCells"
         :key="cell.axis + ':' + cell.key"
         :label="`${cell.axis}: ${cell.key}`"
         :specs="cell.specs"
+        :show-diagnostics="showDiagnostics"
       >
         <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
       </RealVariantCell>
@@ -72,6 +78,7 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
         :key="cell.state"
         :label="cell.state"
         :specs="cell.specs"
+        :show-diagnostics="showDiagnostics"
       >
         <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
       </RealVariantCell>

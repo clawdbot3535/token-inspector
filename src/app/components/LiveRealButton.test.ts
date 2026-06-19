@@ -84,3 +84,27 @@ describe("LiveRealButton — disabled cell", () => {
     expect(disabledBtns.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("LiveRealButton — diagnostics gating", () => {
+  it("hides resting diagnostics and forwards showDiagnostics=false by default", () => {
+    const w = mount(LiveRealButton, {
+      props: { graph: variantButtonGraph(), componentName: "button" },
+      ...mountOpts,
+    });
+    expect(w.find('[data-testid="resting-diagnostics"]').exists()).toBe(false);
+    for (const c of w.findAllComponents(RealVariantCell)) {
+      expect(c.props("showDiagnostics")).toBe(false);
+    }
+  });
+
+  it("shows resting diagnostics and forwards showDiagnostics=true when enabled", () => {
+    const w = mount(LiveRealButton, {
+      props: { graph: variantButtonGraph(), componentName: "button", showDiagnostics: true },
+      ...mountOpts,
+    });
+    expect(w.find('[data-testid="resting-diagnostics"]').exists()).toBe(true);
+    for (const c of w.findAllComponents(RealVariantCell)) {
+      expect(c.props("showDiagnostics")).toBe(true);
+    }
+  });
+});
