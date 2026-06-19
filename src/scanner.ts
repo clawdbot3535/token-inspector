@@ -98,17 +98,28 @@ function groupUnresolvedAliases(aliases: readonly GraphIssue[]): ScanIssue[] {
     if (leaf && !fam.leaves.includes(leaf)) fam.leaves.push(leaf);
     if (gi.nodeId !== undefined && !fam.tokenIds.includes(gi.nodeId)) fam.tokenIds.push(gi.nodeId);
   }
-  return [...byFamily.values()].map((fam) => ({
-    id: `bt-unresolved-alias-${fam.family.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
-    category: "build-time" as const,
-    severity: "error" as const,
-    kind: "unresolved-alias",
-    message:
-      `${fam.tokenIds.length} alias(es) reference unresolved targets under \`${fam.family}/*\` ` +
-      `(${fam.leaves.join(", ")}) — absent from all loaded sources. Likely library/remote variables ` +
-      `not included by the local-only export (export them or include the library), or dangling references.`,
-    tokenIds: fam.tokenIds,
-  }));
+  // Distinct families can slug to the same string (separators collapse, e.g.
+  // "a.b" and "a-b" → "a-b"); suffix collisions so every ScanIssue.id stays
+  // unique (it is a Vue :key in the scan view).
+  const usedIds = new Set<string>();
+  return [...byFamily.values()].map((fam) => {
+    const base = `bt-unresolved-alias-${fam.family.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+    let id = base;
+    let n = 2;
+    while (usedIds.has(id)) id = `${base}-${n++}`;
+    usedIds.add(id);
+    return {
+      id,
+      category: "build-time" as const,
+      severity: "error" as const,
+      kind: "unresolved-alias",
+      message:
+        `${fam.tokenIds.length} alias(es) reference unresolved targets under \`${fam.family}/*\` ` +
+        `(${fam.leaves.join(", ")}) — absent from all loaded sources. Likely library/remote variables ` +
+        `not included by the local-only export (export them or include the library), or dangling references.`,
+      tokenIds: fam.tokenIds,
+    };
+  });
 }
 
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {

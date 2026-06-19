@@ -101,6 +101,23 @@ describe("scanGraph — build-time issues", () => {
     // a non-alias build-time issue is NOT grouped — stays 1:1
     expect(buildTime.filter((i) => i.kind === "malformed-value")).toHaveLength(1);
   });
+
+  it("gives distinct ids to families that slug to the same string", () => {
+    const graph = makeGraph(
+      [],
+      [
+        { kind: "unresolved-alias", nodeId: "x", message: "u", target: "color/a.b/1" },
+        { kind: "unresolved-alias", nodeId: "y", message: "u", target: "color/a-b/2" },
+      ],
+    );
+    const ua = scanGraph(graph, { components: ["button"] }).issues.filter(
+      (i: ScanIssue) => i.kind === "unresolved-alias",
+    );
+    // "color/a.b" and "color/a-b" are distinct families but slug identically;
+    // ids must still be unique (used as a Vue :key).
+    expect(ua).toHaveLength(2);
+    expect(new Set(ua.map((i) => i.id)).size).toBe(2);
+  });
 });
 
 describe("scanGraph — data-quality", () => {
