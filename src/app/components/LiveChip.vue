@@ -63,7 +63,12 @@ const pills = computed<Pill[]>(() => {
           :style="pill.base.style"
         >
           <span :class="pill.lbl.classes" :style="pill.lbl.style">{{ pill.label }}</span>
-          <span class="opacity-60" :class="pill.close.classes" :style="pill.close.style">×</span>
+          <button
+            type="button"
+            class="appearance-none border-0 bg-transparent p-0 cursor-pointer inline-flex items-center justify-center leading-none opacity-60"
+          >
+            <span :class="pill.close.classes" :style="pill.close.style">×</span>
+          </button>
         </span>
       </div>
     </template>

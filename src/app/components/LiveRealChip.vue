@@ -34,7 +34,12 @@ const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.val
     <template v-else>
       <span data-testid="real-chip" :class="build.ui.base">
         <span :class="build.ui.label">Chip</span>
-        <span :class="build.ui.close">×</span>
+        <button
+          type="button"
+          class="appearance-none border-0 bg-transparent p-0 cursor-pointer inline-flex items-center justify-center leading-none"
+        >
+          <span :class="build.ui.close">×</span>
+        </button>
       </span>
       <p class="mt-2 text-[10px] text-muted">
         Real custom component themed by your generated recipe (runtime-compiled).
@@ -49,7 +54,12 @@ const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.val
       >
         <span :class="cell.ui.base">
           <span :class="cell.ui.label">Chip</span>
-          <span :class="cell.ui.close">×</span>
+          <button
+            type="button"
+            class="appearance-none border-0 bg-transparent p-0 cursor-pointer inline-flex items-center justify-center leading-none"
+          >
+            <span :class="cell.ui.close">×</span>
+          </button>
         </span>
       </RealVariantCell>
     </template>

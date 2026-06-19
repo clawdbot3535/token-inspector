@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.45.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.45.0) — 2026-06-19
+
+### Added
+
+- **chip close-button — routed + rendered as a button.** The designer's `chip-close-button-size`
+  token was dropped (mapped to `null`: the `button` segment between the `close` slot-prefix and the
+  `size` utility made the utility `button-size`, unknown), so the chip recipe had no `close` slot and
+  the preview drew an unstyled `×` in a `<span>`. Now a curated composite alias `close-button`→`close`
+  (in `FIGMA_NUXT_PART_ALIAS`) + a 2-segment composite lookup in the slot-mapping routes
+  `chip-close-button-size` → the `close` slot as `size-[Npx]`. Both previews (`LiveChip`,
+  `LiveRealChip`) render the close as a `<button>` wrapping the close-slotted `<span>` (the button
+  carries only UA-reset scaffolding; the recipe classes / diff-sentinel stay on the span, preserving
+  sentinel-purity). Verified in-browser: chip close is a sized `<button>` (`size-[10px]`), Real-tab
+  `close` slot `2/2` (`width`/`height`).
+
+### Notes
+
+- The curated composite alias is explicit (mirrors `dot`→`indicator`), **not** a generic word-absorber:
+  it only matches entries in the alias map. The general nested-named-element case (e.g. a badge inside
+  nav-item → its own `linkTrailingBadge` slot) is out of scope — it has no tokens today and is
+  separately blocked by the camelCase-slot issue; each such element would get its own explicit entry.
+- Incidental: bumped the `apps/creator` smoke-test timeout (5s→15s) — a pre-existing full-suite
+  pool-contention flake (the test runs in 119ms standalone), unrelated to this change.
+
 ## [0.44.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.44.0) — 2026-06-19
 
 ### Added

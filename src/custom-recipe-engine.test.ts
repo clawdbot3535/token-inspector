@@ -97,6 +97,18 @@ describe("buildCustomRecipes", () => {
     );
     expect(Object.keys(recipes)).toEqual(["chip"]);
   });
+
+  it("routes chip-close-button-size into the custom chip recipe's close slot", () => {
+    const graph = buildGraph([{
+      name: "global",
+      data: { chip: {
+        bg: { $value: "#E4E4E7", $type: "color" },
+        "close-button-size": { $value: 16, $type: "number" },
+      } },
+    }]);
+    const recipes = buildCustomRecipes(graph, new Map([["chip", ["label", "close"]]]), {});
+    expect(recipes.chip?.slots.close ?? "").toContain("size-[16px]");
+  });
 });
 
 describe("stripOverlayPrefix", () => {

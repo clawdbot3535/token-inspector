@@ -70,6 +70,24 @@ describe("heuristicSlotMapping — button", () => {
     });
   });
 
+  it("routes chip-close-button-size to the close slot (close-button composite alias)", () => {
+    expect(heuristicSlotMapping("chip-close-button-size", undefined, new Set(["label", "close"]))).toEqual({
+      slot: "close",
+      utilityType: "size",
+      variantAxis: null,
+      variantKey: null,
+    });
+  });
+
+  it("leaves chip-close-icon-size and chip-close-size unchanged by the composite alias", () => {
+    const icon = heuristicSlotMapping("chip-close-icon-size", undefined, new Set(["label", "close"]));
+    expect(icon?.slot).toBe("close");
+    expect(icon?.utilityType).toBe("icon-size");
+    const size = heuristicSlotMapping("chip-close-size", undefined, new Set(["label", "close"]));
+    expect(size?.slot).toBe("close");
+    expect(size?.utilityType).toBe("size");
+  });
+
   it("maps accordion-item-text-opened to a data-[state=open] text-color on the item", () => {
     const m = heuristicSlotMapping("accordion-item-text-opened", "color");
     expect(m).not.toBeNull();
