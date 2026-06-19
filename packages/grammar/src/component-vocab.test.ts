@@ -73,6 +73,9 @@ describe("PROP_DRIVEN_STATES / propDrivenStateFor", () => {
   it("marks textarea `active` as driven by the highlight prop (input's twin)", () => {
     expect(propDrivenStateFor("textarea", "active")).toBe("highlight");
   });
+  it("marks nav `active` as prop/variant-driven (Nuxt applies it via the active variant)", () => {
+    expect(propDrivenStateFor("nav", "active")).toBe("active");
+  });
 });
 
 describe("NUXT_SLOTS / nuxtSlotsFor", () => {

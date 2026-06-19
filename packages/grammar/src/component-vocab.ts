@@ -90,6 +90,10 @@ export const PROP_DRIVEN_STATES: ReadonlyMap<string, ReadonlyMap<string, string>
   new Map([
     ["input", new Map([["active", "highlight"]])],
     ["textarea", new Map([["active", "highlight"]])],
+    // Nuxt UI v4 NavigationMenu applies the active (current-page) look via a baked-in
+    // `active` boolean variant + compoundVariants, not a `:active` pseudo-class. So the
+    // recipe can't express it (slot `ui` overrides apply unconditionally) — drop + flag.
+    ["nav", new Map([["active", "active"]])],
   ]);
 
 /** Returns the Nuxt prop that drives `state` on `component`, or null. */

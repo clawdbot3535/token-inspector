@@ -54,6 +54,14 @@ describe("buildComponentRecipes", () => {
     expect(recipes).toEqual({});
   });
 
+  it("emits no `active:` classes for nav (active is prop/variant-driven, not :active)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "nav-item-outline-bg-active", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["nav"] });
+    expect(JSON.stringify(recipes.nav ?? {})).not.toContain("active:");
+  });
+
   it("assembles a minimal button recipe from size variants", () => {
     const graph = makeGraph([
       makeNode({

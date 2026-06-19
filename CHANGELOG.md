@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.42.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.42.0) — 2026-06-19
+
+### Fixed
+
+- **nav `active` is now recognized as prop/variant-driven — stops emitting the inert `active:`.**
+  Nuxt UI v4's NavigationMenu applies the active (current-page) look via a baked-in `active` boolean
+  variant plus ~30 compoundVariants, **not** a CSS `:active` pseudo-class. The grammar was leaving
+  `active` untouched, so `nav-item-*-active` emitted `active:bg-[…]` = Tailwind `:active` (mouse-press),
+  which fires on click rather than on the current route — and which the recipe couldn't deliver anyway
+  (slot `ui` overrides apply unconditionally; the active look is a compoundVariant Nuxt owns). Adding
+  `nav` to `PROP_DRIVEN_STATES` (alongside the input/textarea `highlight` seed) drops these tokens and
+  the scanner flags them as a `state-via-prop` deviation: *"`nav` has no `:active` pseudo-class state,
+  so no `ui.nav` override is emitted."* Per-component scoping preserves button's legitimate `:active`
+  press state.
+
+### Notes
+
+- The scaffold "0 unmapped tokens" assertions now exclude prop-driven state tokens (nav active),
+  documenting that they are intentionally unrouteable. The nuxt-ui scaffold profile still generates
+  `nav.states: ["active"]`; whether it should stop emitting those unrouteable tokens is a separate
+  future question.
+
 ## [0.41.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.41.0) — 2026-06-18
 
 ### Added

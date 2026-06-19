@@ -537,6 +537,18 @@ describe("scanGraph — prop-driven state hint (capability)", () => {
     expect(report.issues.find((i) => i.kind === "state-via-prop")).toBeUndefined();
     expect(report.issues.find((i) => i.kind === "validation-color-via-prop")).toBeUndefined();
   });
+  it("flags nav-item-outline-bg-active as applied via the active variant/prop", () => {
+    const graph = makeGraph([
+      makeNode({ id: "nav-item-outline-bg-active", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+    ]);
+    const report = scanGraph(graph, { components: ["nav"] });
+    const hint = report.issues.find((i) => i.kind === "state-via-prop");
+    expect(hint).toBeDefined();
+    expect(hint?.severity).toBe("warning");
+    expect(hint?.componentName).toBe("nav");
+    expect(hint?.message).toContain("active");
+    expect(hint?.tokenIds).toContain("nav-item-outline-bg-active");
+  });
 });
 
 describe("scanGraph — unsupported-part hint (slot inventory)", () => {
