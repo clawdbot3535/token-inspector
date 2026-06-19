@@ -4,6 +4,7 @@
 import type {
   TokenGraph,
   TokenNode,
+  GraphIssue,
   ScanIssue,
   ScanReport,
   ScanSeverity,
@@ -59,12 +60,70 @@ function unsupportedStateForId(id: string): { state: string } | null {
   return state === undefined ? null : { state };
 }
 
+/** Target minus its last path segment, e.g. "color/white/alpha/500-8" -> "color/white/alpha". */
+function familyOf(target: string): string {
+  const i = target.lastIndexOf("/");
+  return i === -1 ? target : target.slice(0, i);
+}
+
+/** The last path segment, e.g. "color/white/alpha/500-8" -> "500-8". */
+function leafOf(target: string): string {
+  const i = target.lastIndexOf("/");
+  return i === -1 ? target : target.slice(i + 1);
+}
+
+/**
+ * Collapse unresolved-alias GraphIssues into one ScanIssue per missing target
+ * FAMILY (target minus its last segment). The grouped issue lists the missing
+ * leaves and the aliasing tokens, and hints at the likely cause (a library/remote
+ * variable the local-only export omitted, or a dangling reference). De-noises
+ * without hiding — severity stays "error".
+ */
+function groupUnresolvedAliases(aliases: readonly GraphIssue[]): ScanIssue[] {
+  interface Fam {
+    family: string;
+    leaves: string[];
+    tokenIds: string[];
+  }
+  const byFamily = new Map<string, Fam>();
+  for (const gi of aliases) {
+    const target = gi.target ?? "";
+    const family = familyOf(target);
+    const leaf = leafOf(target);
+    let fam = byFamily.get(family);
+    if (!fam) {
+      fam = { family, leaves: [], tokenIds: [] };
+      byFamily.set(family, fam);
+    }
+    if (leaf && !fam.leaves.includes(leaf)) fam.leaves.push(leaf);
+    if (gi.nodeId !== undefined && !fam.tokenIds.includes(gi.nodeId)) fam.tokenIds.push(gi.nodeId);
+  }
+  return [...byFamily.values()].map((fam) => ({
+    id: `bt-unresolved-alias-${fam.family.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+    category: "build-time" as const,
+    severity: "error" as const,
+    kind: "unresolved-alias",
+    message:
+      `${fam.tokenIds.length} alias(es) reference unresolved targets under \`${fam.family}/*\` ` +
+      `(${fam.leaves.join(", ")}) — absent from all loaded sources. Likely library/remote variables ` +
+      `not included by the local-only export (export them or include the library), or dangling references.`,
+    tokenIds: fam.tokenIds,
+  }));
+}
+
 export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
   const issues: ScanIssue[] = [];
   const allowSet = new Set(options.components);
 
   // ─── 1. Build-time issues ─────────────────────────────────────────────────
+  // Non-alias kinds map 1:1. unresolved-alias issues are grouped by target-family
+  // into one actionable issue per missing family (see groupUnresolvedAliases).
+  const unresolvedAliases: GraphIssue[] = [];
   for (const gi of graph.issues) {
+    if (gi.kind === "unresolved-alias") {
+      unresolvedAliases.push(gi);
+      continue;
+    }
     issues.push({
       id: `bt-${gi.kind}-${gi.nodeId ?? "global"}-${issues.length}`,
       category: "build-time",
@@ -74,6 +133,7 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       tokenIds: gi.nodeId !== undefined ? [gi.nodeId] : [],
     });
   }
+  issues.push(...groupUnresolvedAliases(unresolvedAliases));
 
   // ─── 2. Index component-layer tokens ──────────────────────────────────────
   const componentTokens = new Map<string, ComponentEntry[]>();
