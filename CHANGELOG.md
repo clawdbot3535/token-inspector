@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.46.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.46.1) — 2026-06-19
+
+### Changed
+
+- **Real-tab polish / tech-debt consolidation** (no behavior change). Extracted `RADIO_ITEM_VALUE` /
+  `ACCORDION_ITEM_VALUE` (= `"a"`) into `real-slotted-registry.ts` as the single source of truth, shared by
+  the registry entry, the `STATE_PROPS_OVERRIDE` (radio/accordion), and `LiveRealAccordion` — removing the
+  duplicated literal a reviewer flagged as a drift risk. Tightened the radio checked-cell mount test (asserts
+  exactly one cell is selected + the resting radio is unselected). Documented why `LiveRealButton` passes
+  `componentName` (no checked/open cells) and why the `apps/creator` smoke test uses a 15s timeout
+  (full-suite worker-pool contention; ~120ms standalone).
+
 ## [0.46.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.46.0) — 2026-06-19
 
 ### Added
