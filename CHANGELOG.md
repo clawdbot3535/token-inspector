@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.47.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.1) — 2026-06-19
+
+### Fixed
+
+- **Real-tab box-shadow false positives.** The fidelity diff compared `box-shadow` by raw string
+  equality, but the probe (`extract-arbitrary`) emits a single ring layer while real Tailwind renders
+  a 5-layer ring composite with transparent placeholder layers — so every ring/shadow-bearing
+  component reported a spurious `boxShadow` ✗ (8 components in the live export). Fix: `canonicalizeShadow`
+  in `render-diff.ts` strips Tailwind's empty placeholder layers before comparing, and
+  `extract-arbitrary`'s ring-width default is aligned to Tailwind v4's `1px` (was `2px`). A clean
+  ring-colour component (card) now matches exactly; the remaining `box-shadow` deltas are meaningful.
+  **Known residual:** `extract-arbitrary` does not model `ring-offset`/inset, so components with a
+  ring-offset (input/textarea/checkbox/radio/chip) still show a `box-shadow` delta — a probe-modelling
+  gap, not a recipe defect (modelling Tailwind's full ring math was judged too brittle). Surfaced by a
+  full Real-tab fidelity sweep; dropdown/modal/progress are pixel-faithful (0 deltas). 934 tests.
+
 ## [0.47.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.0) — 2026-06-19
 
 ### Changed
