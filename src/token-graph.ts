@@ -30,6 +30,7 @@ export interface RawToken {
   $description?: string;
   $extensions?: {
     "com.figma.aliasData"?: FigmaAliasData;
+    "com.figma.collectionName"?: string;
     [k: string]: unknown;
   };
 }
@@ -112,6 +113,8 @@ export interface TokenNode {
   source: SourceLayer;
   /** Optional human description from $description. */
   description?: string;
+  /** Figma collection this token was authored in (e.g. "components/custom"), if present. */
+  collection?: string;
 }
 
 /** Reverse-lookup index: which nodes alias *to* a given target id. */

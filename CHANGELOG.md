@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.44.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.44.0) — 2026-06-19
+
+### Added
+
+- **Collection-aware custom routing — the Figma `components/custom` taxonomy now drives the inspector.**
+  Every token carries `$extensions["com.figma.collectionName"]` (e.g. `components/global`,
+  `components/custom`); the inspector previously ignored it. Now `build-graph` stamps
+  `TokenNode.collection`, and a component declared `components/custom` is added to the custom-component
+  set (emitted as `custom/<name>`), **augmenting** the existing registry + anatomy heuristic without
+  clobbering their richer parts. Two new scanner deviations surface disagreements:
+  - **`collection-anatomy-mismatch`** (warning): a component that *looks* custom (foreign parts with no
+    Nuxt slot) but is declared `components/global` — e.g. **chip** (`close`/`label` aren't UChip slots).
+    Message suggests moving it to `components/custom`. The heuristic still wins (no silent demotion).
+  - **`custom-without-parts`** (warning): a component declared `components/custom` with no derivable
+    parts (no Nuxt analog, not registry/heuristic flagged) — its recipe may be empty.
+
+### Notes
+
+- On the current export this changes **no recipe output** (sidebar is already registry-custom, chip
+  already heuristic-custom) — the observable effect is the chip `collection-anatomy-mismatch` warning,
+  plus the taxonomy now being authoritative for future exports (a reclassified chip or a novel custom
+  component becomes custom by declaration). Part-derivation for novel declared-custom components is
+  deferred (covered by the `custom-without-parts` warning).
+
 ## [0.43.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.43.0) — 2026-06-19
 
 ### Added

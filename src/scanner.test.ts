@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { scanGraph, customPartsByComponent } from "./scanner.js";
+import { scanGraph, customPartsByComponent, componentCollections, declaredCustomComponents } from "./scanner.js";
+import { KNOWN_CUSTOM_COMPONENTS } from "@tg/grammar";
 import { detectPossibleTypos } from "./data-quality.js";
 import type {
   TokenGraph,
@@ -883,5 +884,78 @@ describe("customPartsByComponent — known-custom registry (sidebar)", () => {
     const map = customPartsByComponent(scanGraph(graph, { components: ["chip"] }));
     expect(map.get("sidebar")).toEqual(["item"]);
     expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
+  });
+});
+
+describe("customPartsByComponent — declaredCustom membership", () => {
+  it("adds a declared-custom component as a membership-only entry ([] parts)", () => {
+    const map = customPartsByComponent({ issues: [] }, new Set(["fancywidget"]));
+    expect(map.has("fancywidget")).toBe(true);
+    expect([...(map.get("fancywidget") ?? [])]).toEqual([]);
+  });
+
+  it("does not clobber a component-looks-custom component's parts", () => {
+    const report = { issues: [
+      { id: "clc-chip", category: "classification-hint", severity: "hint",
+        kind: "component-looks-custom", componentName: "chip", customParts: ["close", "label"],
+        message: "", tokenIds: [] },
+    ] } as unknown as { issues: ScanIssue[] };
+    const map = customPartsByComponent(report, new Set(["chip"]));
+    expect([...(map.get("chip") ?? [])].sort()).toEqual(["close", "label"]);
+  });
+
+  it("is backward-compatible without the declaredCustom arg", () => {
+    expect(customPartsByComponent({ issues: [] }).size).toBe(KNOWN_CUSTOM_COMPONENTS.size);
+  });
+});
+
+describe("componentCollections / declaredCustomComponents", () => {
+  function gWithCollections() {
+    return makeGraph([
+      { ...makeNode({ id: "sidebar-width", layer: "component", type: "number", source: "global" }), collection: "components/custom" },
+      { ...makeNode({ id: "sidebar-item-text", layer: "component", type: "color", source: "global", base: "#fff" }), collection: "components/custom" },
+      { ...makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#000" }), collection: "components/global" },
+    ]);
+  }
+
+  it("maps each component to its collection", () => {
+    const m = componentCollections(gWithCollections());
+    expect(m.get("sidebar")).toBe("components/custom");
+    expect(m.get("button")).toBe("components/global");
+  });
+
+  it("declaredCustomComponents = components in components/custom", () => {
+    const set = declaredCustomComponents(gWithCollections());
+    expect([...set]).toEqual(["sidebar"]);
+  });
+});
+
+describe("scanGraph — collection/anatomy disagreement", () => {
+  function clcNode(id: string, collection: string) {
+    return { ...makeNode({ id, layer: "component", type: "color", source: "global", base: "#fff" }), collection };
+  }
+
+  it("flags a component that looks custom but is declared components/global (chip-like)", () => {
+    const graph = makeGraph([clcNode("chip-close-bg", "components/global")]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    const m = report.issues.find((i) => i.kind === "collection-anatomy-mismatch");
+    expect(m).toBeDefined();
+    expect(m?.severity).toBe("warning");
+    expect(m?.componentName).toBe("chip");
+    expect(m?.message).toContain("components/custom");
+  });
+
+  it("does NOT flag a looks-custom component already declared components/custom", () => {
+    const graph = makeGraph([clcNode("chip-close-bg", "components/custom")]);
+    const report = scanGraph(graph, { components: ["chip"] });
+    expect(report.issues.find((i) => i.kind === "collection-anatomy-mismatch")).toBeUndefined();
+  });
+
+  it("flags a declared-custom component with no derivable parts (custom-without-parts)", () => {
+    const graph = makeGraph([clcNode("fancywidget-bg", "components/custom")]);
+    const report = scanGraph(graph, { components: ["fancywidget"] });
+    const w = report.issues.find((i) => i.kind === "custom-without-parts");
+    expect(w).toBeDefined();
+    expect(w?.componentName).toBe("fancywidget");
   });
 });
