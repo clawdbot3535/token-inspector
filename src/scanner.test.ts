@@ -1073,4 +1073,30 @@ describe("scanGraph — capability-deviation detectors", () => {
     const issues = scanGraph(graph, { components: ["switch", "input"] }).issues;
     expect(issues.filter((i: ScanIssue) => i.kind === "resting-shadowed-by-state")).toHaveLength(0);
   });
+
+  it("does NOT flag disabled-via-opacity for a placeholder-color disabled token (placeholder-color excluded from COLOR_UTILITIES)", () => {
+    // input-placeholder-disabled probes to {slot:"base", utilityType:"placeholder-color", statePrefix:"disabled"}
+    // placeholder-color is intentionally excluded from COLOR_UTILITIES — opacity-dim still applies visually
+    // to placeholder text, so emitting placeholder-color:disabled is not a wasted override.
+    const graph = makeGraph([
+      makeNode({ id: "input-placeholder-disabled", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["input"] }).issues;
+    expect(issues.filter((i: ScanIssue) => i.kind === "disabled-via-opacity")).toHaveLength(0);
+  });
+
+  it("flags disabled-via-opacity on a non-base slot and non-bg utility (detector-A is slot-independent)", () => {
+    // checkbox-check-color-disabled probes to {slot:"icon", utilityType:"text-color", statePrefix:"disabled"}
+    // text-color IS in COLOR_UTILITIES; slot is "icon" (not "base") — detector must still fire.
+    // This locks in that detector-A is NOT restricted to base/bg the way detector-B is.
+    const graph = makeGraph([
+      makeNode({ id: "checkbox-check-color-disabled", layer: "component", type: "color", source: "global", base: "#A1A1AA" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["checkbox"] }).issues;
+    const dvo = issues.filter((i: ScanIssue) => i.kind === "disabled-via-opacity");
+    expect(dvo).toHaveLength(1);
+    expect(dvo[0]!.severity).toBe("warning");
+    expect(dvo[0]!.componentName).toBe("checkbox");
+    expect(dvo[0]!.tokenIds).toEqual(["checkbox-check-color-disabled"]);
+  });
 });
