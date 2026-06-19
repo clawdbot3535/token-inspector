@@ -21,6 +21,15 @@ function chipGraph() {
 const parts = new Map<string, readonly string[]>([["chip", ["label", "close"]]]);
 const mountOpts = { global: { stubs: { UIcon: true } } };
 
+describe("LiveChip — close button", () => {
+  it("renders the close affordance as a <button>", () => {
+    const wrapper = mount(LiveChip, { props: { graph: chipGraph(), customParts: parts }, ...mountOpts });
+    const btn = wrapper.find('[data-testid="chip"] button');
+    expect(btn.exists()).toBe(true);
+    expect(btn.text()).toContain("×");
+  });
+});
+
 describe("LiveChip", () => {
   it("shows a fallback message when the graph has no chip tokens", () => {
     const wrapper = mount(LiveChip, { props: { graph: null, customParts: parts }, ...mountOpts });

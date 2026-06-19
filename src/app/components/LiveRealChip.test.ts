@@ -53,3 +53,24 @@ describe("LiveRealChip — colour cells", () => {
     expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2); // error + success
   });
 });
+
+function chipCloseGraph() {
+  const global = {
+    chip: {
+      bg: { $value: "#E4E4E7", $type: "color" },
+      "close-button-size": { $value: 16, $type: "number" },
+    },
+  };
+  return buildGraph([{ name: "global", data: global }]);
+}
+
+describe("LiveRealChip — close button", () => {
+  it("renders the close as a <button> wrapping the close-slotted span", () => {
+    const w = mount(LiveRealChip, { props: { graph: chipCloseGraph(), customParts: parts } });
+    const btn = w.find('[data-testid="real-chip"] button');
+    expect(btn.exists()).toBe(true);
+    const span = btn.find("span");
+    expect(span.classes()).toContain("ti-slot-close");
+    expect(span.classes().some((c) => c.startsWith("size-["))).toBe(true);
+  });
+});
