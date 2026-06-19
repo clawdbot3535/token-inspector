@@ -6,7 +6,7 @@ import { buildGraph } from "../build-graph.js";
 import type { SourceFile, SourceLayer, TokenNode } from "../token-graph.js";
 import { appConfigRenderer } from "./app-config.js";
 import { customComponentsRenderer } from "./custom-components.js";
-import { scanGraph, customPartsByComponent } from "../scanner.js";
+import { scanGraph, customPartsByComponent, declaredCustomComponents } from "../scanner.js";
 
 function realGraph() {
   const dir = resolve(
@@ -415,5 +415,29 @@ describe("customComponentsRenderer — sidebar (known-custom)", () => {
     expect(out.text).toContain("export const sidebarRecipe");
     expect(out.text).toContain("item:");
     expect(out.text).toMatch(/active:/);
+  });
+});
+
+describe("customPartsByComponent — collection-aware membership", () => {
+  it("routes a declared-custom (Nuxt-analog) component into the custom set via collection", () => {
+    // badge has a Nuxt analog (normally standard); declaring it components/custom must route it custom.
+    const badgeSources: SourceFile[] = [
+      {
+        name: "global",
+        data: {
+          badge: {
+            bg: {
+              $type: "color",
+              $value: "#3b82f6",
+              $extensions: { "com.figma.collectionName": "components/custom" },
+            },
+          },
+        },
+      },
+    ];
+    const g = buildGraph(badgeSources);
+    const report = scanGraph(g, { components: ["badge"] });
+    const customParts = customPartsByComponent(report, declaredCustomComponents(g));
+    expect(customParts.has("badge")).toBe(true);
   });
 });

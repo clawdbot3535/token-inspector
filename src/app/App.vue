@@ -51,7 +51,7 @@ import { resolveTokenToValue } from "@core/resolve-token.js";
 import { getSlotMapping } from "@tg/grammar";
 import { utilityForMapping } from "@core/recipe-engine.js";
 import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
-import { customPartsByComponent } from "@core/scanner.js";
+import { customPartsByComponent, declaredCustomComponents } from "@core/scanner.js";
 import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
 import { useScanReport } from "./composables/use-scan-report.js";
@@ -123,7 +123,12 @@ const filteredNodes = useFilteredNodes(state);
 const scanReport = useScanReport(state.graph);
 // Components the scanner flagged `component-looks-custom` — routed out of the
 // app.config.ts ui: block and into the custom-components.ts tab/download.
-const customParts = computed(() => customPartsByComponent(scanReport.value));
+const customParts = computed(() =>
+  customPartsByComponent(
+    scanReport.value,
+    state.graph.value ? declaredCustomComponents(state.graph.value) : undefined,
+  ),
+);
 // Thread the scan completeness into the rendered app.config.ts so the
 // on-screen preview matches the CLI output (and the download below).
 const rendered = useRenderedOutput(
