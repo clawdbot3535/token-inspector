@@ -1029,3 +1029,48 @@ describe("scanGraph — non-trailing unsupported state", () => {
     expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
   });
 });
+
+describe("scanGraph — capability-deviation detectors", () => {
+  it("flags a disabled colour on an opacity-disabled component (disabled-via-opacity)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "input-bg-disabled", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["input"] }).issues;
+    const dvo = issues.filter((i: ScanIssue) => i.kind === "disabled-via-opacity");
+    expect(dvo).toHaveLength(1);
+    expect(dvo[0]!.severity).toBe("warning");
+    expect(dvo[0]!.componentName).toBe("input");
+    expect(dvo[0]!.tokenIds).toEqual(["input-bg-disabled"]);
+    expect(dvo[0]!.message).toContain("opacity");
+  });
+
+  it("does NOT flag disabled-via-opacity for a non-opacity-disabled component or a non-disabled token", () => {
+    const graph = makeGraph([
+      makeNode({ id: "nav-link-bg-disabled", layer: "component", type: "color", source: "global", base: "#F4F4F5" }),
+      makeNode({ id: "input-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["nav", "input"] }).issues;
+    expect(issues.filter((i: ScanIssue) => i.kind === "disabled-via-opacity")).toHaveLength(0);
+  });
+
+  it("flags a resting track colour out-specified by data-state (resting-shadowed-by-state)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "switch-bg", layer: "component", type: "color", source: "global", base: "#FAFAFA" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["switch"] }).issues;
+    const rss = issues.filter((i: ScanIssue) => i.kind === "resting-shadowed-by-state");
+    expect(rss).toHaveLength(1);
+    expect(rss[0]!.severity).toBe("warning");
+    expect(rss[0]!.componentName).toBe("switch");
+    expect(rss[0]!.message).toContain("data-[state=unchecked]");
+  });
+
+  it("does NOT flag resting-shadowed-by-state for a stateful switch token or a non-switch resting colour", () => {
+    const graph = makeGraph([
+      makeNode({ id: "switch-bg-checked", layer: "component", type: "color", source: "global", base: "#5667A7" }),
+      makeNode({ id: "input-bg", layer: "component", type: "color", source: "global", base: "#FFFFFF" }),
+    ]);
+    const issues = scanGraph(graph, { components: ["switch", "input"] }).issues;
+    expect(issues.filter((i: ScanIssue) => i.kind === "resting-shadowed-by-state")).toHaveLength(0);
+  });
+});

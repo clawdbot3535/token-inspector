@@ -18,12 +18,15 @@ import {
   utilityPrefix,
 } from "./classify-token.js";
 import type { TailwindCategory } from "./classify-token.js";
-import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, STATELESS_COMPONENTS, STATE_KEYS, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, KNOWN_CUSTOM_COMPONENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR } from "@tg/grammar";
+import { getSlotMapping, KNOWN_VARIANT_NAMES, RING_FRAMED_VARIANTS, propDrivenStateFor, STATELESS_COMPONENTS, STATE_KEYS, nuxtSlotsFor, NON_PART_SEGMENTS, NON_COMPONENT_PREFIXES, KNOWN_CUSTOM_COMPONENTS, FIGMA_NUXT_PART_ALIAS, SLOT_PAIRS, SLOT_MIRROR, OPACITY_DISABLED_COMPONENTS, RESTING_STATE_SHADOWED } from "@tg/grammar";
 import { detectPossibleTypos } from "./data-quality.js";
 import { isOpaqueColor } from "./color-opacity.js";
 
 // Standard size key ordering — xs is the smallest / most fringe position.
 const SIZE_ORDER: ReadonlyArray<string> = ["xs", "sm", "md", "lg", "xl", "2xl"];
+
+/** Colour utilities whose value Nuxt UI can shadow via opacity / data-state precedence. */
+const COLOR_UTILITIES: ReadonlySet<string> = new Set(["bg-color", "text-color", "border-color", "ring-color"]);
 
 export interface ScanOptions {
   components: ReadonlyArray<string>;
@@ -215,6 +218,46 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
       if (mapping.slot === from) fslots.add(to);
     }
     filledSlotsByComponent.set(prefix, fslots);
+    // Capability deviation: disabled colour on a component Nuxt UI dims via opacity (not colour),
+    // so the disabled:bg/text override maps but never visibly applies.
+    if (
+      OPACITY_DISABLED_COMPONENTS.has(prefix) &&
+      mapping.statePrefix === "disabled" &&
+      COLOR_UTILITIES.has(mapping.utilityType)
+    ) {
+      issues.push({
+        id: `dvo-${node.id}`,
+        category: "classification-hint",
+        severity: "warning",
+        kind: "disabled-via-opacity",
+        message:
+          `\`${node.id}\` sets a \`disabled\` colour, but Nuxt UI v4 dims \`${prefix}\`'s disabled ` +
+          `state via opacity (not colour) — the override is emitted but won't visibly apply.`,
+        tokenIds: [node.id],
+        componentName: prefix,
+      });
+    }
+    // Capability deviation: a resting colour that Nuxt UI drives via a data-state variant
+    // (`data-[state=unchecked]:`, specificity 0,1,1) which out-specifies the recipe's plain utility.
+    if (
+      RESTING_STATE_SHADOWED.has(prefix) &&
+      !mapping.statePrefix &&
+      mapping.utilityType === "bg-color" &&
+      mapping.slot === "base"
+    ) {
+      issues.push({
+        id: `rss-${node.id}`,
+        category: "classification-hint",
+        severity: "warning",
+        kind: "resting-shadowed-by-state",
+        message:
+          `\`${node.id}\` sets \`${prefix}\`'s resting track colour as a plain utility, but Nuxt UI v4 ` +
+          `drives it via \`data-[state=unchecked]:\` (higher specificity) — the resting override is ` +
+          `out-specified at rest.`,
+        tokenIds: [node.id],
+        componentName: prefix,
+      });
+    }
     // D2c: an opaque border / border-width on an unframed button variant
     // (solid/ghost/link) is a deviation — Nuxt UI v4 frames only outline/subtle,
     // so the border never renders. Gated on opacity so the transparent
