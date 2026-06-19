@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.48.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.48.0) — 2026-06-20
+
+### Added
+
+- **Capability-deviation scan warnings — why a faithful token silently fails to render in Nuxt UI
+  v4.** Two new scan-only detectors flag tokens that map correctly but get shadowed by the real
+  component, so the override is emitted yet never visibly applies:
+  - **`disabled-via-opacity`** — Nuxt UI dims a form control's `disabled` state via opacity, not
+    colour, so a `disabled` colour token (bg/text/border/ring) on input/textarea/checkbox/radio/switch
+    maps to `disabled:…-[#hex]` but stays invisible behind the opacity dim. Fires across slots
+    (base/icon/indicator/label) because opacity dims the whole component; `placeholder-color` is
+    deliberately excluded.
+  - **`resting-shadowed-by-state`** — switch's resting track is driven by
+    `data-[state=unchecked]:bg-accented` (specificity 0,1,1), which out-specifies a plain recipe
+    utility (0,1,0); a resting `switch-bg` colour therefore loses at rest. Narrowly scoped to switch's
+    `base` `bg-color`.
+
+  Both are diagnostics only — no recipe/output/slot-mapping change; the recipe keeps emitting the
+  tokens. Seeded conservatively from the Real-tab fidelity sweep (input/checkbox/switch confirmed;
+  textarea/radio share the Nuxt UI component family; button/select excluded for lack of evidence). On
+  the live export they fire on 15 disabled-colour tokens and 3 switch resting-bg tokens, with no false
+  positives outside the sets. 946 tests.
+
 ## [0.47.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.47.2) — 2026-06-19
 
 ### Fixed
