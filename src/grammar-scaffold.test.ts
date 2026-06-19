@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { buildGraph } from "./build-graph.js";
 import type { SourceFile } from "./token-graph.js";
-import { scaffold, loadProfile, getSlotMapping } from "@tg/grammar";
+import { scaffold, loadProfile, getSlotMapping, propDrivenStateFor } from "@tg/grammar";
 import nuxtUi from "../packages/grammar/profiles/nuxt-ui.json";
 
 const profile = loadProfile(nuxtUi);
@@ -31,7 +31,15 @@ describe("grammar-scaffold integration: buildGraph + getSlotMapping", () => {
       const nodes = [...graph.nodes.values()];
       expect(nodes.length).toBeGreaterThan(0);
 
-      const unmapped = nodes.filter((node) => getSlotMapping(node.id) === null);
+      // Prop-driven state tokens (e.g. nav active) are intentionally null-mapped —
+      // the grammar drops them because Nuxt applies that state via a prop/variant, not :active.
+      const unmapped = nodes.filter((node) => {
+        if (getSlotMapping(node.id) !== null) return false;
+        const segs = node.id.split("-");
+        const comp = segs[0] ?? "";
+        const state = segs[segs.length - 1] ?? "";
+        return propDrivenStateFor(comp, state) === null; // only flag truly unmapped tokens
+      });
       expect(
         unmapped.map((n) => n.id),
         `${component}: unmapped IDs in buildGraph output`,

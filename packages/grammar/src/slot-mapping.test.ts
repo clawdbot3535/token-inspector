@@ -708,6 +708,14 @@ describe("heuristicSlotMapping — prop-driven states (capability)", () => {
       variantKey: null,
     });
   });
+  it("drops nav-item-<variant>-*-active (Nuxt applies nav `active` via the active variant, not :active)", () => {
+    expect(heuristicSlotMapping("nav-item-outline-bg-active", "color")).toBeNull();
+    expect(heuristicSlotMapping("nav-item-link-text-active", "color")).toBeNull();
+  });
+  it("leaves nav non-active and button :active mappings intact (per-component scoping)", () => {
+    expect(heuristicSlotMapping("nav-item-link-text", "color")).not.toBeNull(); // non-active nav token unaffected
+    expect(heuristicSlotMapping("button-solid-bg-active", "color")).not.toBeNull(); // button press is a real :active
+  });
 });
 
 describe("heuristicSlotMapping — bare size utility", () => {

@@ -4,6 +4,7 @@ import { loadProfile } from "./profile.js";
 import { scaffold } from "./scaffold.js";
 import { flattenDtcg } from "./dtcg.js";
 import { getSlotMapping } from "./slot-mapping.js";
+import { propDrivenStateFor } from "./component-vocab.js";
 
 const profile = loadProfile(nuxtUi);
 
@@ -13,7 +14,15 @@ describe("scaffold: nuxt-ui profile — 0 unmapped tokens per component", () => 
       const tree = scaffold(profile, component);
       const ids = flattenDtcg(tree);
       expect(ids.length).toBeGreaterThan(0);
-      const unmapped = ids.filter((id) => getSlotMapping(id) === null);
+      // Prop-driven state tokens (e.g. nav active) are intentionally null-mapped —
+      // the grammar drops them because Nuxt applies that state via a prop/variant, not :active.
+      const unmapped = ids.filter((id) => {
+        if (getSlotMapping(id) !== null) return false;
+        const segs = id.split("-");
+        const comp = segs[0] ?? "";
+        const state = segs[segs.length - 1] ?? "";
+        return propDrivenStateFor(comp, state) === null; // only flag truly unmapped tokens
+      });
       expect(
         unmapped,
         `${component}: unmapped tokens: ${unmapped.join(", ")}`,
