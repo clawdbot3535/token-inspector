@@ -179,10 +179,10 @@ export function extractArbitrary(classString: string): Extracted {
   }
 
   // Compose the ring (D2e): one boxShadow carrying the token's width + colour.
-  // Defaults: 2px width (Tailwind ring default) and currentColor when only one
-  // half is present. ring-[length] no longer emits a competing CSS outline.
+  // Defaults: 1px width (Tailwind v4's default ring width) and currentColor when
+  // only one half is present. ring-[length] no longer emits a competing CSS outline.
   if (ringColor !== undefined || ringWidth !== undefined) {
-    style.boxShadow = `0 0 0 ${ringWidth ?? "2px"} ${ringColor ?? "currentColor"}`;
+    style.boxShadow = `0 0 0 ${ringWidth ?? "1px"} ${ringColor ?? "currentColor"}`;
   }
 
   // Tailwind preflight zeroes border-width on every element, so a bare
