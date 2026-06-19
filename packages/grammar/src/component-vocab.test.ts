@@ -18,6 +18,8 @@ import {
   KNOWN_CUSTOM_COMPONENTS,
   FIGMA_NUXT_PART_ALIAS,
   SLOT_PAIRS,
+  OPACITY_DISABLED_COMPONENTS,
+  RESTING_STATE_SHADOWED,
 } from "./component-vocab";
 
 describe("component-vocab", () => {
@@ -220,5 +222,21 @@ describe("STATELESS_COMPONENTS — badge", () => {
   });
   it("keeps badge in NUXT_SLOTS (its non-state tokens still map)", () => {
     expect(nuxtSlotsFor("badge")?.has("base")).toBe(true);
+  });
+});
+
+describe("capability-deviation sets", () => {
+  it("OPACITY_DISABLED_COMPONENTS covers the form controls Nuxt UI dims via opacity", () => {
+    for (const c of ["input", "textarea", "checkbox", "radio", "switch"]) {
+      expect(OPACITY_DISABLED_COMPONENTS.has(c)).toBe(true);
+    }
+    // not a form control → must not be flagged
+    expect(OPACITY_DISABLED_COMPONENTS.has("nav")).toBe(false);
+    expect(OPACITY_DISABLED_COMPONENTS.has("button")).toBe(false);
+  });
+
+  it("RESTING_STATE_SHADOWED contains switch only", () => {
+    expect(RESTING_STATE_SHADOWED.has("switch")).toBe(true);
+    expect(RESTING_STATE_SHADOWED.has("input")).toBe(false);
   });
 });

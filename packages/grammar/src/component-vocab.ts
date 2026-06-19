@@ -112,6 +112,24 @@ export function propDrivenStateFor(component: string, state: string | null): str
  */
 export const STATELESS_COMPONENTS: ReadonlySet<string> = new Set(["kbd", "badge"]);
 
+/** Components whose `disabled` state Nuxt UI v4 dims via opacity (not colour). A `disabled`
+ *  COLOUR token maps to `disabled:bg/text-[…]` but never visibly applies, because Nuxt keeps the
+ *  resting colours and only reduces opacity. (input/checkbox/switch confirmed by the Real-tab
+ *  fidelity diff; textarea/radio are the same Nuxt UI component families. button/select excluded —
+ *  no evidence yet.) */
+export const OPACITY_DISABLED_COMPONENTS: ReadonlySet<string> = new Set([
+  "input",
+  "textarea",
+  "checkbox",
+  "radio",
+  "switch",
+]);
+
+/** Components whose RESTING colour Nuxt UI v4 drives via a `data-[state=…]` variant (specificity
+ *  0,1,1), which out-specifies a plain recipe utility (0,1,0). switch's unchecked track uses
+ *  `data-[state=unchecked]:bg-accented`, so the recipe's plain resting `bg-[…]` loses at rest. */
+export const RESTING_STATE_SHADOWED: ReadonlySet<string> = new Set(["switch"]);
+
 /**
  * Per-Figma-component → the Nuxt UI v4 theme slot ("part") names that component
  * defines. Hand-authored from each component's theme `slots` keys (Nuxt UI MCP;
