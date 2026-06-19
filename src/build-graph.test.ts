@@ -433,3 +433,33 @@ describe("buildGraph — meta", () => {
     ]);
   });
 });
+
+describe("collection capture (com.figma.collectionName)", () => {
+  const customSource: SourceFile = {
+    name: "global",
+    data: {
+      sidebar: {
+        width: {
+          $type: "number",
+          $value: 240,
+          $extensions: { "com.figma.collectionName": "components/custom" },
+        },
+      },
+      button: {
+        bg: {
+          $type: "color",
+          $value: { components: [0.1, 0.1, 0.1], hex: "#1a1a1a" },
+          $extensions: { "com.figma.collectionName": "components/global" },
+        },
+      },
+      kbd: { bg: { $type: "color", $value: { components: [0, 0, 0], hex: "#000000" } } },
+    },
+  };
+
+  it("stamps node.collection from $extensions, undefined when absent", () => {
+    const graph = buildGraph([customSource]);
+    expect(graph.nodes.get("sidebar-width")?.collection).toBe("components/custom");
+    expect(graph.nodes.get("button-bg")?.collection).toBe("components/global");
+    expect(graph.nodes.get("kbd-bg")?.collection).toBeUndefined();
+  });
+});

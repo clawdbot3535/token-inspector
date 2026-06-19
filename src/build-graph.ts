@@ -255,6 +255,7 @@ interface DraftNode {
   layer: GraphLayer;
   source: SourceLayer;
   description?: string;
+  collection?: string;
   cssValue: ThemedValue;
   rawValue: { base?: unknown; light?: unknown; dark?: unknown };
   alias: {
@@ -328,6 +329,7 @@ function assembleNodes(
         layer,
         source: file.name,
         description: token.$description,
+        collection: token.$extensions?.["com.figma.collectionName"],
         cssValue: {},
         rawValue: {},
         alias: {},
@@ -361,6 +363,7 @@ function assembleNodes(
       alias: Object.freeze({ ...d.alias }),
       source: d.source,
       description: d.description,
+      collection: d.collection,
     });
   }
   return nodes;
