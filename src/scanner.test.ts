@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanGraph, customPartsByComponent } from "./scanner.js";
+import { scanGraph, customPartsByComponent, componentCollections, declaredCustomComponents } from "./scanner.js";
 import { detectPossibleTypos } from "./data-quality.js";
 import type {
   TokenGraph,
@@ -883,5 +883,26 @@ describe("customPartsByComponent — known-custom registry (sidebar)", () => {
     const map = customPartsByComponent(scanGraph(graph, { components: ["chip"] }));
     expect(map.get("sidebar")).toEqual(["item"]);
     expect(map.get("chip")).toEqual(expect.arrayContaining(["label", "close"]));
+  });
+});
+
+describe("componentCollections / declaredCustomComponents", () => {
+  function gWithCollections() {
+    return makeGraph([
+      { ...makeNode({ id: "sidebar-width", layer: "component", type: "number", source: "global" }), collection: "components/custom" },
+      { ...makeNode({ id: "sidebar-item-text", layer: "component", type: "color", source: "global", base: "#fff" }), collection: "components/custom" },
+      { ...makeNode({ id: "button-bg", layer: "component", type: "color", source: "global", base: "#000" }), collection: "components/global" },
+    ]);
+  }
+
+  it("maps each component to its collection", () => {
+    const m = componentCollections(gWithCollections());
+    expect(m.get("sidebar")).toBe("components/custom");
+    expect(m.get("button")).toBe("components/global");
+  });
+
+  it("declaredCustomComponents = components in components/custom", () => {
+    const set = declaredCustomComponents(gWithCollections());
+    expect([...set]).toEqual(["sidebar"]);
   });
 });

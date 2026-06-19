@@ -829,3 +829,25 @@ export function customPartsByComponent(
   return out;
 }
 
+/** Component (token-id prefix) → its Figma collection, from node.collection (uniform per component; last wins). */
+export function componentCollections(graph: TokenGraph): ReadonlyMap<string, string> {
+  const out = new Map<string, string>();
+  for (const node of graph.nodes.values()) {
+    if (node.layer !== "component") continue;
+    if (node.collection === undefined) continue;
+    const prefix = node.id.split("-")[0];
+    if (prefix === undefined) continue;
+    out.set(prefix, node.collection);
+  }
+  return out;
+}
+
+/** Components the designer declared custom in Figma (collection === "components/custom"). */
+export function declaredCustomComponents(graph: TokenGraph): ReadonlySet<string> {
+  const out = new Set<string>();
+  for (const [component, collection] of componentCollections(graph)) {
+    if (collection === "components/custom") out.add(component);
+  }
+  return out;
+}
+
