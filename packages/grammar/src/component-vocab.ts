@@ -110,7 +110,7 @@ export function propDrivenStateFor(component: string, state: string | null): str
  * Seed: kbd (the live-export case `kbd-bg-active`). badge/card/progress are candidate additions
  * when an export carries their state tokens; custom components (chip/sidebar) are excluded.
  */
-export const STATELESS_COMPONENTS: ReadonlySet<string> = new Set(["kbd"]);
+export const STATELESS_COMPONENTS: ReadonlySet<string> = new Set(["kbd", "badge"]);
 
 /**
  * Per-Figma-component → the Nuxt UI v4 theme slot ("part") names that component

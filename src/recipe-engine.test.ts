@@ -1090,6 +1090,16 @@ describe("buildComponentRecipes — checked fill on the indicator slot", () => {
   });
 });
 
+describe("buildComponentRecipes — non-trailing state", () => {
+  it("routes a dropdown leading-state token (hover) onto the item slot", () => {
+    const graph = makeGraph([
+      makeNode({ id: "dropdown-item-hover-bg", layer: "component", type: "color", source: "global", base: "#eee" }),
+    ]);
+    const recipes = buildComponentRecipes(graph, { components: ["dropdown"] });
+    expect(JSON.stringify(recipes.dropdown ?? {})).toContain("hover:");
+  });
+});
+
 describe("buildComponentRecipes — progress", () => {
   it("maps track bg to base, fill bg to indicator, and heights to size variants", () => {
     const graph = makeGraph([

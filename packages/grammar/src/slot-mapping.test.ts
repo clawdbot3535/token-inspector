@@ -1042,8 +1042,11 @@ describe("heuristicSlotMapping — part alias routing (dot→indicator)", () => 
     expect(heuristicSlotMapping("button-dot-bg", "color")).toBeNull();
   });
 
-  it("does not rescue a token blocked by a mid-token state (table-row-hover-bg → null)", () => {
-    expect(heuristicSlotMapping("table-row-hover-bg", "color")).toBeNull();
+  it("routes a mid-token state (table-row-hover-bg → tr/bg-color/hover)", () => {
+    const m = heuristicSlotMapping("table-row-hover-bg", "color");
+    expect(m?.slot).toBe("tr");
+    expect(m?.utilityType).toBe("bg-color");
+    expect(m?.statePrefix).toBe("hover");
   });
 });
 
@@ -1103,5 +1106,30 @@ describe("checked bg-color → indicator slot", () => {
     expect(heuristicSlotMapping("checkbox-border-checked")).toEqual({
       slot: "base", utilityType: "ring-color", variantAxis: null, variantKey: null, statePrefix: "data-[state=checked]",
     });
+  });
+});
+
+describe("non-trailing state parsing", () => {
+  it("routes a leading-state token to state:utility (dropdown item hover)", () => {
+    const m = heuristicSlotMapping("dropdown-item-hover-bg", undefined, undefined);
+    expect(m?.slot).toBe("item");
+    expect(m?.utilityType).toBe("bg-color");
+    expect(m?.statePrefix).toBe("hover");
+  });
+  it("routes table-row-hover-bg to the tr slot with hover", () => {
+    const m = heuristicSlotMapping("table-row-hover-bg", undefined, undefined);
+    expect(m?.slot).toBe("tr");
+    expect(m?.statePrefix).toBe("hover");
+  });
+  it("leaves trailing-state tokens unchanged (button-solid-bg-active)", () => {
+    const m = heuristicSlotMapping("button-solid-bg-active", undefined, "color");
+    expect(m?.utilityType).toBe("bg-color");
+    expect(m?.statePrefix).toBe("active");
+  });
+  it("drops badge-disabled-bg (badge stateless; leading disabled recognized)", () => {
+    expect(heuristicSlotMapping("badge-disabled-bg", undefined, "color")).toBeNull();
+  });
+  it("still maps badge non-state tokens (badge-bg → base)", () => {
+    expect(heuristicSlotMapping("badge-bg", undefined, "color")?.slot).toBe("base");
   });
 });

@@ -213,3 +213,12 @@ describe("nuxtSlotsFor — progress", () => {
     expect(nuxtSlotsFor("progress")?.has("base")).toBe(true);
   });
 });
+
+describe("STATELESS_COMPONENTS — badge", () => {
+  it("marks badge as stateless (UBadge has no interaction states)", () => {
+    expect(STATELESS_COMPONENTS.has("badge")).toBe(true);
+  });
+  it("keeps badge in NUXT_SLOTS (its non-state tokens still map)", () => {
+    expect(nuxtSlotsFor("badge")?.has("base")).toBe(true);
+  });
+});

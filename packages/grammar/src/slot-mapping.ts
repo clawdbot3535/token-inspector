@@ -177,9 +177,21 @@ function parseSegments(tokenId: string, componentSlots?: ReadonlySet<string>): P
     }
   }
 
+  // Non-trailing state: a STATE_KEYS segment (excluding `default`, which doubles as a
+  // color-role) elsewhere in the utility range, e.g. `hover-bg` / `disabled-bg`. Runs only
+  // when no trailing state was found; the matched segment is removed from the utility.
+  let utilityParts = parts.slice(start, end);
+  if (state === null && utilityParts.length > 1) {
+    const i = utilityParts.findIndex((s) => s !== "default" && STATE_KEYS.has(s));
+    if (i !== -1) {
+      state = utilityParts[i]!;
+      utilityParts = [...utilityParts.slice(0, i), ...utilityParts.slice(i + 1)];
+    }
+  }
+
   return {
     component,
-    utility: parts.slice(start, end).join("-"),
+    utility: utilityParts.join("-"),
     variant,
     colorRole,
     size,
