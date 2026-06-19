@@ -78,6 +78,12 @@ Split the build-time loop:
 `familyOf(target)`: `const i = target.lastIndexOf("/"); return i === -1 ? target : target.slice(0, i);`
 Leaf list per family: the unique last-segments (`target.slice(i + 1)`) in encounter order.
 
+**Orthogonal to the existing UI grouping.** `src/app/scan-grouping.ts` (`groupIssuesByComponent`)
+groups ScanIssues by `componentName` (with a `General` bucket) — a different axis. Unresolved-alias
+issues have no `componentName`, so they land in `General`; this scanner-level family-grouping reduces
+them from 6 rows to 2 BEFORE the component grouping sees them. The two layers do not interact and
+`scan-grouping.ts` is untouched.
+
 ### Message format
 ```
 <N> alias(es) reference unresolved targets under `<family>/*` (<leaf1>, <leaf2>, …) — absent from all
