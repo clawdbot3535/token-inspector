@@ -959,3 +959,23 @@ describe("scanGraph — collection/anatomy disagreement", () => {
     expect(w?.componentName).toBe("fancywidget");
   });
 });
+
+describe("scanGraph — non-trailing unsupported state", () => {
+  it("flags badge-disabled-bg (leading disabled on stateless badge)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "badge-disabled-bg", layer: "component", type: "color", source: "global", base: "#f4f4f5" }),
+    ]);
+    const report = scanGraph(graph, { components: ["badge"] });
+    const w = report.issues.find((i) => i.kind === "unsupported-state");
+    expect(w).toBeDefined();
+    expect(w?.componentName).toBe("badge");
+  });
+
+  it("does not flag dropdown-item-hover-bg as unsupported (dropdown is not stateless)", () => {
+    const graph = makeGraph([
+      makeNode({ id: "dropdown-item-hover-bg", layer: "component", type: "color", source: "global", base: "#eee" }),
+    ]);
+    const report = scanGraph(graph, { components: ["dropdown"] });
+    expect(report.issues.find((i) => i.kind === "unsupported-state")).toBeUndefined();
+  });
+});

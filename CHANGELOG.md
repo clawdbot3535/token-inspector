@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.46.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.46.0) — 2026-06-19
+
+### Added
+
+- **Non-trailing state parsing (`<state>-<utility>`).** The grammar parsed an interaction state only
+  as the trailing token segment (`bg-disabled` ✓), so the export's `<state>-<utility>` ordering
+  (`hover-bg`, `disabled-bg`) went `null`. `parseSegments` now also pulls a `STATE_KEYS` segment
+  (excluding `default`, which doubles as a color-role) out of the utility range when no trailing state
+  was found. Result against the live export: `dropdown-item-hover-bg` and `table-row-hover-bg` route to
+  `hover:bg-[…]` on their item/`tr` slots (previously dropped). Trailing-state tokens are unchanged
+  (detected first).
+
+### Fixed
+
+- **`badge` recognized as stateless.** UBadge is a static label (its Nuxt theme has no `disabled`
+  variant / `:disabled`). With non-trailing state parsing, `badge-disabled-*` are now recognized as a
+  `disabled` state and — since `badge` joins `STATELESS_COMPONENTS` — **dropped** (no inert `disabled:`
+  emit) and flagged as `unsupported-state`. The scanner's `unsupportedStateForId` / `propDrivenStateForId`
+  detectors gained non-trailing parity (scan all non-component segments), so all 9 `badge-disabled-*`
+  tokens (incl. overlay variants) surface the warning.
+
 ## [0.45.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.45.0) — 2026-06-19
 
 ### Added
