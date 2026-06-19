@@ -83,6 +83,8 @@ afterEach(() => {
 
 // ---------------------------------------------------------------------------
 describe("Creator smoke test", () => {
+  // 15s (not the 5s default): this mounts the whole Creator app + jsdom shims and reads token files;
+  // it runs ~120ms standalone but can exceed 5s under full-suite worker-pool contention.
   it("shows load prompt before sources; after load + pick switch: badge 100%, switch-track renders, JSON has switch", async () => {
     const wrapper = mount(Creator, mountOpts);
     await flushPromises();

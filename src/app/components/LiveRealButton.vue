@@ -23,6 +23,8 @@ const ui = computed<Record<string, string> | null>(() => {
 });
 
 const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.value) : []));
+// `componentName` is passed for consistency with the slotted/accordion call sites; button has no
+// checked/open tokens, so buildStateCells emits only a `disabled` cell (no per-component override).
 const stateCells = computed(() => (recipe.value ? buildStateCells(recipe.value, props.componentName) : []));
 
 const hostRef = ref<HTMLElement | null>(null);
