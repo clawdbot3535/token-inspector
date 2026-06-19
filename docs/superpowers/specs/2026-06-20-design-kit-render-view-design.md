@@ -86,10 +86,7 @@ The panel is driven by `selectedComponent`; routing stays via `previewComponentF
 
 - The `Live*.vue` hand-built render path is removed from the `App.vue` dispatch. The single Kit panel renders the real component for every component that **has** a real render.
 - **`Live*.vue` files** are deleted once nothing references them (the orphans this change creates — see "Surgical changes"). Their tests are removed with them.
-- **modal / dropdown** (no real render today): **DECISION — FLAG FOR REVIEW.**
-  - *Recommended (bounded):* keep this spec scoped to the components that already have a real render; modal/dropdown show an honest **"Real-Render folgt"** placeholder in the Kit panel (their `Live*.vue` is retired too — no second render path survives), and a real inline-open render for them is the immediate next round.
-  - *Alternative (wider):* add `LiveRealModal.vue` / `LiveRealDropdown.vue` now — render the overlay's panel **inline in its open state** for showcase. Higher risk (teleport/portal/positioning of Reka overlays), so it would be the riskiest task of this round.
-  - The author leans **Recommended**; override in review if you want both pulled into this round.
+- **modal / dropdown** (no real render today): **DECISION (locked, review-approved):** keep this spec scoped to the components that already have a real render. modal/dropdown show an honest **"Real-Render folgt"** placeholder in the Kit panel — their `Live*.vue` is retired too, so no second render path survives. A real inline-open render for them (`LiveRealModal`/`LiveRealDropdown`, overlay rendered inline-open) is the immediate next round, not this one.
 
 ### 3. Demote diagnostics
 
@@ -153,11 +150,11 @@ Removing the `Live*.vue` dispatch will orphan the `Live*.vue` files, their impor
 
 ---
 
-## Open decisions for your review
+## Resolved decisions (review-approved 2026-06-20)
 
-1. **modal/dropdown (§2):** placeholder now + real inline-open render next round (recommended), or add `LiveRealModal`/`LiveRealDropdown` in this round (wider, riskier)?
-2. **Coverage (§4):** mirror only the headline inline and keep `CoverageView`/`coverage` tab as-is (recommended), or fold coverage fully into the Kit panel and drop the separate tab?
-3. **Variant/state breadth (§1):** show the full `buildVariantCells`/`buildStateCells` matrix (complete, can be large), or a curated representative subset per component (cleaner kit, but needs a selection rule)?
+1. **modal/dropdown (§2):** placeholder "Real-Render folgt" now; real inline-open render is the next round. *(recommended option taken)*
+2. **Coverage (§4):** mirror only the headline as an inline badge; keep `CoverageView` + the `coverage` tab as-is. *(recommended option taken)*
+3. **Variant/state breadth (§1):** show the full `buildVariantCells`/`buildStateCells` matrix. *(recommended option taken)*
 
 ---
 
