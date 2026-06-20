@@ -15,6 +15,7 @@ import ScanView from "./components/ScanView.vue";
 import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
 import LiveKitPanel from "./components/LiveKitPanel.vue";
+import LiveBuildPanel from "./components/LiveBuildPanel.vue";
 import CoverageView from "./components/CoverageView.vue";
 import { coverageFor } from "@core/coverage.js";
 import ComponentTree from "./components/ComponentTree.vue";
@@ -157,7 +158,7 @@ watch(
 // the component-tree group rows; falls back to the only currently
 // supported component when nothing has been chosen.
 const selectedComponent = ref<string>("button");
-const paneTab = ref<"kit" | "coverage">("kit");
+const paneTab = ref<"kit" | "coverage" | "livebuild">("kit");
 const coverage = computed(() =>
   state.graph.value && selectedComponent.value
     ? coverageFor(state.graph.value, selectedComponent.value)
@@ -842,6 +843,12 @@ function downloadAll() {
                     class="text-[10px] font-mono px-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
                   >{{ coverage.structuralTotal - coverage.structuralTouched }}</span>
                 </button>
+                <button type="button" role="tab" data-testid="live-build-tab"
+                  :aria-selected="paneTab === 'livebuild'"
+                  class="px-3 py-1 text-xs"
+                  :class="paneTab === 'livebuild' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
+                  @click="paneTab = 'livebuild'"
+                >Live Build</button>
               </div>
 
               <CoverageView
@@ -852,6 +859,9 @@ function downloadAll() {
 
               <template v-if="previewSupported && paneTab === 'kit'">
                 <LiveKitPanel :graph="state.graph.value" :component-name="selectedComponent" :custom-parts="customParts" />
+              </template>
+              <template v-if="previewSupported && paneTab === 'livebuild'">
+                <LiveBuildPanel :graph="state.graph.value" />
               </template>
             </div>
             <div v-else class="text-sm text-muted">

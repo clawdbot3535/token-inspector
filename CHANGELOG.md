@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.53.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.53.0) — 2026-06-21
+
+### Added
+
+- **"Live Build" tab — open your generated kit as a real, runnable build on StackBlitz.** The Kit view
+  gains a third tab (`Kit | Coverage | Live Build`) with an **Open in StackBlitz ↗** button that loads
+  your kit (from the v0.52.0 `buildKitFiles`) as a live Vite + @nuxt/ui project rendered by the **real
+  build-time Tailwind compiler** — the literal product, not the in-app runtime-Tailwind approximation.
+  Your kit is sent to stackblitz.com only on click (ephemeral, not saved). New pure `src/app/live-build/`
+  module: `toLiveBuildFiles` (kit `ExportFile[]` → StackBlitz file tree) + a `LiveBuildSubstrate` seam
+  (`@stackblitz/sdk`).
+
+### Notes
+
+- **Scoped down from an in-app embed after a de-risk validation.** The feature was first built as an
+  embedded WebContainer that renders the build inside the inspector. Live testing showed that render is
+  ~identical to the existing runtime-Tailwind Kit preview — which is reassuring (it validates that
+  preview's fidelity) but means the embed's cost bought no visual gain: it needs host COOP/COEP isolation
+  headers, hits a cross-origin-isolation catch-22 (`require-corp` blocks the StackBlitz iframe;
+  `credentialless` only works in a real, non-headless browser), is Chromium-best, and takes 30–90 s to
+  boot. So the embed (and its `vercel.json`/vite isolation headers) was dropped in favor of the reliable
+  new-tab affordance that works in all browsers with zero header complexity.
+- **Test infra:** `@tailwindcss/browser` is now aliased to a no-op stub in vitest — jsdom can't parse the
+  v4 CSS it injects, and the resulting unhandled rejection intermittently failed the suite even though all
+  tests passed. 900 tests.
+
 ## [0.52.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.52.0) — 2026-06-20
 
 ### Added
