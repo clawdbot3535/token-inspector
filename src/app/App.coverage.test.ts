@@ -4,13 +4,6 @@ import { flushPromises, mount } from "@vue/test-utils";
 import App from "./App.vue";
 import ComponentTree from "./components/ComponentTree.vue";
 import FilterChips from "./components/FilterChips.vue";
-import LiveRealButton from "./components/LiveRealButton.vue";
-import LiveRealTable from "./components/LiveRealTable.vue";
-import LiveRealNav from "./components/LiveRealNav.vue";
-import LiveRealAccordion from "./components/LiveRealAccordion.vue";
-import LiveRealSlotted from "./components/LiveRealSlotted.vue";
-import LiveRealChip from "./components/LiveRealChip.vue";
-import LiveRealSidebar from "./components/LiveRealSidebar.vue";
 
 async function flushAll() {
   await flushPromises();
@@ -46,10 +39,7 @@ const mountOpts = {
       TokenPreview: true, AliasChain: true, UsedByList: true, CodePreview: true, FigmaPreview: true,
       ClassificationBadge: true, FilterChips: true, OutputSection: true, ResizeHandle: true,
       CommitPanel: true, GitLoader: true,
-      LiveButton: true, LiveInput: true, LiveBadge: true, LiveSwitch: true, LiveCheckbox: true,
-      LiveRadio: true, LiveCard: true, LiveKbd: true, LiveProgress: true, LiveModal: true,
-      LiveTable: true, LiveDropdown: true, LiveAccordion: true, LiveNav: true, LiveSidebar: true,
-      LiveChip: true,
+      LiveKitPanel: { template: '<div data-testid="kit-panel" />', name: "LiveKitPanel" },
       // CoverageView intentionally NOT stubbed — we assert it mounts.
     },
   },
@@ -86,7 +76,7 @@ describe("App coverage view", () => {
 
     const covTab = wrapper.find('[data-testid="coverage-tab"]');
     expect(covTab.exists()).toBe(true);
-    expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(false); // default tab = preview
+    expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(false); // default tab = kit
     expect(covTab.attributes("aria-selected")).toBe("false");
     await covTab.trigger("click");
     expect(wrapper.find('[data-testid="coverage-view"]').exists()).toBe(true);
@@ -144,100 +134,5 @@ describe("App coverage view", () => {
 
     // the kind-filter is reset to "all" so the highlighted tokens show in the tree
     expect(wrapper.findComponent(FilterChips).props("modelValue")).toBe("all");
-  });
-
-  it("offers a Real tab for button and mounts LiveRealButton when clicked", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "button");
-    await flushPromises();
-
-    const realTab = wrapper.find('[data-testid="real-tab"]');
-    expect(realTab.exists()).toBe(true);
-    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(false); // default = preview
-    await realTab.trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(true);
-  });
-
-  it("offers a Real tab for table and mounts LiveRealTable (not LiveRealButton)", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "table");
-    await flushPromises();
-    const realTab = wrapper.find('[data-testid="real-tab"]');
-    expect(realTab.exists()).toBe(true);
-    await realTab.trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealTable).exists()).toBe(true);
-    expect(wrapper.findComponent(LiveRealButton).exists()).toBe(false);
-  });
-
-  it("offers a Real tab for nav and mounts LiveRealNav", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "nav");
-    await flushPromises();
-    await wrapper.find('[data-testid="real-tab"]').trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealNav).exists()).toBe(true);
-  });
-
-  it("offers a Real tab for accordion and mounts LiveRealAccordion", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "accordion");
-    await flushPromises();
-    await wrapper.find('[data-testid="real-tab"]').trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealAccordion).exists()).toBe(true);
-  });
-
-  it("offers a Real tab for a registry component (card) and mounts LiveRealSlotted", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "card");
-    await flushPromises();
-    const realTab = wrapper.find('[data-testid="real-tab"]');
-    expect(realTab.exists()).toBe(true);
-    await realTab.trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealSlotted).exists()).toBe(true);
-  });
-
-  it("offers a Real tab for chip and mounts LiveRealChip", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "chip");
-    await flushPromises();
-    await wrapper.find('[data-testid="real-tab"]').trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealChip).exists()).toBe(true);
-  });
-
-  it("offers a Real tab for sidebar and mounts LiveRealSidebar", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "sidebar");
-    await flushPromises();
-    await wrapper.find('[data-testid="real-tab"]').trigger("click");
-    await flushPromises();
-    expect(wrapper.findComponent(LiveRealSidebar).exists()).toBe(true);
-  });
-
-  it("does not offer a Real tab for a non-supported component", async () => {
-    const wrapper = await mountLoaded();
-    const tree = wrapper.findComponent(ComponentTree);
-    tree.vm.$emit("select", "");
-    tree.vm.$emit("select-component", "container");
-    await flushPromises();
-    expect(wrapper.find('[data-testid="real-tab"]').exists()).toBe(false);
   });
 });

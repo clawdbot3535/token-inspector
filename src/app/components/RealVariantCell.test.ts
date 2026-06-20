@@ -13,3 +13,23 @@ describe("RealVariantCell", () => {
     expect(w.find('[data-testid="anatomy"]').exists()).toBe(true);
   });
 });
+
+const SPECS = [{ slot: "base", selector: ".ti-slot-base", classes: "bg-[#ffffff]" }];
+
+describe("RealVariantCell — diagnostics gating", () => {
+  it("hides the delta section by default", () => {
+    const w = mount(RealVariantCell, {
+      props: { label: "solid", specs: SPECS },
+      slots: { default: "<button>x</button>" },
+    });
+    expect(w.find('[data-testid="rvc-diagnostics"]').exists()).toBe(false);
+  });
+
+  it("shows the delta section when showDiagnostics is true", () => {
+    const w = mount(RealVariantCell, {
+      props: { label: "solid", specs: SPECS, showDiagnostics: true },
+      slots: { default: "<button>x</button>" },
+    });
+    expect(w.find('[data-testid="rvc-diagnostics"]').exists()).toBe(true);
+  });
+});

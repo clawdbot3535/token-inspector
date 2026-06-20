@@ -5,7 +5,10 @@ import { usePreviewRecipe } from "../composables/use-preview-recipe.js";
 import { buildSlotSentinels, useRealRender } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
 
-const props = defineProps<{ graph: TokenGraph | null; componentName: string }>();
+const props = withDefaults(
+  defineProps<{ graph: TokenGraph | null; componentName: string; showDiagnostics?: boolean }>(),
+  { showDiagnostics: false },
+);
 const { recipe } = usePreviewRecipe(() => props.graph, () => props.componentName);
 
 // No `to` — the inspector has no vue-router, so a routed item would fail to render
@@ -26,7 +29,9 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
       <p class="mt-2 text-[10px] text-muted">
         Real Nuxt UI v4 navigation menu themed by your generated recipe (runtime-compiled).
       </p>
-      <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      <div v-if="showDiagnostics" data-testid="resting-diagnostics">
+        <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      </div>
     </template>
   </div>
 </template>

@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.49.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.49.0) — 2026-06-20
+
+### Changed
+
+- **One trustworthy "Kit" view replaces the Preview/Real tab split.** The component pane no longer
+  offers two divergent renders (a hand-built approximation vs. the real component). It now shows a
+  single **Kit** view: the real Nuxt UI v4 component themed by your generated recipe, with the
+  render-diff diagnostics demoted to a collapsible **Diagnostics / deltas** toggle (default
+  collapsed) and a per-component coverage badge (`X/Y mapped`, shown where curated anatomy exists).
+  The right-pane tabs collapse `Preview | Coverage | Real` → **`Kit | Coverage`**. Rationale: the
+  hand-built preview was a second, invented source of truth that could look right while the real
+  render diverged — exactly what made the two views "not match." Removing it makes the inspector a
+  faithful DEV↔Design bridge: what you see *is* the real component your tokens produce.
+- **`modal` / `dropdown`** show an honest **"Real render coming"** placeholder (a real inline-open
+  render for these overlay components is the next round) rather than the old approximation.
+- **`apps/creator`** preview migrated to the same Kit render (`LiveKitPanel`), retiring its
+  approximation dispatch; the raw recipe data remains available via the JSON output tab.
+
+### Removed
+
+- **The 16 hand-built `Live*.vue` approximation components + their tests** (`LiveButton`, `LiveBadge`,
+  `LiveInput`, `LiveSwitch`, `LiveCheckbox`, `LiveRadio`, `LiveCard`, `LiveKbd`, `LiveProgress`,
+  `LiveModal`, `LiveTable`, `LiveDropdown`, `LiveAccordion`, `LiveNav`, `LiveSidebar`, `LiveChip`).
+  The real-render path (`LiveReal*.vue` + `LiveKitPanel.vue`) is now the only render. Net **−2569**
+  lines. The suite drops to **861 tests** (the deleted components' approximation tests went with
+  them); the real-render fidelity itself is verified via headless `/browse` QA (not jsdom-testable).
+
+### Notes
+
+- Diagnostics fidelity (the render-diff deltas) is unchanged — only its placement moved (collapsed by
+  default). The per-token in-preview highlight overlay was dropped with the approximation; the
+  code-preview highlighting is unaffected.
+
 ## [0.48.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.48.1) — 2026-06-20
 
 ### Changed (internal)

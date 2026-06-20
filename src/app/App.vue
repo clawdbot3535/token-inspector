@@ -14,30 +14,7 @@ import CodePreview from "./components/CodePreview.vue";
 import ScanView from "./components/ScanView.vue";
 import HeaderStatusStrip from "./components/HeaderStatusStrip.vue";
 import FigmaPreview from "./components/FigmaPreview.vue";
-import LiveButton from "./components/LiveButton.vue";
-import LiveRealButton from "./components/LiveRealButton.vue";
-import LiveRealTable from "./components/LiveRealTable.vue";
-import LiveRealNav from "./components/LiveRealNav.vue";
-import LiveRealAccordion from "./components/LiveRealAccordion.vue";
-import LiveRealSlotted from "./components/LiveRealSlotted.vue";
-import LiveRealChip from "./components/LiveRealChip.vue";
-import LiveRealSidebar from "./components/LiveRealSidebar.vue";
-import { REAL_SLOTTED_REGISTRY } from "./components/real-slotted-registry.js";
-import LiveBadge from "./components/LiveBadge.vue";
-import LiveInput from "./components/LiveInput.vue";
-import LiveSwitch from "./components/LiveSwitch.vue";
-import LiveCheckbox from "./components/LiveCheckbox.vue";
-import LiveRadio from "./components/LiveRadio.vue";
-import LiveCard from "./components/LiveCard.vue";
-import LiveKbd from "./components/LiveKbd.vue";
-import LiveProgress from "./components/LiveProgress.vue";
-import LiveModal from "./components/LiveModal.vue";
-import LiveTable from "./components/LiveTable.vue";
-import LiveDropdown from "./components/LiveDropdown.vue";
-import LiveAccordion from "./components/LiveAccordion.vue";
-import LiveNav from "./components/LiveNav.vue";
-import LiveSidebar from "./components/LiveSidebar.vue";
-import LiveChip from "./components/LiveChip.vue";
+import LiveKitPanel from "./components/LiveKitPanel.vue";
 import CoverageView from "./components/CoverageView.vue";
 import { coverageFor } from "@core/coverage.js";
 import ComponentTree from "./components/ComponentTree.vue";
@@ -179,32 +156,20 @@ watch(
 // the component-tree group rows; falls back to the only currently
 // supported component when nothing has been chosen.
 const selectedComponent = ref<string>("button");
-const paneTab = ref<"preview" | "coverage" | "real">("preview");
+const paneTab = ref<"kit" | "coverage">("kit");
 const coverage = computed(() =>
   state.graph.value && selectedComponent.value
     ? coverageFor(state.graph.value, selectedComponent.value)
     : null,
 );
-// Real-render (runtime-compiled Nuxt UI) tab — the components with a real-render preview.
-const realRenderSupported = computed(() =>
-  ["button", "table", "nav", "accordion", "chip", "sidebar"].includes(selectedComponent.value) ||
-  selectedComponent.value in REAL_SLOTTED_REGISTRY,
-);
 watch(selectedComponent, () => {
-  paneTab.value = "preview";
+  paneTab.value = "kit";
 });
 
-// LiveButton renders <button> markup with button-specific defaults
-// (transition-colors, fallback blue chrome). Rendering it for badge / nav /
-// card etc. would produce a button-shaped preview for components that
-// aren't buttons — confusing. Gate the visual preview on the supported
-// set; other components still get the token tree, OutputSection, and
-// code-preview highlighting, just not the rendered chip.
+// Components that get a rendered preview in the Kit panel. Gate the visual
+// preview on this set; other components still get the token tree,
+// OutputSection, and code-preview highlighting, just not the rendered kit.
 const COMPONENTS_WITH_PREVIEW: ReadonlySet<string> = new Set(["button", "input", "textarea", "badge", "switch", "checkbox", "radio", "card", "kbd", "progress", "modal", "table", "dropdown", "accordion", "nav", "sidebar", "chip"]);
-// input + textarea are the form-field previews (rendered by LiveInput); button
-// is rendered by LiveButton.
-const FIELD_PREVIEW_COMPONENTS: ReadonlySet<string> = new Set(["input", "textarea"]);
-const isFieldComponent = computed(() => FIELD_PREVIEW_COMPONENTS.has(selectedComponent.value));
 const previewSupported = computed(() =>
   COMPONENTS_WITH_PREVIEW.has(selectedComponent.value),
 );
@@ -468,24 +433,6 @@ const defaultIconForSelected = computed<string | undefined>(() => {
   const node = selectedNode.value;
   if (!node) return undefined;
   return matchMapping(figmaMapping.value, node.id)?.defaultIcon;
-});
-
-// Lucide icon name to render inside the live preview for the focused
-// component. Prefers the figma-mapping.json defaultIcon; otherwise uses a
-// per-component sensible default (e.g. a search glyph for inputs); finally
-// falls back to "i-lucide-rocket" so the icon slot stays visible.
-const DEFAULT_PREVIEW_ICONS: Readonly<Record<string, string>> = {
-  input: "i-lucide-search",
-};
-const iconForSelectedComponent = computed<string>(() => {
-  const mapping = figmaMapping.value.components.find(
-    (c) => c.prefix === selectedComponent.value,
-  );
-  return (
-    mapping?.defaultIcon ??
-    DEFAULT_PREVIEW_ICONS[selectedComponent.value] ??
-    "i-lucide-rocket"
-  );
 });
 
 async function handleFiles(files: FileList | readonly File[] | null) {
@@ -827,184 +774,14 @@ function downloadAll() {
                 :variant="variantForSelected"
               />
 
-              <LiveInput
+              <LiveKitPanel
                 v-if="
                   previewSupported &&
-                  isFieldComponent &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :leading-icon-name="iconForSelectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveBadge
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'badge' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveSwitch
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'switch' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveCheckbox
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'checkbox' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveRadio
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'radio' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveCard
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'card' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveKbd
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'kbd' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveProgress
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'progress' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveModal
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'modal' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveTable
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'table' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveDropdown
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'dropdown' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveAccordion
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'accordion' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveNav
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'nav' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveSidebar
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'sidebar' &&
                   selectedNode.id.split('-')[0] === selectedComponent
                 "
                 :graph="state.graph.value"
                 :component-name="selectedComponent"
                 :custom-parts="customParts"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveChip
-                v-else-if="
-                  previewSupported &&
-                  selectedComponent === 'chip' &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :custom-parts="customParts"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
-              />
-              <LiveButton
-                v-else-if="
-                  previewSupported &&
-                  selectedNode.id.split('-')[0] === selectedComponent
-                "
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :icon-name="iconForSelectedComponent"
-                :highlight-utility="selectedVueTemplateClasses"
-                :completeness="scanReport.completeness"
               />
 
               <FigmaPreview
@@ -1045,42 +822,24 @@ function downloadAll() {
                   click a different component group to switch the preview.
                 </div>
               </div>
-              <div v-if="coverage || realRenderSupported" role="tablist" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
-                <button
-                  type="button"
-                  role="tab"
-                  data-testid="preview-tab"
-                  :aria-selected="paneTab === 'preview'"
+              <div v-if="previewSupported" role="tablist" class="flex gap-1 border-b border-default" data-testid="coverage-tabs">
+                <button type="button" role="tab" data-testid="kit-tab"
+                  :aria-selected="paneTab === 'kit'"
                   class="px-3 py-1 text-xs"
-                  :class="paneTab === 'preview' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
-                  @click="paneTab = 'preview'"
-                >Preview</button>
-                <button
-                  v-if="coverage"
-                  type="button"
-                  role="tab"
-                  data-testid="coverage-tab"
+                  :class="paneTab === 'kit' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
+                  @click="paneTab = 'kit'"
+                >Kit</button>
+                <button v-if="coverage" type="button" role="tab" data-testid="coverage-tab"
                   :aria-selected="paneTab === 'coverage'"
                   class="px-3 py-1 text-xs inline-flex items-center gap-1"
                   :class="paneTab === 'coverage' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
                   @click="paneTab = 'coverage'"
                 >
                   Coverage
-                  <span
-                    v-if="coverage.structuralTotal - coverage.structuralTouched > 0"
+                  <span v-if="coverage.structuralTotal - coverage.structuralTouched > 0"
                     class="text-[10px] font-mono px-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
                   >{{ coverage.structuralTotal - coverage.structuralTouched }}</span>
                 </button>
-                <button
-                  v-if="realRenderSupported"
-                  type="button"
-                  role="tab"
-                  data-testid="real-tab"
-                  :aria-selected="paneTab === 'real'"
-                  class="px-3 py-1 text-xs"
-                  :class="paneTab === 'real' ? 'border-b-2 border-primary font-medium' : 'text-muted'"
-                  @click="paneTab = 'real'"
-                >Real</button>
               </div>
 
               <CoverageView
@@ -1089,171 +848,8 @@ function downloadAll() {
                 @select-tokens="onCoverageSelectTokens"
               />
 
-              <template v-if="realRenderSupported && paneTab === 'real'">
-                <LiveRealButton
-                  v-if="selectedComponent === 'button'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                />
-                <LiveRealTable
-                  v-else-if="selectedComponent === 'table'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                />
-                <LiveRealNav
-                  v-else-if="selectedComponent === 'nav'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                />
-                <LiveRealAccordion
-                  v-else-if="selectedComponent === 'accordion'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                />
-                <LiveRealChip
-                  v-else-if="selectedComponent === 'chip'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                  :custom-parts="customParts"
-                />
-                <LiveRealSidebar
-                  v-else-if="selectedComponent === 'sidebar'"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                  :custom-parts="customParts"
-                />
-                <LiveRealSlotted
-                  v-else-if="REAL_SLOTTED_REGISTRY[selectedComponent]"
-                  :graph="state.graph.value"
-                  :component-name="selectedComponent"
-                />
-              </template>
-
-              <template v-if="(!coverage || paneTab === 'preview') && paneTab !== 'real'">
-              <LiveInput
-                v-if="previewSupported && isFieldComponent"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :leading-icon-name="iconForSelectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveBadge
-                v-else-if="previewSupported && selectedComponent === 'badge'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveSwitch
-                v-else-if="previewSupported && selectedComponent === 'switch'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveCheckbox
-                v-else-if="previewSupported && selectedComponent === 'checkbox'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveRadio
-                v-else-if="previewSupported && selectedComponent === 'radio'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveCard
-                v-else-if="previewSupported && selectedComponent === 'card'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveKbd
-                v-else-if="previewSupported && selectedComponent === 'kbd'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveProgress
-                v-else-if="previewSupported && selectedComponent === 'progress'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveModal
-                v-else-if="previewSupported && selectedComponent === 'modal'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveTable
-                v-else-if="previewSupported && selectedComponent === 'table'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveDropdown
-                v-else-if="previewSupported && selectedComponent === 'dropdown'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveAccordion
-                v-else-if="previewSupported && selectedComponent === 'accordion'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveNav
-                v-else-if="previewSupported && selectedComponent === 'nav'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <LiveSidebar
-                v-else-if="previewSupported && selectedComponent === 'sidebar'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :custom-parts="customParts"
-                :completeness="scanReport.completeness"
-              />
-              <LiveChip
-                v-else-if="previewSupported && selectedComponent === 'chip'"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :custom-parts="customParts"
-                :completeness="scanReport.completeness"
-              />
-              <LiveButton
-                v-else-if="previewSupported"
-                :graph="state.graph.value"
-                :component-name="selectedComponent"
-                :icon-name="iconForSelectedComponent"
-                :completeness="scanReport.completeness"
-              />
-              <div
-                v-else
-                class="rounded-md ring-1 ring-warning/30 bg-warning/5 px-3 py-3 text-xs space-y-1"
-              >
-                <div class="text-warning font-medium">
-                  Live preview not yet available for
-                  <code class="font-mono">{{ selectedComponent }}</code>.
-                </div>
-                <div class="text-zinc-500">
-                  Only <code class="font-mono">button</code>,
-                  <code class="font-mono">input</code>,
-                  <code class="font-mono">textarea</code>,
-                  <code class="font-mono">badge</code>,
-                  <code class="font-mono">switch</code>,
-                  <code class="font-mono">checkbox</code> and
-                  <code class="font-mono">radio</code> have a rendered
-                  preview today — other components produce the correct
-                  <code class="font-mono">app.config.ts</code> recipe and
-                  highlight on click, but the visual chip is button-specific
-                  and would mis-represent
-                  <code class="font-mono">{{ selectedComponent }}</code>.
-                  Component-shaped previews arrive in v0.5.0+.
-                </div>
-              </div>
+              <template v-if="previewSupported && paneTab === 'kit'">
+                <LiveKitPanel :graph="state.graph.value" :component-name="selectedComponent" :custom-parts="customParts" />
               </template>
             </div>
             <div v-else class="text-sm text-muted">
@@ -1261,7 +857,7 @@ function downloadAll() {
             </div>
           </section>
 
-          <!-- Output: live preview -->
+          <!-- Output: kit + coverage pane -->
           <aside
             class="relative shrink-0 border-l border-default flex flex-col"
             :style="{ width: rightPane.width.value + 'px' }"

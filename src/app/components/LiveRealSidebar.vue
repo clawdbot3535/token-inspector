@@ -10,8 +10,9 @@ const props = withDefaults(
     graph: TokenGraph | null;
     componentName?: string;
     customParts?: ReadonlyMap<string, ReadonlyArray<string>>;
+    showDiagnostics?: boolean;
   }>(),
-  { componentName: "sidebar", customParts: () => new Map() },
+  { componentName: "sidebar", customParts: () => new Map(), showDiagnostics: false },
 );
 
 const { recipe } = useCustomPreviewRecipe(
@@ -39,7 +40,9 @@ const { slotDiffs } = useRealRender(hostRef, () => build.value.specs);
       <p class="mt-2 text-[10px] text-muted">
         Real custom component themed by your generated recipe (runtime-compiled).
       </p>
-      <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      <div v-if="showDiagnostics" data-testid="resting-diagnostics">
+        <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      </div>
     </template>
   </div>
 </template>

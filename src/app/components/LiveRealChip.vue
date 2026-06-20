@@ -11,8 +11,9 @@ const props = withDefaults(
     graph: TokenGraph | null;
     componentName?: string;
     customParts?: ReadonlyMap<string, ReadonlyArray<string>>;
+    showDiagnostics?: boolean;
   }>(),
-  { componentName: "chip", customParts: () => new Map() },
+  { componentName: "chip", customParts: () => new Map(), showDiagnostics: false },
 );
 
 const { recipe } = useCustomPreviewRecipe(
@@ -44,13 +45,16 @@ const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.val
       <p class="mt-2 text-[10px] text-muted">
         Real custom component themed by your generated recipe (runtime-compiled).
       </p>
-      <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      <div v-if="showDiagnostics" data-testid="resting-diagnostics">
+        <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
+      </div>
 
       <RealVariantCell
         v-for="cell in variantCells"
         :key="cell.axis + ':' + cell.key"
         :label="`${cell.axis}: ${cell.key}`"
         :specs="cell.specs"
+        :show-diagnostics="showDiagnostics"
       >
         <span :class="cell.ui.base">
           <span :class="cell.ui.label">Chip</span>
