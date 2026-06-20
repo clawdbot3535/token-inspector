@@ -38,7 +38,7 @@ interface AppConfigRenderer extends TextRenderer {
   render(graph: TokenGraph, options?: AppConfigRendererOptions): RenderedText;
 }
 
-interface RoleMapping {
+export interface RoleMapping {
   readonly primary: string;
   readonly neutral: string;
   readonly secondary: string;
@@ -118,7 +118,7 @@ export const appConfigRenderer: AppConfigRenderer = {
  * so a future heuristic can read it without changing the call site. The
  * Inspector frames the output as a "suggestion", so a constant mapping is honest.
  */
-function deriveRoles(_graph: TokenGraph): RoleMapping {
+export function deriveRoles(_graph: TokenGraph): RoleMapping {
   return DEFAULT_ROLES;
 }
 
