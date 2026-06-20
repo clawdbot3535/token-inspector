@@ -65,22 +65,7 @@ const mountOpts = {
       ResizeHandle: true,
       CommitPanel: true,
       GitLoader: true,
-      LiveButton: true,
-      LiveInput: true,
-      LiveBadge: true,
-      LiveSwitch: true,
-      LiveCheckbox: true,
-      LiveRadio: true,
-      LiveCard: true,
-      LiveKbd: true,
-      LiveProgress: true,
-      LiveModal: true,
-      LiveTable: true,
-      LiveDropdown: true,
-      LiveAccordion: true,
-      LiveNav: true,
-      LiveSidebar: true,
-      LiveChip: true,
+      LiveKitPanel: { template: '<div data-testid="kit-panel" />', name: "LiveKitPanel" },
     },
   },
 };
@@ -173,5 +158,18 @@ describe("App view state — selection auto-switches output tab", () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="tab-app.config.ts"]').attributes("aria-selected")).toBe("true");
+  });
+});
+
+describe("App view state — kit tab", () => {
+  it("defaults the component pane to the Kit tab and renders LiveKitPanel", async () => {
+    const wrapper = await mountLoaded();
+    // simulate selecting a previewable component group (ComponentTree emits select-component)
+    wrapper.findComponent(ComponentTree).vm.$emit("select-component", "button");
+    await flushPromises();
+    expect(wrapper.find('[data-testid="kit-tab"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="real-tab"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="preview-tab"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="kit-panel"]').exists()).toBe(true);
   });
 });
