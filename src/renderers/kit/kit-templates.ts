@@ -80,4 +80,6 @@ ${FENCE}
 
 \`theme.ts\` holds your generated \`ui\` theme (colours + component overrides), applied globally via the
 \`@nuxt/ui\` Vite plugin in \`vite.config.ts\`. \`tokens.css\` holds your design tokens (compiled at build time).
+
+Not yet shown in the gallery: \`chip\`, \`sidebar\` (custom \`tv()\` components — deferred from this kit).
 `;
