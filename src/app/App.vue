@@ -435,24 +435,6 @@ const defaultIconForSelected = computed<string | undefined>(() => {
   return matchMapping(figmaMapping.value, node.id)?.defaultIcon;
 });
 
-// Lucide icon name to render inside the live preview for the focused
-// component. Prefers the figma-mapping.json defaultIcon; otherwise uses a
-// per-component sensible default (e.g. a search glyph for inputs); finally
-// falls back to "i-lucide-rocket" so the icon slot stays visible.
-const DEFAULT_PREVIEW_ICONS: Readonly<Record<string, string>> = {
-  input: "i-lucide-search",
-};
-const iconForSelectedComponent = computed<string>(() => {
-  const mapping = figmaMapping.value.components.find(
-    (c) => c.prefix === selectedComponent.value,
-  );
-  return (
-    mapping?.defaultIcon ??
-    DEFAULT_PREVIEW_ICONS[selectedComponent.value] ??
-    "i-lucide-rocket"
-  );
-});
-
 async function handleFiles(files: FileList | readonly File[] | null) {
   if (!files || files.length === 0) return;
   state.loadError.value = null;
@@ -875,7 +857,7 @@ function downloadAll() {
             </div>
           </section>
 
-          <!-- Output: live preview -->
+          <!-- Output: kit + coverage pane -->
           <aside
             class="relative shrink-0 border-l border-default flex flex-col"
             :style="{ width: rightPane.width.value + 'px' }"
