@@ -5,6 +5,15 @@ import { buildGraph } from "@core/build-graph.js";
 import type { SourceFile } from "@core/token-graph.js";
 import CommitPanel from "./CommitPanel.vue";
 
+// Intercept commitFiles so we can inspect what buildExportFiles assembles.
+vi.mock("../git-export.js", async (importOriginal) => {
+  const real = await importOriginal<typeof import("../git-export.js")>();
+  return { ...real, commitFiles: vi.fn(async () => ({ commitUrl: "https://example.com/commit/abc" })) };
+});
+
+// Import AFTER vi.mock so we get the mocked version.
+const { commitFiles } = await import("../git-export.js");
+
 function graph() {
   const global = { button: { bg: { $value: "#FFFFFF", $type: "color" } } };
   const sources: SourceFile[] = [{ name: "global", data: global }];
@@ -16,6 +25,7 @@ function mountPanel() {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.mocked(commitFiles).mockClear();
   sessionStorage.clear();
   localStorage.clear();
 });
@@ -48,5 +58,22 @@ describe("CommitPanel", () => {
     await wrapper.find('[data-testid="export-pat"]').setValue("ghp_SECRET");
     expect(sessionStorage.getItem("git-export-pat")).toBe("ghp_SECRET");
     expect(Object.keys(localStorage).some((k) => (localStorage.getItem(k) ?? "").includes("ghp_SECRET"))).toBe(false);
+  });
+
+  it("buildExportFiles includes kit/ paths in the export sent to commitFiles", async () => {
+    const wrapper = mountPanel();
+    await wrapper.find('[data-testid="export-url"]').setValue("https://github.com/acme/nuxt-app/tree/main/app");
+    await wrapper.find('[data-testid="export-pat"]').setValue("ghp_TOKEN");
+    await wrapper.find('[data-testid="commit-button"]').trigger("click");
+    // Confirm the commit
+    const confirm = wrapper.findAll('[data-testid="commit-confirm"] button').find((b) => b.text() === "Confirm")!;
+    await confirm.trigger("click");
+    // Wait for the async doCommit to resolve
+    await vi.waitFor(() => expect(vi.mocked(commitFiles)).toHaveBeenCalledOnce());
+    const files = vi.mocked(commitFiles).mock.calls[0][1] as Array<{ path: string; content: string }>;
+    const paths = files.map((f) => f.path);
+    expect(paths.some((p) => p.endsWith("kit/package.json"))).toBe(true);
+    expect(paths.some((p) => p.endsWith("kit/vite.config.ts"))).toBe(true);
+    expect(paths.some((p) => p.endsWith("kit/src/App.vue"))).toBe(true);
   });
 });

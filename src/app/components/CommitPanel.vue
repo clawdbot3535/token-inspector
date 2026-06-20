@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { defaultRenderers, appConfigRenderer } from "@core/renderers/index.js";
+import { buildKitFiles } from "@core/renderers/kit/kit-emitter.js";
 import type { TokenGraph, CompletenessScore } from "@core/token-graph.js";
 import { parseGitUrl } from "../git-import.js";
 import { commitFiles, type ExportFile } from "../git-export.js";
@@ -32,13 +33,15 @@ function buildExportFiles(): ExportFile[] {
   if (!g) return [];
   const target = parseGitUrl(exportUrl.value);
   const dir = target?.dir ?? "";
-  return defaultRenderers.map((r) => ({
+  const base = defaultRenderers.map((r) => ({
     path: dir ? `${dir}/${r.id}` : r.id,
     content:
       r.id === appConfigRenderer.id
         ? appConfigRenderer.render(g, { completeness: props.completeness }).text
         : r.render(g).text,
   }));
+  const kit = buildKitFiles(g).map((f) => ({ path: dir ? `${dir}/${f.path}` : f.path, content: f.content }));
+  return [...base, ...kit];
 }
 
 function requestCommit() {
