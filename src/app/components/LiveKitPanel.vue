@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import type { TokenGraph } from "@core/token-graph.js";
 import { coverageFor } from "@core/coverage.js";
 import { REAL_SLOTTED_REGISTRY } from "./real-slotted-registry.js";
+import { allBehaviorsFor, scannerNotesFor } from "../kit-behaviors.js";
 import LiveRealButton from "./LiveRealButton.vue";
 import LiveRealTable from "./LiveRealTable.vue";
 import LiveRealNav from "./LiveRealNav.vue";
@@ -25,6 +26,12 @@ const hasRealRender = computed(
 );
 
 const coverage = computed(() => (props.graph ? coverageFor(props.graph, props.componentName) : null));
+
+const showCatalog = ref(false);
+const catalogNotes = computed(() => [
+  ...allBehaviorsFor(props.componentName),
+  ...scannerNotesFor(props.componentName, props.graph).all,
+]);
 </script>
 
 <template>
@@ -57,5 +64,14 @@ const coverage = computed(() => (props.graph ? coverageFor(props.graph, props.co
       @click="showDiagnostics = !showDiagnostics">
       {{ showDiagnostics ? "▾ Hide diagnostics" : "▸ Diagnostics / deltas" }}
     </button>
+    <button v-if="catalogNotes.length" type="button" data-testid="kit-catalog-toggle"
+      class="mt-3 ml-4 text-[10px] uppercase tracking-wider text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+      :aria-expanded="showCatalog"
+      @click="showCatalog = !showCatalog">
+      {{ showCatalog ? "▾ Known Nuxt behaviors" : "▸ Known Nuxt behaviors" }}
+    </button>
+    <ul v-if="showCatalog" data-testid="kit-catalog" class="mt-1 text-[10px] text-zinc-500 list-disc pl-5">
+      <li v-for="(n, i) in catalogNotes" :key="i">{{ n.text }}</li>
+    </ul>
   </div>
 </template>
