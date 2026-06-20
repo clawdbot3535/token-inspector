@@ -38,10 +38,11 @@ describe("LiveRealAccordion", () => {
   it("renders a closed resting cell and an open cell when the recipe has data-[state=open]: classes", () => {
     const w = mount(LiveRealAccordion, { props: { graph: accOpenGraph(), componentName: "accordion" }, ...mountOpts });
     const els = w.findAll('[data-testid="real-uaccordion"]');
-    expect(els.length).toBeGreaterThanOrEqual(2); // resting + open
+    expect(els.length).toBeGreaterThanOrEqual(2); // resting hero + open cell
     expect(els.some((e) => e.attributes("data-open") === undefined)).toBe(true); // closed resting
     expect(els.some((e) => e.attributes("data-open") === "a")).toBe(true); // open cell force-opens panel "a"
-    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2);
+    // Resting renders as the hero (outside KitMatrix); the open state cell routes through KitMatrix's RealVariantCell.
+    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows a fallback when the graph is null", () => {

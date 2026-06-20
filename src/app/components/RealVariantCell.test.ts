@@ -33,3 +33,19 @@ describe("RealVariantCell — diagnostics gating", () => {
     expect(w.find('[data-testid="rvc-diagnostics"]').exists()).toBe(true);
   });
 });
+
+describe("RealVariantCell — notes", () => {
+  it("renders an inline note when notes are present", () => {
+    const w = mount(RealVariantCell, {
+      props: { label: "outline", specs: [], notes: [{ text: "Nuxt adds an inset ring", kind: "expected" }] },
+      slots: { default: "<button>x</button>" },
+    });
+    const note = w.find('[data-testid="rvc-note"]');
+    expect(note.exists()).toBe(true);
+    expect(note.text()).toContain("inset ring");
+  });
+  it("renders no note element when notes is empty/absent", () => {
+    const w = mount(RealVariantCell, { props: { label: "solid", specs: [] }, slots: { default: "<button>x</button>" } });
+    expect(w.find('[data-testid="rvc-note"]').exists()).toBe(false);
+  });
+});

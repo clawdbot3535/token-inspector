@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.50.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.50.0) — 2026-06-20
+
+### Added
+
+- **Kit deviation explainer — inline `ⓘ` notes + a "Known Nuxt behaviors" panel.** The Kit render now
+  explains *why* a faithful token can look "wrong" when it's actually correct Nuxt UI behavior. A
+  curated catalog (`kit-behaviors.ts`) plus a bridge that reuses the existing capability-deviation
+  scanner warnings drives a small inline note per cell — e.g. `button` `outline` shows "Nuxt adds an
+  inset ring — expected", `link` shows "underline on hover only", and `input`'s disabled cell shows
+  "Nuxt UI v4 dims disabled via opacity, not colour — the override is emitted but won't visibly apply"
+  (from the `disabled-via-opacity` detector). Notes appear only on cells that have one (no clutter). A
+  collapsible **Known Nuxt behaviors** panel lists the component's notes as a reference. The catalog is
+  seeded narrow (button outline/link) and grows over time; the scanner-derived state notes are free.
+
+### Changed
+
+- **Kit cells laid out as labeled axis-rows.** A new shared `KitMatrix.vue` arranges each component's
+  variant/state cells as **Variants / Colors / States** rows (instead of a vertical single-cell stack),
+  so the kit is scannable at a glance. The 12 cell-bearing components (button, chip, the 9 slotted
+  form/display components, accordion) render through it; `table`/`nav`/`sidebar` are resting-only (no
+  variant/state cells, so nothing to lay out).
+
+### Fixed
+
+- **Variant/state cells now match the hero's padding.** `buildVariantCells`/`buildStateCells` inject
+  the recipe's representative size classes into the base slot, so the rendered variant/state cells no
+  longer fall back to Nuxt UI's default padding while the hero used the token padding. (Reported via the
+  Kit render: outline/variant cells had visibly different padding from the resting hero.)
+
+### Notes
+
+- Render fidelity / visual layout verified via headless `/browse` on the live export (not jsdom-testable).
+  875 tests. The matrix + inline-notes are a presentation/diagnostics layer — no recipe/output change.
+
 ## [0.49.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.49.0) — 2026-06-20
 
 ### Changed

@@ -4,7 +4,7 @@ import type { TokenGraph } from "@core/token-graph.js";
 import { useCustomPreviewRecipe } from "../composables/use-preview-recipe.js";
 import { buildSlotSentinels, useRealRender, buildVariantCells } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
-import RealVariantCell from "./RealVariantCell.vue";
+import KitMatrix from "./KitMatrix.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -49,23 +49,20 @@ const variantCells = computed(() => (recipe.value ? buildVariantCells(recipe.val
         <RenderDeltaTable v-for="sd in slotDiffs" :key="sd.slot" :label="sd.slot" :deltas="sd.deltas" />
       </div>
 
-      <RealVariantCell
-        v-for="cell in variantCells"
-        :key="cell.axis + ':' + cell.key"
-        :label="`${cell.axis}: ${cell.key}`"
-        :specs="cell.specs"
-        :show-diagnostics="showDiagnostics"
-      >
-        <span :class="cell.ui.base">
-          <span :class="cell.ui.label">Chip</span>
-          <button
-            type="button"
-            class="appearance-none border-0 bg-transparent p-0 cursor-pointer inline-flex items-center justify-center leading-none"
-          >
-            <span :class="cell.ui.close">×</span>
-          </button>
-        </span>
-      </RealVariantCell>
+      <KitMatrix :component-name="componentName" :variant-cells="variantCells" :state-cells="[]"
+        :graph="graph" :show-diagnostics="showDiagnostics">
+        <template #cell="{ cell }">
+          <span :class="cell.ui.base">
+            <span :class="cell.ui.label">Chip</span>
+            <button
+              type="button"
+              class="appearance-none border-0 bg-transparent p-0 cursor-pointer inline-flex items-center justify-center leading-none"
+            >
+              <span :class="cell.ui.close">×</span>
+            </button>
+          </span>
+        </template>
+      </KitMatrix>
     </template>
   </div>
 </template>

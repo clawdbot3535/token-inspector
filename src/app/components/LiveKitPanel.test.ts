@@ -57,3 +57,15 @@ describe("LiveKitPanel", () => {
     expect(child.props("showDiagnostics")).toBe(true);
   });
 });
+
+describe("LiveKitPanel — known behaviors panel", () => {
+  it("shows a Known-Nuxt-behaviors toggle for a component with catalog entries (button)", async () => {
+    const w = mount(LiveKitPanel, { props: { graph: buttonGraph(), componentName: "button" }, global: { stubs: STUBS } });
+    const toggle = w.find('[data-testid="kit-catalog-toggle"]');
+    expect(toggle.exists()).toBe(true);
+    expect(w.find('[data-testid="kit-catalog"]').exists()).toBe(false); // collapsed by default
+    await toggle.trigger("click");
+    expect(w.find('[data-testid="kit-catalog"]').exists()).toBe(true);
+    expect(w.find('[data-testid="kit-catalog"]').text().toLowerCase()).toContain("inset ring");
+  });
+});

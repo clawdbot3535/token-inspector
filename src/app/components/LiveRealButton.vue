@@ -5,7 +5,7 @@ import { usePreviewRecipe, representativeSizeClasses } from "../composables/use-
 import { ensureRuntimeTailwind } from "../composables/use-runtime-tailwind.js";
 import { computeRenderDiff, buildVariantCells, buildStateCells } from "../composables/use-render-diff.js";
 import RenderDeltaTable from "./RenderDeltaTable.vue";
-import RealVariantCell from "./RealVariantCell.vue";
+import KitMatrix from "./KitMatrix.vue";
 import type { RenderDelta } from "../render-diff.js";
 
 const props = withDefaults(
@@ -63,25 +63,12 @@ watch([() => props.graph, () => props.componentName], refreshDiff);
         <RenderDeltaTable :deltas="deltas" />
       </div>
 
-      <RealVariantCell
-        v-for="cell in variantCells"
-        :key="cell.axis + ':' + cell.key"
-        :label="`${cell.axis}: ${cell.key}`"
-        :specs="cell.specs"
-        :show-diagnostics="showDiagnostics"
-      >
-        <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
-      </RealVariantCell>
-
-      <RealVariantCell
-        v-for="cell in stateCells"
-        :key="cell.state"
-        :label="cell.state"
-        :specs="cell.specs"
-        :show-diagnostics="showDiagnostics"
-      >
-        <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
-      </RealVariantCell>
+      <KitMatrix :component-name="componentName" :variant-cells="variantCells" :state-cells="stateCells"
+        :graph="graph" :show-diagnostics="showDiagnostics">
+        <template #cell="{ cell }">
+          <UButton v-bind="cell.props" :ui="cell.ui" size="md">Button</UButton>
+        </template>
+      </KitMatrix>
     </template>
   </div>
 </template>

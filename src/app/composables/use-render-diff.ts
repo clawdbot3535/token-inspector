@@ -10,6 +10,7 @@ import { projectToState } from "../project-to-state.js";
 import { diffComputed, type RenderDelta } from "../render-diff.js";
 import { ensureRuntimeTailwind } from "./use-runtime-tailwind.js";
 import { RADIO_ITEM_VALUE, ACCORDION_ITEM_VALUE } from "../components/real-slotted-registry.js";
+import { representativeSizeClasses } from "./use-preview-recipe.js";
 
 export function computeRenderDiff(el: Element, baseClasses: string): RenderDelta[] {
   if (typeof document === "undefined") return [];
@@ -86,6 +87,7 @@ export interface VariantCell {
 export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
   const cells: VariantCell[] = [];
   const baseSlots = recipe.slots as Record<string, string | undefined>;
+  const sizeClasses = representativeSizeClasses(recipe);
   for (const axis of ["variant", "color"] as const) {
     const bucket = recipe.variants[axis];
     if (!bucket) continue;
@@ -95,6 +97,9 @@ export function buildVariantCells(recipe: ComponentRecipe): VariantCell[] {
       for (const slot of new Set([...Object.keys(baseSlots), ...Object.keys(variantSlots)])) {
         const merged = [baseSlots[slot], variantSlots[slot]].filter(Boolean).join(" ");
         composed[slot] = merged || undefined;
+      }
+      if (sizeClasses && composed["base"] !== undefined) {
+        composed["base"] = `${composed["base"]} ${sizeClasses}`;
       }
       const { ui, specs } = buildSlotSentinels(composed);
       cells.push({ axis, key, ui, specs, props: { [axis]: key } });
@@ -143,6 +148,7 @@ export interface StateCell {
 export function buildStateCells(recipe: ComponentRecipe, componentName?: string): StateCell[] {
   const cells: StateCell[] = [];
   const slots = recipe.slots as Record<string, string | undefined>;
+  const sizeClasses = representativeSizeClasses(recipe);
   for (const state of SETTABLE_STATES) {
     const prefix = STATE_DETECT_PREFIX[state];
     const present = Object.values(slots).some(
@@ -153,8 +159,9 @@ export function buildStateCells(recipe: ComponentRecipe, componentName?: string)
     const specs: SentinelBuild["specs"] = [];
     for (const [slot, classes] of Object.entries(slots)) {
       if (!classes) continue;
-      ui[slot] = `${classes} ti-slot-${slot}`;
-      specs.push({ slot, selector: `.ti-slot-${slot}`, classes: projectToState(classes, state) });
+      const effectiveClasses = slot === "base" && sizeClasses ? `${classes} ${sizeClasses}` : classes;
+      ui[slot] = `${effectiveClasses} ti-slot-${slot}`;
+      specs.push({ slot, selector: `.ti-slot-${slot}`, classes: projectToState(effectiveClasses, state) });
     }
     const props = STATE_PROPS_OVERRIDE[componentName ?? ""]?.[state] ?? STATE_PROPS[state];
     cells.push({ state, ui, specs, props });
