@@ -61,6 +61,10 @@ const KIND_NOTE_TEXT: Readonly<Record<string, (component: string) => string>> = 
     `\`${c}\`'s resting colour is driven by a \`data-[state=…]\` variant (higher specificity) — a plain resting override is out-specified.`,
   "unsupported-state": (c) =>
     `Nuxt UI v4's \`${c}\` has no equivalent for these states — the state override maps but won't visibly apply.`,
+  "state-via-prop": (c) =>
+    `This state is driven by a Nuxt UI prop on \`${c}\` (set programmatically), not a recipe class — the override maps but won't apply as a class.`,
+  "unsupported-part": (c) =>
+    `Nuxt UI's \`${c}\` has no slot for these parts — the tokens have nowhere to map.`,
 };
 
 export interface ScannerNotes {
