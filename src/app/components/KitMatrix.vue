@@ -20,6 +20,10 @@ const scannerNotes = computed(() => scannerNotesFor(props.componentName, props.g
 const variantAxisCells = computed(() => props.variantCells.filter((c) => c.axis === "variant"));
 const colorAxisCells = computed(() => props.variantCells.filter((c) => c.axis === "color"));
 
+// Shared by both the variant- AND color-axis sections: Nuxt UI colors are
+// implemented as variants, so color keys deliberately route through the same
+// `variants` bucket of KIT_BEHAVIORS. There is no separate `colors` bucket — do
+// not add one without also adding a dedicated lookup here.
 function variantNotes(key: string): readonly KitNote[] {
   return behaviorsFor(props.componentName, { variant: key });
 }
