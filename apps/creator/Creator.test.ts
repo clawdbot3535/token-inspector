@@ -85,7 +85,7 @@ afterEach(() => {
 describe("Creator smoke test", () => {
   // 15s (not the 5s default): this mounts the whole Creator app + jsdom shims and reads token files;
   // it runs ~120ms standalone but can exceed 5s under full-suite worker-pool contention.
-  it("shows load prompt before sources; after load + pick switch: badge 100%, switch-track renders, JSON has switch", async () => {
+  it("shows load prompt before sources; after load + pick switch: badge 100%, kit-panel renders, JSON has switch", async () => {
     const wrapper = mount(Creator, mountOpts);
     await flushPromises();
 
@@ -118,8 +118,8 @@ describe("Creator smoke test", () => {
     expect(badge.exists()).toBe(true);
     expect(badge.text()).toContain("100%");
 
-    // Live preview mounted — switch-track is the real LiveSwitch element
-    expect(wrapper.find('[data-testid="switch-track"]').exists()).toBe(true);
+    // Live preview mounted — LiveKitPanel renders for switch (in REAL_SLOTTED_REGISTRY)
+    expect(wrapper.find('[data-testid="kit-panel"]').exists()).toBe(true);
 
     // Output JSON contains "switch"
     const output = wrapper.find('[data-testid="creator-output"]');
