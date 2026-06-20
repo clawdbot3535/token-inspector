@@ -26,7 +26,8 @@ async function start(): Promise<void> {
     embedEl.value.replaceChildren(host);
     await props.substrate.embed(host, files, { title: TITLE });
     status.value = "ready";
-  } catch {
+  } catch (err) {
+    console.warn("[live-build] embedded build failed to start", err);
     status.value = "error";
   }
 }
