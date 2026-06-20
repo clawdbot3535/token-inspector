@@ -29,24 +29,6 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
     __APP_UNPUSHED__: JSON.stringify(countUnpushedCommits()),
   },
-  // Cross-origin isolation: the "Live Build" StackBlitz embed runs a
-  // WebContainer, which only boots when the host page is `crossOriginIsolated`.
-  // Use COEP `credentialless` (not `require-corp`) so the cross-origin
-  // stackblitz.com embed iframe loads without needing CORP headers. The
-  // inspector loads no cross-origin subresources, so isolation is safe here.
-  // Vercel mirrors these headers via vercel.json for production.
-  server: {
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "credentialless",
-    },
-  },
-  preview: {
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "credentialless",
-    },
-  },
   plugins: [
     vue(),
     tailwindcss(),
