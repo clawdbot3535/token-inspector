@@ -72,9 +72,10 @@ describe("LiveRealSlotted — state cells", () => {
       global: { stubs: { UInput: InputStub } },
     });
     const inputs = w.findAll('[data-testid="real-input"]');
-    expect(inputs.length).toBeGreaterThanOrEqual(2); // resting + disabled cell
+    expect(inputs.length).toBeGreaterThanOrEqual(2); // resting hero + disabled cell
     expect(inputs.some((i) => i.attributes("data-disabled") === "true")).toBe(true);
-    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(2);
+    // Resting renders as the hero (outside KitMatrix); state cells route through KitMatrix's RealVariantCells.
+    expect(w.findAllComponents(RealVariantCell).length).toBeGreaterThanOrEqual(1);
   });
 });
 
