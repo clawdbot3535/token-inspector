@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.51.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.51.0) — 2026-06-20
+
+### Changed
+
+- **Kit colour cells render checked for `switch`/`checkbox`/`radio`.** Nuxt UI applies a component's
+  `color` to the **checked** track, so the Kit's COLORS row previously showed near-invisible colour on
+  unchecked controls (just a faint ring). The colour cells for these checkable components now render in
+  the checked state, so error/success/etc. are actually visible. (`KitMatrix` augments only the
+  colour-axis cells' props; variant/state rows and non-checkable components are unaffected.)
+
+### Fixed
+
+- **De-duplicated the "Known Nuxt behaviors" notes across all capability-deviation kinds.** A component
+  with N colour tokens for the same deviation (e.g. `badge` with `badge-disabled-bg/text/border`, or
+  `nav` with 11 `nav-item-*-active` tokens) showed N near-identical notes differing only by token id.
+  Each capability kind (`disabled-via-opacity`, `resting-shadowed-by-state`, `unsupported-state`,
+  `state-via-prop`, `unsupported-part`) now has a token-agnostic message and the notes dedup by text, so
+  the same deviation collapses to ONE note (badge 9→1, nav 11→1, chip→1). The inline ⓘ notes benefit too.
+
+### Notes
+
+- Surfaced during a `/browse` component walk-through of the live export — all components render
+  correctly; modal/dropdown still show the "Real render coming" placeholders. Presentation/diagnostics
+  layer only, no recipe/output change. 879 tests.
+
 ## [0.50.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.50.0) — 2026-06-20
 
 ### Added

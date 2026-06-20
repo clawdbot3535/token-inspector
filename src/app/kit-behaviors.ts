@@ -49,6 +49,24 @@ const CAPABILITY_DEVIATION_KINDS: ReadonlySet<string> = new Set([
 /** Capability-deviation kinds whose affected state cell is deterministic. */
 const KIND_TO_STATE: Readonly<Record<string, string>> = { "disabled-via-opacity": "disabled" };
 
+/**
+ * For kinds that fire once per colour token (but all carry the same structural
+ * insight), replace the per-token scanner message with a single token-agnostic
+ * sentence.  Issues whose kind is NOT listed here keep the original message.
+ */
+const KIND_NOTE_TEXT: Readonly<Record<string, (component: string) => string>> = {
+  "disabled-via-opacity": (c) =>
+    `Nuxt UI v4 dims \`${c}\`'s disabled state via opacity (not colour) — disabled colour overrides are emitted but won't visibly apply.`,
+  "resting-shadowed-by-state": (c) =>
+    `\`${c}\`'s resting colour is driven by a \`data-[state=…]\` variant (higher specificity) — a plain resting override is out-specified.`,
+  "unsupported-state": (c) =>
+    `Nuxt UI v4's \`${c}\` has no equivalent for these states — the state override maps but won't visibly apply.`,
+  "state-via-prop": (c) =>
+    `This state is driven by a Nuxt UI prop on \`${c}\` (set programmatically), not a recipe class — the override maps but won't apply as a class.`,
+  "unsupported-part": (c) =>
+    `Nuxt UI's \`${c}\` has no slot for these parts — the tokens have nowhere to map.`,
+};
+
 export interface ScannerNotes {
   byState: Readonly<Record<string, readonly KitNote[]>>;
   all: readonly KitNote[];
@@ -63,8 +81,12 @@ export function scannerNotesFor(component: string, graph: TokenGraph | null): Sc
   );
   const byState: Record<string, KitNote[]> = {};
   const all: KitNote[] = [];
+  const seenTexts = new Set<string>();
   for (const issue of issues) {
-    const note: KitNote = { text: issue.message, kind: "expected" };
+    const text = KIND_NOTE_TEXT[issue.kind]?.(component) ?? issue.message;
+    if (seenTexts.has(text)) continue;
+    seenTexts.add(text);
+    const note: KitNote = { text, kind: "expected" };
     all.push(note);
     const state = KIND_TO_STATE[issue.kind];
     if (state) (byState[state] ??= []).push(note);
