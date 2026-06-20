@@ -64,3 +64,20 @@ describe("scannerNotesFor — dedup", () => {
     expect(r.all[0]!.text.toLowerCase()).toContain("opacity");
   });
 });
+
+function badgeMultiDisabledGraph() {
+  return buildGraph([{ name: "global", data: { badge: { disabled: {
+    bg: { $value: "#F4F4F5", $type: "color" },
+    text: { $value: "#A1A1AA", $type: "color" },
+    border: { $value: "#E4E4E7", $type: "color" },
+  } } } }]);
+}
+
+describe("scannerNotesFor — unsupported-state dedup", () => {
+  it("collapses multiple unsupported-state issues into one token-agnostic note", () => {
+    const r = scannerNotesFor("badge", badgeMultiDisabledGraph());
+    expect(r.all.length).toBe(1);                                    // not 3
+    expect(r.all[0]!.text).not.toMatch(/badge-disabled-(bg|text|border)/); // token-agnostic
+    expect(r.all[0]!.text.toLowerCase()).toContain("no equivalent"); // the new message
+  });
+});

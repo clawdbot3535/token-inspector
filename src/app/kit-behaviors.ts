@@ -59,6 +59,8 @@ const KIND_NOTE_TEXT: Readonly<Record<string, (component: string) => string>> = 
     `Nuxt UI v4 dims \`${c}\`'s disabled state via opacity (not colour) — disabled colour overrides are emitted but won't visibly apply.`,
   "resting-shadowed-by-state": (c) =>
     `\`${c}\`'s resting colour is driven by a \`data-[state=…]\` variant (higher specificity) — a plain resting override is out-specified.`,
+  "unsupported-state": (c) =>
+    `Nuxt UI v4's \`${c}\` has no equivalent for these states — the state override maps but won't visibly apply.`,
 };
 
 export interface ScannerNotes {
