@@ -1,5 +1,5 @@
 // Reactively injects the rendered tokens.css into <head> so live previews
-// (LiveButton, color swatches, per-token classifications) can resolve the
+// (the Kit render, color swatches, per-token classifications) can resolve the
 // `var(--<token-id>)` references emitted by the recipe-engine.
 //
 // Without this, generated classes like `bg-[var(--color-action-bg)]` paint
