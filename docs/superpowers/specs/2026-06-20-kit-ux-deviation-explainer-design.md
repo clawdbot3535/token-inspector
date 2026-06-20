@@ -150,7 +150,7 @@ A collapsible **"Known Nuxt behaviors"** disclosure (sibling to the existing dia
 
 ## Resolved / flagged decisions (for your spec review)
 
-1. **A = axis-rows, NOT a cartesian variant×color grid.** The sketch implied a product grid; the existing `buildVariantCells` only yields per-axis cells, so v1 lays out labeled Variants/Colors/States rows. The true product grid is a future option (new cell logic + combinatorial size). ← please confirm this is acceptable for v1.
+1. **A = axis-rows, NOT a cartesian variant×color grid.** *(confirmed in review.)* The sketch implied a product grid; the existing `buildVariantCells` only yields per-axis cells, so v1 lays out labeled Variants/Colors/States rows. The true product grid is a future option (new cell logic + combinatorial size).
 2. **Inline scanner notes only where a clean state mapping exists** (e.g. `disabled-via-opacity` → disabled cell); all others go into the b3 catalog only. Avoids guessing cell placement.
 3. **Inline-note density: only on cells with a note** (no `ⓘ` on plain cells).
 
