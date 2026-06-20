@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.52.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.52.0) — 2026-06-20
+
+### Added
+
+- **Runnable kit export (`kit/`).** The export bundle now includes a complete, self-contained
+  Vite + Vue 3 + @nuxt/ui project under `kit/`. Run `npm install && npm run dev` (or `build`) inside it
+  and your components render via the **real build-time Tailwind compiler** (`@tailwindcss/vite`),
+  globally themed by your tokens — the literal product, closing the runtime-Tailwind fidelity gap left
+  by the in-inspector Kit view (which uses `@tailwindcss/browser`).
+  - `kit/theme.ts` carries the generated `ui` theme (colour roles + per-component slot/variant
+    overrides), built from the **same** `deriveRoles` + `buildComponentRecipes` the `app.config.ts`
+    renderer uses, and applied globally via the `@nuxt/ui` Vite plugin's `ui` option (`ui({ ui: theme })`).
+  - `kit/tokens.css` is the existing `@theme` token output, compiled at build time.
+  - `kit/src/App.vue` is a lean gallery: one instance + key variants per component present in the
+    export (the 15 standard allow-listed components; custom `tv()` components `chip`/`sidebar` deferred).
+  - Emitted by a new pure `src/renderers/kit/` module (`kit-theme` / `kit-gallery` / `kit-templates` /
+    `kit-emitter`) and shipped in **both** export pipelines — the download-zip and the git-export.
+
+### Notes
+
+- Validated end-to-end: a kit generated from the live token export runs `npm install && vite build`
+  clean (exit 0), producing a compiled stylesheet via the real build-time compiler. Additive only —
+  no change to the existing `tokens.css` / `app.config.ts` / `custom-components.ts` renderer output.
+  890 tests.
+
 ## [0.51.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.51.0) — 2026-06-20
 
 ### Changed
