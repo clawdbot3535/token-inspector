@@ -43,3 +43,28 @@ if (typeof window !== "undefined" && typeof globalThis.localStorage === "undefin
   Object.defineProperty(globalThis, "localStorage", descriptor);
   Object.defineProperty(window, "localStorage", descriptor);
 }
+
+// ---------------------------------------------------------------------------
+// @tailwindcss/browser (booted by the real-component Kit mount tests) injects
+// compiled CSS that jsdom's lenient parser rejects asynchronously with
+// "Could not parse CSS stylesheet". The error is harmless (the tests assert on
+// recipe output, not computed styles) but escapes as an unhandled rejection,
+// which makes Vitest exit non-zero even when every test passes. Swallow ONLY
+// this known-benign error; re-surface everything else as an uncaught exception
+// so real unhandled rejections still fail the run.
+// ---------------------------------------------------------------------------
+export function isBenignCssParseError(reason: unknown): boolean {
+  return reason instanceof Error && reason.message.includes("Could not parse CSS stylesheet");
+}
+
+const REJECTION_GUARD = "__benignCssRejectionHandlerInstalled__";
+if (!(globalThis as Record<string, unknown>)[REJECTION_GUARD]) {
+  (globalThis as Record<string, unknown>)[REJECTION_GUARD] = true;
+  const proc = (globalThis as Record<string, unknown>)["process"] as
+    | { on: (event: string, handler: (reason: unknown) => void) => void }
+    | undefined;
+  proc?.on("unhandledRejection", (reason: unknown) => {
+    if (isBenignCssParseError(reason)) return;
+    throw reason;
+  });
+}
