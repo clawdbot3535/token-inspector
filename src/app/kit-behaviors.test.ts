@@ -39,3 +39,28 @@ describe("scannerNotesFor", () => {
     expect(scannerNotesFor("input", null)).toEqual({ byState: {}, all: [] });
   });
 });
+
+function inputThreeDisabledGraph() {
+  return buildGraph([
+    {
+      name: "global",
+      data: {
+        input: {
+          border: { disabled: { $value: "#F4F4F5", $type: "color" } },
+          bg: { disabled: { $value: "#F4F4F5", $type: "color" } },
+          text: { disabled: { $value: "#A1A1AA", $type: "color" } },
+        },
+      },
+    },
+  ]);
+}
+
+describe("scannerNotesFor — dedup", () => {
+  it("collapses multiple disabled-via-opacity issues into one token-agnostic note", () => {
+    const r = scannerNotesFor("input", inputThreeDisabledGraph());
+    expect(r.byState["disabled"]?.length).toBe(1); // not 3
+    expect(r.all.length).toBe(1);
+    expect(r.all[0]!.text).not.toMatch(/input-(border|bg|text)-disabled/); // token-agnostic
+    expect(r.all[0]!.text.toLowerCase()).toContain("opacity");
+  });
+});
