@@ -84,6 +84,31 @@ describe("buildVariantCells", () => {
     expect(buildVariantCells(recipeWith({}))).toEqual([]);
     expect(buildVariantCells(recipeWith({ size: { md: { base: "p-2" } } }))).toEqual([]);
   });
+
+  it("includes representative size classes in the base slot of each variant cell", () => {
+    const recipe = recipeWith(
+      {
+        variant: { solid: { base: "bg-[#A]" }, outline: { base: "bg-transparent" } },
+        size: { md: { base: "px-[16px] py-[8px]" } },
+      },
+      { base: "rounded-[4px]" },
+    );
+    const cells = buildVariantCells(recipe);
+    expect(cells.length).toBe(2);
+    for (const cell of cells) {
+      expect(cell.ui.base).toContain("px-[16px]");
+      expect(cell.ui.base).toContain("py-[8px]");
+      expect(cell.specs.find((s) => s.slot === "base")!.classes).toContain("px-[16px]");
+      expect(cell.specs.find((s) => s.slot === "base")!.classes).toContain("py-[8px]");
+    }
+  });
+
+  it("is a no-op when the recipe has no size variants (no extra classes injected)", () => {
+    const recipe = recipeWith({ variant: { solid: { base: "bg-[#A]" } } }, { base: "rounded-[4px]" });
+    const cells = buildVariantCells(recipe);
+    expect(cells[0]!.ui.base).toBe("rounded-[4px] bg-[#A] ti-slot-base");
+    expect(cells[0]!.specs[0]!.classes).toBe("rounded-[4px] bg-[#A]");
+  });
 });
 
 describe("buildStateCells", () => {
@@ -141,5 +166,19 @@ describe("buildStateCells", () => {
   it("emits disabled, checked, open in SETTABLE_STATES order when the recipe carries all three", () => {
     const recipe = recipeWith({}, { base: "disabled:opacity-[0.5] data-[state=checked]:bg-[#c] data-[state=open]:text-[#o]" });
     expect(buildStateCells(recipe).map((c) => c.state)).toEqual(["disabled", "checked", "open"]);
+  });
+
+  it("includes representative size classes in the base slot of each state cell", () => {
+    const recipe = recipeWith(
+      { size: { md: { base: "px-[16px] py-[8px]" } } },
+      { base: "text-[#000] disabled:text-[#999]" },
+    );
+    const cells = buildStateCells(recipe);
+    expect(cells.length).toBe(1);
+    const d = cells[0]!;
+    expect(d.ui.base).toContain("px-[16px]");
+    expect(d.ui.base).toContain("py-[8px]");
+    expect(d.specs.find((s) => s.slot === "base")!.classes).toContain("px-[16px]");
+    expect(d.specs.find((s) => s.slot === "base")!.classes).toContain("py-[8px]");
   });
 });
