@@ -33,13 +33,13 @@ const coverage = computed(() => (props.graph ? coverageFor(props.graph, props.co
       <h2 class="text-sm font-semibold">{{ componentName }}</h2>
       <span v-if="coverage" data-testid="kit-coverage-badge"
         class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-        {{ coverage.structuralTouched }}/{{ coverage.structuralTotal }} gemappt
+        {{ coverage.structuralTouched }}/{{ coverage.structuralTotal }} mapped
       </span>
     </div>
 
     <div v-if="!hasRealRender" data-testid="kit-placeholder"
       class="text-xs text-muted border border-dashed border-default rounded p-6 text-center">
-      Real-Render folgt — {{ componentName }} ist eine Overlay-Komponente und bekommt im nächsten Schritt einen echten Inline-Render.
+      Real render coming — {{ componentName }} is an overlay component and will get a real inline render in the next step.
     </div>
     <template v-else>
       <LiveRealButton v-if="componentName === 'button'" :graph="graph" :component-name="componentName" :show-diagnostics="showDiagnostics" />
@@ -55,7 +55,7 @@ const coverage = computed(() => (props.graph ? coverageFor(props.graph, props.co
       class="mt-3 text-[10px] uppercase tracking-wider text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
       :aria-expanded="showDiagnostics"
       @click="showDiagnostics = !showDiagnostics">
-      {{ showDiagnostics ? "▾ Diagnose ausblenden" : "▸ Diagnose / Abweichungen" }}
+      {{ showDiagnostics ? "▾ Hide diagnostics" : "▸ Diagnostics / deltas" }}
     </button>
   </div>
 </template>
