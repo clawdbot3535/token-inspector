@@ -20,6 +20,10 @@ export default defineConfig({
     alias: {
       "@": new URL("./src/app", import.meta.url).pathname,
       "@core": new URL("./src", import.meta.url).pathname,
+      // Replace the runtime Tailwind compiler with a no-op in tests: jsdom can't
+      // parse the v4 CSS it injects, and the resulting unhandled rejection makes
+      // Vitest exit non-zero even when all tests pass. See the stub for details.
+      "@tailwindcss/browser": new URL("./src/test-stubs/tailwindcss-browser.ts", import.meta.url).pathname,
     },
   },
   test: {
