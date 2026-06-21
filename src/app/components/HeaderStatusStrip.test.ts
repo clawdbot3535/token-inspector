@@ -12,9 +12,34 @@ function report(): ScanReport {
       tokensCss: { estimatedBytes: 0, tailwindMatches: 0, themeExtensions: 0, modeVariantEntries: 0 },
       components: [],
       unmappedComponentPrefixes: [],
+      nonComponentPrefixes: [],
     },
     generatedAt: 0,
   };
+}
+
+function reportWith(tokenIds: string[]): ScanReport {
+  return {
+    issues: [
+      {
+        id: "a",
+        category: "classification-hint",
+        severity: "warning",
+        kind: "unsupported-part",
+        message: "m",
+        tokenIds,
+        componentName: "chip",
+      },
+    ],
+    completeness: [],
+    forecast: {
+      tokensCss: { estimatedBytes: 0, tailwindMatches: 0, themeExtensions: 0, modeVariantEntries: 0 },
+      components: [],
+      unmappedComponentPrefixes: [],
+      nonComponentPrefixes: [],
+    },
+    generatedAt: 0,
+  } as ScanReport;
 }
 
 describe("HeaderStatusStrip", () => {
@@ -34,5 +59,19 @@ describe("HeaderStatusStrip", () => {
     const btn = wrapper.find("button");
     expect(btn.attributes("aria-pressed")).toBe("false");
     expect(btn.classes().join(" ")).not.toContain("ring-1");
+  });
+});
+
+describe("HeaderStatusStrip resolved subtraction", () => {
+  it("drops a fully-resolved warning from the warning count", () => {
+    const r = reportWith(["chip-mystery-bg"]);
+    const without = mount(HeaderStatusStrip, {
+      props: { report: r, scanViewActive: false },
+    });
+    const withResolved = mount(HeaderStatusStrip, {
+      props: { report: r, scanViewActive: false, resolved: new Set(["chip-mystery-bg"]) },
+    });
+    expect(without.text()).toContain("1 warnings");
+    expect(withResolved.text()).toContain("0 warnings");
   });
 });
