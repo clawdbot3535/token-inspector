@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import type { ScanReport, ScanIssue } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
+import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -59,12 +60,12 @@ function onIssueClick(issue: ScanIssue): void {
 const resolvableTokenIds = computed<Set<string>>(
   () => new Set(heuristicExtendable(props.report).map((r) => r.tokenId)),
 );
+const resolvedIds = computed(() => resolvedIssueIds(props.report, props.resolved));
 function issueResolvableToken(issue: ScanIssue): string | null {
   return issue.tokenIds.find((t) => resolvableTokenIds.value.has(t) && !props.resolved.has(t)) ?? null;
 }
 function issueResolved(issue: ScanIssue): boolean {
-  const resolvable = issue.tokenIds.filter((t) => resolvableTokenIds.value.has(t));
-  return resolvable.length > 0 && resolvable.every((t) => props.resolved.has(t));
+  return resolvedIds.value.has(issue.id);
 }
 
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
