@@ -4,12 +4,12 @@ import type { ScanReport, ScanIssue } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 
-interface Props { report: ScanReport; }
+interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
   (event: "select-tokens", tokenIds: readonly string[]): void;
   (event: "resolve", tokenId: string): void;
 }
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { resolved: () => new Set<string>() });
 const emit = defineEmits<Emits>();
 
 type Tab = "issues" | "readiness" | "forecast";
@@ -60,7 +60,11 @@ const resolvableTokenIds = computed<Set<string>>(
   () => new Set(heuristicExtendable(props.report).map((r) => r.tokenId)),
 );
 function issueResolvableToken(issue: ScanIssue): string | null {
-  return issue.tokenIds.find((t) => resolvableTokenIds.value.has(t)) ?? null;
+  return issue.tokenIds.find((t) => resolvableTokenIds.value.has(t) && !props.resolved.has(t)) ?? null;
+}
+function issueResolved(issue: ScanIssue): boolean {
+  const resolvable = issue.tokenIds.filter((t) => resolvableTokenIds.value.has(t));
+  return resolvable.length > 0 && resolvable.every((t) => props.resolved.has(t));
 }
 
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
@@ -153,6 +157,11 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="resolve-issue"
                 @click.stop="$emit('resolve', issueResolvableToken(issue)!)"
               >Resolve →</UButton>
+              <span
+                v-else-if="issueResolved(issue)"
+                data-testid="resolve-done"
+                class="ml-2 text-[10px] text-emerald-600 dark:text-emerald-400"
+              >✓ resolved</span>
             </div>
           </li>
         </ul>

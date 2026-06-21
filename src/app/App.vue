@@ -107,6 +107,7 @@ const filteredNodes = useFilteredNodes(state);
 const scanReport = useScanReport(state.graph);
 const resolveOverride = ref<SlotMappingOverride>({});
 provide(RESOLVE_OVERRIDE_KEY, resolveOverride);
+const resolvedTokenIds = computed<Set<string>>(() => new Set(Object.keys(resolveOverride.value)));
 const resolvables = computed<ResolvableDeviation[]>(() => heuristicExtendable(scanReport.value));
 const activeResolve = ref<string | null>(null);
 const activeDeviation = computed<ResolvableDeviation | null>(
@@ -771,6 +772,7 @@ function downloadAll() {
           >
             <ScanView
               :report="scanReport"
+              :resolved="resolvedTokenIds"
               @select-tokens="onScanSelectTokens"
               @resolve="onResolve"
             />
