@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.54.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.1) — 2026-06-21
+
+### Changed
+
+- **Resolved deviations show ✓ resolved (override-aware Resolve affordance).** Once you Apply a
+  resolution, that deviation's **Resolve →** button is replaced by a **✓ resolved** mark in the Scan view
+  (an issue with several heuristic-extendable tokens keeps offering Resolve for the still-unresolved
+  ones). Closes the v0.54.0 limitation where resolved issues kept nagging. Localized to the resolve UI:
+  `App.vue` passes a `resolved` token-id set (from the session override) to `ScanView`; no change to the
+  scan report, `customParts`, or the export. (The deeper "override-aware `scanGraph`" that drops the
+  warning count + re-routes the export is parked — it needs custom-component override support first, or
+  resolved custom tokens would vanish from both outputs.) 912 tests.
+
 ## [0.54.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.0) — 2026-06-21
 
 ### Added
