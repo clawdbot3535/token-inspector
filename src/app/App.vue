@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch, onMounted, provide } from "vue";
 import { useResizablePane } from "./composables/use-resizable-pane.js";
 import { useInjectedTokensCss } from "./composables/use-injected-tokens-css.js";
 import ResizeHandle from "./components/ResizeHandle.vue";
@@ -44,6 +44,11 @@ import {
 } from "./figma-mapping.js";
 import CommitPanel from "./components/CommitPanel.vue";
 import GitLoader from "./components/GitLoader.vue";
+import ResolvePanel from "./components/ResolvePanel.vue";
+import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
+import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
+import { buildSlotMappingFile } from "./resolve/export-slot-mapping.js";
+import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
 const appVersion = __APP_VERSION__;
 const unpushed = __APP_UNPUSHED__;
@@ -100,6 +105,22 @@ const rightPane = useResizablePane({
 const state = createAppState();
 const filteredNodes = useFilteredNodes(state);
 const scanReport = useScanReport(state.graph);
+const resolveOverride = ref<SlotMappingOverride>({});
+provide(RESOLVE_OVERRIDE_KEY, resolveOverride);
+const resolvables = computed<ResolvableDeviation[]>(() => heuristicExtendable(scanReport.value));
+const activeResolve = ref<string | null>(null);
+const activeDeviation = computed<ResolvableDeviation | null>(
+  () => resolvables.value.find((r) => r.tokenId === activeResolve.value) ?? null,
+);
+function onResolve(tokenId: string): void { activeResolve.value = tokenId; }
+function onApply(tokenId: string, entry: SlotMappingEntry): void {
+  resolveOverride.value = { ...resolveOverride.value, [tokenId]: entry };
+  activeResolve.value = null;
+}
+function downloadSlotMapping(): void {
+  const blob = new Blob([buildSlotMappingFile(resolveOverride.value)], { type: "application/json" });
+  downloadBlob(blob, "slot-mapping.json");
+}
 // Components the scanner flagged `component-looks-custom` — routed out of the
 // app.config.ts ui: block and into the custom-components.ts tab/download.
 const customParts = computed(() =>
@@ -751,7 +772,10 @@ function downloadAll() {
             <ScanView
               :report="scanReport"
               @select-tokens="onScanSelectTokens"
+              @resolve="onResolve"
             />
+            <ResolvePanel v-if="activeDeviation" :deviation="activeDeviation" @apply="onApply" />
+            <UButton v-if="Object.keys(resolveOverride).length > 0" size="xs" variant="outline" data-testid="download-slot-mapping" @click="downloadSlotMapping">Download slot-mapping.json</UButton>
           </section>
           <section v-else class="flex-1 overflow-y-auto p-4 text-sm space-y-4">
             <template v-if="selectedNode && state.graph.value">

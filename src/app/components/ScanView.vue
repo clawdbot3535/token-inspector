@@ -2,9 +2,13 @@
 import { computed, ref } from "vue";
 import type { ScanReport, ScanIssue } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
+import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 
 interface Props { report: ScanReport; }
-interface Emits { (event: "select-tokens", tokenIds: readonly string[]): void; }
+interface Emits {
+  (event: "select-tokens", tokenIds: readonly string[]): void;
+  (event: "resolve", tokenId: string): void;
+}
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
@@ -50,6 +54,13 @@ const severityTagClass = (sev: string): string =>
 
 function onIssueClick(issue: ScanIssue): void {
   if (issue.tokenIds.length > 0) emit("select-tokens", issue.tokenIds);
+}
+
+const resolvableTokenIds = computed<Set<string>>(
+  () => new Set(heuristicExtendable(props.report).map((r) => r.tokenId)),
+);
+function issueResolvableToken(issue: ScanIssue): string | null {
+  return issue.tokenIds.find((t) => resolvableTokenIds.value.has(t)) ?? null;
 }
 
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
@@ -132,9 +143,17 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 {{ issue.componentName }} / {{ issue.variantKey }}
               </div>
             </div>
-            <span v-if="issue.tokenIds.length > 0" class="shrink-0 text-[10px] text-zinc-400">
-              {{ issue.tokenIds.length }} token{{ issue.tokenIds.length === 1 ? '' : 's' }} &rarr;
-            </span>
+            <div class="shrink-0 flex items-center gap-1">
+              <span v-if="issue.tokenIds.length > 0" class="text-[10px] text-zinc-400">
+                {{ issue.tokenIds.length }} token{{ issue.tokenIds.length === 1 ? '' : 's' }} &rarr;
+              </span>
+              <UButton
+                v-if="issueResolvableToken(issue)"
+                size="xs" variant="soft" class="ml-2"
+                data-testid="resolve-issue"
+                @click.stop="$emit('resolve', issueResolvableToken(issue)!)"
+              >Resolve →</UButton>
+            </div>
           </li>
         </ul>
       </div>

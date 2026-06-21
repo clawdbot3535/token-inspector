@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.54.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.0) — 2026-06-21
+
+### Added
+
+- **Resolve deviations into a `slot-mapping.json` override (heuristic-extension loop).** The Scan view's
+  Issues tab now shows a **Resolve →** button on the deviations where the slot-mapping heuristic can't
+  place a token (`unsupported-part` / `component-looks-custom`). Clicking it opens an editor pre-filled
+  with a best guess (slot / utility type / variant axis); **Apply** routes the token live (the Kit render
+  re-runs in-session with the override) and a **Download `slot-mapping.json`** button exports the
+  accumulated overrides for your repo/CLI. This is the first vertical slice of **deviation
+  decision-routing (Y)** — one owner (Heuristic-Extension), end to end.
+  - New pure `src/app/resolve/` module: `heuristicExtendable` (classifier + utility-type guess),
+    `buildSlotMappingFile` (round-trips `parseSlotMappingFile`), and a `RESOLVE_OVERRIDE_KEY`
+    provide/inject seam threaded into `usePreviewRecipe` → `buildComponentRecipes` (the engine already
+    accepted a `slotMappingOverride`; no engine change).
+
+### Notes
+
+- **v1 scope/limits (the other (Y) owners + polish are parked):** the live in-app re-render applies to
+  **standard** components (the `usePreviewRecipe` path); **custom** components (`chip`/`sidebar`, via
+  `useCustomPreviewRecipe`) resolve + export correctly but don't live-re-render yet. Resolved issues stay
+  in the list (the scan report isn't override-aware — no "✓/drop-out" yet). The other four deviation
+  owners (Figma-Fix / Manual-Dev / by-design-Constraint / Data-Quality) and the full 24-kind routing are
+  later rounds. 910 tests.
+
 ## [0.53.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.53.0) — 2026-06-21
 
 ### Added
