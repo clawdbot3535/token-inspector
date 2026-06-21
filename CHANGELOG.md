@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.54.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.3) — 2026-06-22
+
+### Changed
+
+- **The scan summary count reflects resolution progress.** The header's `N errors · N warnings · N hints`
+  (`HeaderStatusStrip`) now excludes fully-resolved deviations — as you resolve deviations, the counts
+  drop. Presentation-only: a new pure `resolvedIssueIds(report, resolved)` helper (the single source of
+  truth for "this deviation is handled", also adopted by `ScanView`'s ✓ for DRY) subtracts resolved
+  issues from the counts; `scanGraph`, `customParts`, and the export are untouched. (The deeper
+  override-aware `scanGraph` — which would make resolved issues disappear and supersede the per-issue ✓ —
+  and an override-aware export were deliberately not done; the `slot-mapping.json` download stays the
+  canonical persistence.) 919 tests.
+
 ## [0.54.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.2) — 2026-06-22
 
 ### Changed
