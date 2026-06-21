@@ -29,9 +29,11 @@ export function usePreviewRecipe(
   componentNameFn: () => string,
 ): { recipe: ComputedRef<ComponentRecipe | null>; sizeClasses: ComputedRef<string> } {
   // inject() returns undefined when called outside a component setup context
-  // (e.g. in unit tests that call usePreviewRecipe directly). Fall back to an
-  // empty override ref so the recipe engine's heuristic path is unaffected.
-  const override = inject(RESOLVE_OVERRIDE_KEY) ?? ref<SlotMappingOverride>({});
+  // (e.g. in unit tests that call usePreviewRecipe directly). The explicit
+  // `undefined` default suppresses Vue's "injection not found" dev warning when
+  // no provider exists; we fall back to an empty override ref so the recipe
+  // engine's heuristic path is unaffected.
+  const override = inject(RESOLVE_OVERRIDE_KEY, undefined) ?? ref<SlotMappingOverride>({});
   const recipe = computed<ComponentRecipe | null>(() => {
     const g = graphFn();
     if (!g) return null;

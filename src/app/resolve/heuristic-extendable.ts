@@ -20,6 +20,7 @@ const SUFFIX_UTILITY: ReadonlyArray<readonly [RegExp, UtilityType]> = [
   [/icon(-size)?$/, "icon-size"],
   [/(font-weight|weight)$/, "font-weight"],
   [/(text-size)$/, "text-size"],
+  [/size$/, "size"],
   [/height$/, "height"],
   [/width$/, "width"],
   [/(bg|background)$/, "bg-color"],

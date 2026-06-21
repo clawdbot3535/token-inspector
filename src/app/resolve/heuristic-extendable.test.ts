@@ -17,6 +17,7 @@ describe("guessUtilityType", () => {
     expect(guessUtilityType("button-mystery-bg")).toBe("bg-color");
     expect(guessUtilityType("button-foo-padding-x")).toBe("padding-x");
     expect(guessUtilityType("button-foo-radius")).toBe("rounded");
+    expect(guessUtilityType("chip-close-button-size")).toBe("size");
   });
 });
 
