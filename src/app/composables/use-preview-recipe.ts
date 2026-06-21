@@ -54,11 +54,12 @@ export function useCustomPreviewRecipe(
   componentNameFn: () => string,
   partsFn: () => ReadonlyMap<string, ReadonlyArray<string>>,
 ): { recipe: ComputedRef<ComponentRecipe | null>; sizeClasses: ComputedRef<string> } {
+  const override = inject(RESOLVE_OVERRIDE_KEY, undefined) ?? ref<SlotMappingOverride>({});
   const recipe = computed<ComponentRecipe | null>(() => {
     const g = graphFn();
     if (!g) return null;
     const name = componentNameFn();
-    return buildCustomRecipes(g, partsFn(), {})[name] ?? null;
+    return buildCustomRecipes(g, partsFn(), { slotMappingOverride: override.value })[name] ?? null;
   });
   const sizeClasses = computed<string>(() => representativeSizeClasses(recipe.value));
   return { recipe, sizeClasses };

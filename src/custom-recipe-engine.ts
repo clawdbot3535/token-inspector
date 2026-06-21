@@ -20,6 +20,9 @@ import { resolveTokenToValue } from "./resolve-token.js";
 export interface BuildCustomRecipesOptions {
   readonly defaultSizeByComponent?: Readonly<Record<string, string>>;
   readonly remBase?: number;
+  /** Session slot-mapping override (from the user's resolutions); merged OVER
+   *  the auto-computed per-token override so resolved tokens win. */
+  readonly slotMappingOverride?: SlotMappingOverride;
 }
 
 /**
@@ -55,7 +58,7 @@ export function buildCustomRecipes(
     const built = buildComponentRecipes(graph, {
       components: [component],
       // Cast is safe: Record<string, SlotMappingEntry | null> satisfies the Readonly target. A null entry explicitly skips that token in buildComponentRecipes (no class emitted).
-      slotMappingOverride: override as SlotMappingOverride,
+      slotMappingOverride: { ...override, ...(options.slotMappingOverride ?? {}) } as SlotMappingOverride,
       defaultSizeByComponent: options.defaultSizeByComponent,
       remBase: options.remBase,
     });

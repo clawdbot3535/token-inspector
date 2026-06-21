@@ -5,7 +5,7 @@ import { mount } from "@vue/test-utils";
 import { buildGraph } from "@core/build-graph.js";
 import type { SourceFile } from "@core/token-graph.js";
 import type { SlotMappingOverride } from "@tg/grammar";
-import { usePreviewRecipe } from "./use-preview-recipe.js";
+import { usePreviewRecipe, useCustomPreviewRecipe } from "./use-preview-recipe.js";
 import { RESOLVE_OVERRIDE_KEY } from "../resolve/override-key.js";
 
 function mysteryGraph() {
@@ -60,5 +60,43 @@ describe("usePreviewRecipe inject wiring", () => {
     // Without override the mystery token is unmapped — slots.base is undefined/missing "rounded"
     const baseClasses: string = (captured!.value as { slots?: { base?: string } })?.slots?.base ?? "";
     expect(baseClasses).not.toContain("rounded");
+  });
+});
+
+describe("useCustomPreviewRecipe inject wiring", () => {
+  function chipGraph() {
+    const sources: SourceFile[] = [
+      { name: "global", data: { chip: { close: { radius: { $value: 8, $type: "dimension" } } } } },
+    ];
+    return buildGraph(sources);
+  }
+  it("applies an injected override to the custom (chip) recipe", () => {
+    const g = chipGraph();
+    const parts = new Map<string, ReadonlyArray<string>>([["chip", ["close"]]]);
+    let captured: ComputedRef<unknown> | null = null;
+
+    const Probe = defineComponent({
+      setup() {
+        const { recipe } = useCustomPreviewRecipe(() => g, () => "chip", () => parts);
+        captured = recipe;
+        return () => h("div");
+      },
+    });
+
+    mount(Probe, {
+      global: {
+        provide: {
+          [RESOLVE_OVERRIDE_KEY as symbol]: ref<SlotMappingOverride>({
+            "chip-close-radius": { slot: "base", utilityType: "rounded", variantAxis: null, variantKey: null, statePrefix: null },
+          }),
+        },
+      },
+    });
+
+    // The override routes the chip token to slots.base; the AUTO mapping (no
+    // override) places chip-close-* in the `close` slot instead — so asserting
+    // on slots.base specifically distinguishes the injected override.
+    const baseClasses: string = (captured!.value as { slots?: { base?: string } })?.slots?.base ?? "";
+    expect(baseClasses).toContain("rounded");
   });
 });

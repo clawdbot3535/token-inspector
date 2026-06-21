@@ -4,6 +4,7 @@ import { resolve, dirname } from "node:path";
 import { describe, it, expect } from "vitest";
 import { normalizeTrailingColorRole, buildCustomRecipes, stripOverlayPrefix, buildOverlayRecipes } from "./custom-recipe-engine.js";
 import { buildGraph } from "./build-graph.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import type { SourceFile, SourceLayer, TokenNode, TokenGraph, GraphLayer, TokenType } from "./token-graph.js";
 
 function realGraph() {
@@ -224,5 +225,24 @@ describe("buildOverlayRecipes", () => {
   it("returns {} for a graph with no overlay tokens", () => {
     const graph = ovGraph([ ovNode("button-solid-bg", "#5667A7") ]);
     expect(buildOverlayRecipes(graph)).toEqual({});
+  });
+});
+
+describe("buildCustomRecipes slotMappingOverride (session)", () => {
+  function chipGraph(): TokenGraph {
+    return buildGraph([
+      { name: "global", data: { chip: { close: { radius: { $value: 8, $type: "dimension" } } } } },
+    ] as SourceFile[]);
+  }
+  it("lets a session override take precedence over the auto-mapping for a token", () => {
+    const g = chipGraph();
+    const parts = new Map([["chip", ["close"]]]);
+    const override: SlotMappingOverride = {
+      "chip-close-radius": { slot: "base", utilityType: "rounded", variantAxis: null, variantKey: null, statePrefix: null },
+    };
+    const withOverride = buildCustomRecipes(g, parts, { slotMappingOverride: override })["chip"];
+    const auto = buildCustomRecipes(g, parts, {})["chip"];
+    expect(JSON.stringify(withOverride)).not.toBe(JSON.stringify(auto));
+    expect(withOverride?.slots?.base ?? "").toContain("rounded");
   });
 });
