@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.54.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.2) — 2026-06-22
+
+### Changed
+
+- **Custom components (`chip`/`sidebar`) now live-re-render on resolve.** Resolving a deviation on a
+  custom component updates its live Kit render — the session slot-mapping override is threaded into the
+  custom-recipe path (`buildCustomRecipes` merges it OVER its auto-computed per-token mapping, so resolved
+  tokens win; `useCustomPreviewRecipe` injects the same `RESOLVE_OVERRIDE_KEY` the standard path uses).
+  Closes the v0.54.0 limitation #1 (the live token export's heuristic-extendable deviations are all on
+  `chip`, so this is the case users actually hit). Live-render only — no change to the scanner, the
+  `custom-components.ts` output, or standard-component behaviour. This also unblocks the deeper
+  override-aware `scanGraph` (parked): resolved custom tokens now have a landing spot. 914 tests.
+
 ## [0.54.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.1) — 2026-06-21
 
 ### Changed
