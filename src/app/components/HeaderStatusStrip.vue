@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ScanReport } from "@core/token-graph.js";
+import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 
 interface Props {
   report: ScanReport;
   scanViewActive: boolean;
+  resolved?: ReadonlySet<string>;
 }
 interface Emits {
   (event: "open-scan"): void;
@@ -13,14 +15,17 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
+const resolvedIds = computed(() =>
+  resolvedIssueIds(props.report, props.resolved ?? new Set<string>()),
+);
 const errorCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "error").length,
+  props.report.issues.filter((i) => i.severity === "error" && !resolvedIds.value.has(i.id)).length,
 );
 const warningCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "warning").length,
+  props.report.issues.filter((i) => i.severity === "warning" && !resolvedIds.value.has(i.id)).length,
 );
 const hintCount = computed(() =>
-  props.report.issues.filter((i) => i.severity === "hint").length,
+  props.report.issues.filter((i) => i.severity === "hint" && !resolvedIds.value.has(i.id)).length,
 );
 </script>
 

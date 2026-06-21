@@ -658,6 +658,7 @@ function downloadAll() {
           <HeaderStatusStrip
             :report="scanReport"
             :scan-view-active="state.view.value === 'scan'"
+            :resolved="resolvedTokenIds"
             @open-scan="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
           />
 
