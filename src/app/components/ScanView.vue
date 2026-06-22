@@ -68,6 +68,15 @@ function issueResolved(issue: ScanIssue): boolean {
   return resolvedIds.value.has(issue.id);
 }
 
+async function copyRename(issue: ScanIssue): Promise<void> {
+  if (!issue.typoFrom || !issue.typoTo) return;
+  try {
+    await navigator.clipboard?.writeText(`${issue.typoFrom} → ${issue.typoTo}`);
+  } catch {
+    // clipboard unavailable — the hint text is still visible to read
+  }
+}
+
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
   { value: "issues", label: "Issues" },
   { value: "readiness", label: "Readiness" },
@@ -163,6 +172,14 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="resolve-done"
                 class="ml-2 text-[10px] text-emerald-600 dark:text-emerald-400"
               >✓ resolved</span>
+              <span
+                v-if="issue.kind === 'possible-typo' && issue.typoTo"
+                class="ml-2 inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300"
+                data-testid="typo-hint"
+              >
+                💡 <code>{{ issue.typoFrom }}</code> → <code>{{ issue.typoTo }}</code>
+                <button type="button" class="underline" data-testid="typo-copy" @click.stop="copyRename(issue)">Copy</button>
+              </span>
             </div>
           </li>
         </ul>
