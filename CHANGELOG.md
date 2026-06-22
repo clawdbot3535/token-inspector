@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.54.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.4) — 2026-06-22
+
+### Added
+
+- **Typo deviations show a copy-able rename hint (Data-Quality owner v1).** A `possible-typo` deviation in
+  the Scan view now shows a **💡 `from` → `to`** hint with a **Copy** button — the first slice of (Y)'s
+  **Data-Quality** owner. The typo detector already found the correction (e.g. `heigth` → `height`); this
+  surfaces it structurally (new `typoFrom`/`typoTo` fields on the issue) and as a one-click action. Advisory
+  by nature — the fix belongs in the Figma source, so there's no in-app override or ✓ (unlike the
+  Heuristic-Extension owner). Typo-only; `malformed-value` and an in-session rename preview are parked. No
+  scanner-logic/recipe/export change. 923 tests.
+
 ## [0.54.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.3) — 2026-06-22
 
 ### Changed
