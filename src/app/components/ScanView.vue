@@ -4,6 +4,7 @@ import type { ScanReport, ScanIssue } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
+import { isByDesign } from "../resolve/by-design.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -180,6 +181,12 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 💡 <code>{{ issue.typoFrom }}</code> → <code>{{ issue.typoTo }}</code>
                 <button type="button" class="underline" data-testid="typo-copy" @click.stop="copyRename(issue)">Copy</button>
               </span>
+              <span
+                v-if="isByDesign(issue)"
+                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                data-testid="by-design"
+                title="Nuxt UI constraint — expected; no fix needed"
+              >⊘ by-design</span>
             </div>
           </li>
         </ul>
