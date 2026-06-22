@@ -79,6 +79,8 @@ export function detectPossibleTypos(graph: TokenGraph): ScanIssue[] {
         `\`${fixedId}\`?${fixedExists ? " (that token already exists)" : ""} ` +
         `(${count} token${count > 1 ? "s" : ""})`,
       tokenIds: ids,
+      typoFrom: segment,
+      typoTo: suggestion,
     });
   }
   return issues;

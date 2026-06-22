@@ -181,6 +181,9 @@ export interface ScanIssue {
   customParts?: readonly string[];
   /** Variant key (e.g. "sm") when the issue is variant-scoped. */
   variantKey?: string;
+  /** For possible-typo: the typo'd path segment and its suggested correction. */
+  typoFrom?: string;
+  typoTo?: string;
 }
 
 export interface CompletenessScore {
