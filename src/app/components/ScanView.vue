@@ -7,6 +7,7 @@ import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { isByDesign } from "../resolve/by-design.js";
 import { isFigmaFix } from "../resolve/figma-fix.js";
 import { isManualDev } from "../resolve/manual-dev.js";
+import { ownerOf, OWNER_FILTERS, type OwnerFilter } from "../resolve/owner-of.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -21,6 +22,7 @@ type SeverityFilter = "all" | "error" | "warning" | "hint";
 
 const activeTab = ref<Tab>("issues");
 const severityFilter = ref<SeverityFilter>("all");
+const ownerFilter = ref<OwnerFilter>("all");
 const collapsedGroups = ref<ReadonlySet<string>>(new Set());
 
 function toggleGroup(component: string): void {
@@ -41,10 +43,26 @@ const counts = computed(() => {
   return c;
 });
 
+const ownerCounts = computed(() => {
+  const c: Record<OwnerFilter, number> = {
+    all: props.report.issues.length,
+    heuristic: 0,
+    "data-quality": 0,
+    "by-design": 0,
+    "figma-fix": 0,
+    "manual-dev": 0,
+    other: 0,
+  };
+  for (const i of props.report.issues) c[ownerOf(i) ?? "other"] += 1;
+  return c;
+});
+
 const filteredIssues = computed(() =>
-  severityFilter.value === "all"
-    ? props.report.issues
-    : props.report.issues.filter((i) => i.severity === severityFilter.value),
+  props.report.issues.filter(
+    (i) =>
+      (severityFilter.value === "all" || i.severity === severityFilter.value) &&
+      (ownerFilter.value === "all" || (ownerOf(i) ?? "other") === ownerFilter.value),
+  ),
 );
 
 const groups = computed(() => groupIssuesByComponent(filteredIssues.value));
@@ -126,6 +144,22 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
         >
           <span>{{ f.label }}</span>
           <span class="text-[10px] font-mono opacity-70">{{ counts[f.value] }}</span>
+        </button>
+      </div>
+
+      <div class="flex flex-wrap gap-1" data-testid="owner-filter">
+        <button
+          v-for="f in OWNER_FILTERS"
+          :key="f.value"
+          type="button"
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition-colors"
+          :class="ownerFilter === f.value
+            ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100'
+            : 'bg-transparent text-zinc-700 border-zinc-300 hover:bg-zinc-100 dark:text-zinc-300 dark:border-zinc-700 dark:hover:bg-zinc-800'"
+          @click="ownerFilter = f.value"
+        >
+          <span>{{ f.label }}</span>
+          <span class="text-[10px] font-mono opacity-70">{{ ownerCounts[f.value] }}</span>
         </button>
       </div>
 
