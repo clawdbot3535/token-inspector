@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.54.6](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.6) — 2026-06-23
+
+### Added
+
+- **Coverage-gap deviations are reframed as a Figma to-do list (Figma-Fix owner v1).** Five "coverage-gap"
+  deviations in the Scan view — `asymmetric-variant-coverage`, `asymmetric-size-coverage`,
+  `incomplete-size-variant`, `non-suffix-vs-size-conflict`, `orphaned-size-key` — now carry a muted
+  **🎨 fix in Figma** badge marking them as the designer's domain (the Figma token set is incomplete or
+  inconsistent → add or align tokens in the source). This is (Y)'s fourth owner, after Heuristic-Extension,
+  Data-Quality, and by-design. Advisory by nature: the badge is non-interactive, the existing
+  `issue.message` keeps carrying the specific "what to add" (e.g. `asymmetric-variant-coverage` already
+  lists the exact tokens), and the header counts are unchanged. Implemented as a pure `isFigmaFix(issue)`
+  classifier in `src/app/resolve/` (a standalone `FIGMA_FIX_KINDS` set, disjoint from the other owners) plus
+  one additive `ScanView` template branch — no scanner change, no `ScanIssue` field, no new state. 935 tests.
+
 ## [0.54.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.5) — 2026-06-23
 
 ### Added
