@@ -6,6 +6,7 @@ import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { isByDesign } from "../resolve/by-design.js";
 import { isFigmaFix } from "../resolve/figma-fix.js";
+import { isManualDev } from "../resolve/manual-dev.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -194,6 +195,12 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="figma-fix"
                 title="Fix in the Figma token source — add or align the missing/inconsistent tokens"
               >🎨 fix in Figma</span>
+              <span
+                v-if="isManualDev(issue)"
+                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
+                data-testid="manual-dev"
+                title="Resolvable only by hand-coding in your Nuxt app (a custom recipe or a CSS override against Nuxt's default)"
+              >🔧 hand-code</span>
             </div>
           </li>
         </ul>

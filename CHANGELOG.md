@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.54.7](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.7) — 2026-06-23
+
+### Added
+
+- **Hand-code-only deviations get a dev-owned badge (Manual-Dev owner v1) — the (Y) owner taxonomy is now
+  complete.** Three "hand-code-only" deviations in the Scan view — `custom-without-parts`,
+  `disabled-via-opacity`, `resting-shadowed-by-state` — now carry a muted **🔧 hand-code** badge (teal)
+  marking them as resolvable only by hand-coding in the Nuxt app (a custom recipe, or a CSS override that
+  fights Nuxt's default). This is (Y)'s **fifth and final owner**, completing the routing taxonomy
+  (Heuristic-Extension · Data-Quality · by-design · Figma-Fix · Manual-Dev). The two capability-deviation
+  kinds are claimed here rather than by-design because, unlike `capability-gap` (Nuxt has no such slot),
+  they are overridable by hand-written CSS. Advisory by nature: the badge is non-interactive and the header
+  counts are unchanged.
+
+### Changed
+
+- **Owner classifiers share a `makeOwnerPredicate` factory.** With the third set+predicate classifier
+  landing, the owner-predicate mechanic is consolidated into a new `src/app/resolve/owners.ts`; `by-design`
+  and `figma-fix` were refactored onto it (behaviour-preserving — their existing tests, unchanged, are the
+  regression guard). Each owner keeps its own named `*_KINDS` set and scanner-line caveat; only the mechanic
+  is shared. All five owner kind-sets are verified disjoint. No scanner change, no `ScanIssue` field, no new
+  state. 943 tests.
+
 ## [0.54.6](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.6) — 2026-06-23
 
 ### Added

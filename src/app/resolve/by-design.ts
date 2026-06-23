@@ -1,4 +1,4 @@
-import type { ScanIssue } from "@core/token-graph.js";
+import { makeOwnerPredicate } from "./owners.js";
 
 // These kind strings are emitted in src/scanner.ts (capability-gap :368,
 // state-via-prop :173, unsupported-state :191). ScanIssue.kind is typed `string`
@@ -19,6 +19,4 @@ export const BY_DESIGN_KINDS: ReadonlySet<string> = new Set([
  * True when an issue is an inherent Nuxt UI architectural constraint — the
  * by-design owner's domain. Advisory: there is no source fix and no in-app override.
  */
-export function isByDesign(issue: ScanIssue): boolean {
-  return BY_DESIGN_KINDS.has(issue.kind);
-}
+export const isByDesign = makeOwnerPredicate(BY_DESIGN_KINDS);
