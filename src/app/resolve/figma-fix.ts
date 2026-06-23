@@ -1,4 +1,4 @@
-import type { ScanIssue } from "@core/token-graph.js";
+import { makeOwnerPredicate } from "./owners.js";
 
 // These kind strings are emitted in src/scanner.ts (asymmetric-variant-coverage :868,
 // asymmetric-size-coverage :570, incomplete-size-variant :549,
@@ -19,6 +19,4 @@ export const FIGMA_FIX_KINDS: ReadonlySet<string> = new Set([
  * design token set is incomplete or inconsistent, and the designer must add or align
  * tokens in Figma. Advisory: there is no in-app override.
  */
-export function isFigmaFix(issue: ScanIssue): boolean {
-  return FIGMA_FIX_KINDS.has(issue.kind);
-}
+export const isFigmaFix = makeOwnerPredicate(FIGMA_FIX_KINDS);
