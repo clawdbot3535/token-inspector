@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.54.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.5) — 2026-06-23
+
+### Added
+
+- **Constraint deviations are reframed as expected (by-design owner v1).** Three "capability-family"
+  deviations in the Scan view — `capability-gap`, `state-via-prop`, `unsupported-state` — now carry a
+  muted **⊘ by-design** badge marking them as inherent Nuxt UI constraints (the design tokens ask for
+  something Nuxt UI architecturally can't express, so there's nothing to fix). This is (Y)'s third owner,
+  after Heuristic-Extension and Data-Quality. Advisory by nature: the badge is non-interactive, the
+  existing `issue.message` keeps carrying the specific "why", and the header counts are unchanged (this
+  owner *explains*, it doesn't *dismiss*). Implemented as a pure `isByDesign(issue)` classifier in
+  `src/app/resolve/` (a standalone `BY_DESIGN_KINDS` set, deliberately not reused from
+  `CAPABILITY_DEVIATION_KINDS` since that set spans the opposite owner) plus one additive `ScanView`
+  template branch — no scanner change, no `ScanIssue` field, no new state. 929 tests.
+
 ## [0.54.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.4) — 2026-06-22
 
 ### Added
