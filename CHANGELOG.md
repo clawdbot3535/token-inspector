@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.55.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.55.0) — 2026-06-24
+
+### Added
+
+- **Filter scan deviations by owner.** The Scan view's Issues tab gains a second chip row — **All ·
+  Heuristic · Data-Quality · by-design · Figma-Fix · Manual-Dev · Other** — that filters the issue list by
+  its (Y) routing owner, combined with the existing severity filter via AND. "Other" surfaces the deviation
+  kinds no owner claims yet (the still-to-route backlog). This is the first cross-cutting feature after the
+  five-owner taxonomy completed in v0.54.7. Backed by a new single-source `ownerOf(issue): Owner | null`
+  aggregator + `OWNER_FILTERS` registry in `src/app/resolve/owner-of.ts` (over the five disjoint owner
+  kind-sets; `HEURISTIC_EXTENDABLE_KINDS` is now exported). No scanner change, no `ScanIssue` field, no badge
+  refactor — additive only. 951 tests.
+
 ## [0.54.7](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.54.7) — 2026-06-23
 
 ### Added

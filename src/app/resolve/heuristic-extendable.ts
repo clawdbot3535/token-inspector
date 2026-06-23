@@ -2,7 +2,7 @@ import type { ScanReport } from "@core/token-graph.js";
 import type { SlotMappingEntry, UtilityType } from "@tg/grammar";
 import { nuxtSlotsFor, defaultBaseSlot } from "@tg/grammar";
 
-const HEURISTIC_EXTENDABLE_KINDS: ReadonlySet<string> = new Set([
+export const HEURISTIC_EXTENDABLE_KINDS: ReadonlySet<string> = new Set([
   "unsupported-part",
   "component-looks-custom",
 ]);
