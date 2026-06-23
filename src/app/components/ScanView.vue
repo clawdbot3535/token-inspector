@@ -5,6 +5,7 @@ import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { isByDesign } from "../resolve/by-design.js";
+import { isFigmaFix } from "../resolve/figma-fix.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -187,6 +188,12 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="by-design"
                 title="Nuxt UI constraint — expected; no fix needed"
               >⊘ by-design</span>
+              <span
+                v-if="isFigmaFix(issue)"
+                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"
+                data-testid="figma-fix"
+                title="Fix in the Figma token source — add or align the missing/inconsistent tokens"
+              >🎨 fix in Figma</span>
             </div>
           </li>
         </ul>
