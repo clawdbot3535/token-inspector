@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.56.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.56.0) — 2026-06-24
+
+### Added
+
+- **Copy the tokens to add in Figma (Figma-Fix owner v2).** An `asymmetric-variant-coverage` deviation
+  (e.g. a utility defined on `solid` but missing on `outline`/`ghost`) now shows a **📋 Copy N tokens**
+  button in the Scan view that copies the exact token names to create in Figma (e.g.
+  `button-outline-border`, `button-ghost-border`) to the clipboard, newline-separated. The scanner already
+  computed this list for the message; it is now also carried structurally on the issue
+  (`figmaFixTokens: readonly string[]`, mirroring `possible-typo`'s `typoFrom`/`typoTo`) and surfaced as a
+  one-click action — so a designer can paste the list instead of hand-retyping it. Only
+  `asymmetric-variant-coverage` carries the field (the only coverage-gap kind producing a clean token list);
+  the message text is unchanged. 958 tests.
+
 ## [0.55.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.55.1) — 2026-06-24
 
 ### Changed
