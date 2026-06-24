@@ -6,6 +6,7 @@ import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { ownerOf, OWNER_FILTERS, type OwnerFilter } from "../resolve/owner-of.js";
 import { ownerBadge } from "../owner-badges.js";
+import { emptyIssuesMessage } from "../empty-issues-message.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; accepted?: ReadonlySet<string>; }
 interface Emits {
@@ -175,7 +176,7 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
       </div>
 
       <p v-if="filteredIssues.length === 0" class="text-xs text-zinc-400">
-        No {{ severityFilter === 'all' ? '' : severityFilter + ' ' }}issues.
+        {{ emptyIssuesMessage(severityFilter, ownerFilter) }}
       </p>
 
       <div v-for="group in groups" :key="group.component" class="space-y-1">
