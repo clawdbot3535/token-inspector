@@ -4,10 +4,8 @@ import type { ScanReport, ScanIssue } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
-import { isByDesign } from "../resolve/by-design.js";
-import { isFigmaFix } from "../resolve/figma-fix.js";
-import { isManualDev } from "../resolve/manual-dev.js";
 import { ownerOf, OWNER_FILTERS, type OwnerFilter } from "../resolve/owner-of.js";
+import { ownerBadge } from "../owner-badges.js";
 
 interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
 interface Emits {
@@ -210,7 +208,7 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 class="ml-2 text-[10px] text-emerald-600 dark:text-emerald-400"
               >✓ resolved</span>
               <span
-                v-if="issue.kind === 'possible-typo' && issue.typoTo"
+                v-if="ownerOf(issue) === 'data-quality' && issue.typoTo"
                 class="ml-2 inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300"
                 data-testid="typo-hint"
               >
@@ -218,23 +216,12 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 <button type="button" class="underline" data-testid="typo-copy" @click.stop="copyRename(issue)">Copy</button>
               </span>
               <span
-                v-if="isByDesign(issue)"
-                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-                data-testid="by-design"
-                title="Nuxt UI constraint — expected; no fix needed"
-              >⊘ by-design</span>
-              <span
-                v-if="isFigmaFix(issue)"
-                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"
-                data-testid="figma-fix"
-                title="Fix in the Figma token source — add or align the missing/inconsistent tokens"
-              >🎨 fix in Figma</span>
-              <span
-                v-if="isManualDev(issue)"
-                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
-                data-testid="manual-dev"
-                title="Resolvable only by hand-coding in your Nuxt app (a custom recipe or a CSS override against Nuxt's default)"
-              >🔧 hand-code</span>
+                v-if="ownerBadge(ownerOf(issue))"
+                class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px]"
+                :class="ownerBadge(ownerOf(issue))!.cls"
+                :data-testid="ownerOf(issue)"
+                :title="ownerBadge(ownerOf(issue))!.title"
+              >{{ ownerBadge(ownerOf(issue))!.label }}</span>
             </div>
           </li>
         </ul>
