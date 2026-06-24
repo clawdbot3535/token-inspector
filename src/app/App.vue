@@ -47,8 +47,8 @@ import GitLoader from "./components/GitLoader.vue";
 import ResolvePanel from "./components/ResolvePanel.vue";
 import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
-import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import { buildSlotMappingFile } from "./resolve/export-slot-mapping.js";
+import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
 const appVersion = __APP_VERSION__;
