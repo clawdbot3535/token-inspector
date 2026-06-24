@@ -292,7 +292,7 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 
 ## Tests
 
-951 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
+954 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
 
 ```bash
 npm test         # full suite
