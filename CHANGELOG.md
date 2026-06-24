@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.58.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.58.0) — 2026-06-24
+
+### Changed
+
+- **Owner routing is now complete — every scan-issue kind is routed to one of the five (Y) owners,
+  and the "Other" filter bucket is empty.** The owner taxonomy (heuristic / Data-Quality / by-design /
+  Figma-Fix / Manual-Dev) previously left seven issue kinds un-routed, so they fell into the catch-all
+  "Other" owner filter. Those seven are now assigned:
+  - **→ Data-Quality:** `unresolved-alias`, `duplicate-id`, `unknown-type` — the three build-time
+    `GraphIssue` kinds (bridged to `ScanIssue`s in `scanner.ts`). A broken alias reference, a duplicate
+    token id, and an unknown `$type` are all malformed *source values*, joining `possible-typo` and
+    `malformed-value` in Data-Quality's "fix the Figma source data" domain. They gain the Data-Quality
+    filter bucket; their build-time error display is unchanged (Data-Quality has no static badge).
+  - **→ Figma-Fix:** `single-mode-semantic`, `mode-invariant-semantic`, `snap-to-tailwind` — token-set
+    *shape* refinements the designer makes in Figma (a missing mode value; a semantic that belongs in a
+    primitive file; a primitive a step off the Tailwind scale). Unlike the Data-Quality kinds the value
+    is well-formed — the set's structure is what to refine. They gain the muted violet **🎨 fix in Figma**
+    badge and Figma-Fix filter bucket.
+  - **→ by-design:** `border-on-unframed-variant` — Nuxt UI v4 paints rings only on the `outline`/`subtle`
+    variants, so a border on `solid`/`ghost`/`link` physically cannot render: an inherent framework
+    constraint with no source fix. It gains the muted **⊘ by-design** badge plus the **Accept** toggle.
+- The change is purely set-driven: three entries added to `DATA_QUALITY_KINDS` (`owner-of.ts`), one to
+  `BY_DESIGN_KINDS` (`by-design.ts`), three to `FIGMA_FIX_KINDS` (`figma-fix.ts`). Because badge rendering,
+  owner-filter bucketing and the by-design Accept toggle all follow `ownerOf`, no `scanner.ts`,
+  `ScanView.vue` or `owner-badges.ts` change was needed. The five owner kind-sets remain pairwise disjoint
+  (23 distinct routed kinds), so `ownerOf`'s first-match stays unambiguous. The **"Other" filter is now a
+  forward-compat bucket** for a hypothetical future kind not yet assigned an owner — no real scanner kind
+  lands there today. Header counts are unchanged (owner ⊥ severity; Accept stays opt-in). 984 tests.
+
 ## [0.57.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.4) — 2026-06-24
 
 ### Fixed
