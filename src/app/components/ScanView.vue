@@ -234,7 +234,7 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
               <button
                 v-if="issue.figmaFixTokens?.length"
                 type="button"
-                class="ml-1 text-[10px] underline text-violet-700 dark:text-violet-300"
+                class="ml-2 text-[10px] underline text-violet-700 dark:text-violet-300"
                 data-testid="figma-fix-copy"
                 @click.stop="copyFigmaTokens(issue)"
               >📋 Copy {{ issue.figmaFixTokens.length }} token{{ issue.figmaFixTokens.length === 1 ? '' : 's' }}</button>

@@ -40,7 +40,7 @@ describe("ScanView figma-fix copy", () => {
   });
 
   it("renders no Copy button for a figma-fix issue without figmaFixTokens", () => {
-    const wrapper = mount(ScanView, { props: { report: reportWith({ kind: "orphaned-size-key", figmaFixTokens: undefined }) }, global: { stubs } });
+    const wrapper = mount(ScanView, { props: { report: reportWith({ kind: "asymmetric-variant-coverage", figmaFixTokens: undefined }) }, global: { stubs } });
     expect(wrapper.find("[data-testid=figma-fix-copy]").exists()).toBe(false);
   });
 });
