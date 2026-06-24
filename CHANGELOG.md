@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.57.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.2) — 2026-06-24
+
+### Added
+
+- **Accepted by-design deviations now survive a page reload (accept persistence).** The **Accept** toggle
+  (by-design owner v2, v0.57.0) marked an issue acknowledged and subtracted it from the header count, but the
+  state lived only in memory — every reload re-counted everything you'd already reviewed. Accept state is now
+  persisted to `localStorage` (key `inspector.accepted`, namespaced alongside `inspector.tree.expanded`), so
+  accepted issues stay cleared across sessions. Backed by a new pure, unit-tested module
+  `src/app/accepted-storage.ts` (`loadAcceptedIds` / `saveAcceptedIds`) that mirrors the existing
+  `expandedPaths` load/persist pattern — defensive against missing/malformed/non-array storage (degrades to an
+  empty Set). App.vue seeds `acceptedIds` from `loadAcceptedIds()` on mount and saves on every toggle; strictly
+  additive (no change to the count logic, the recipe engine, or the resolve override, which stays in-session by
+  design). 976 tests.
+
 ## [0.57.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.1) — 2026-06-24
 
 ### Added

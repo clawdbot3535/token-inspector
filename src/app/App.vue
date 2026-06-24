@@ -48,6 +48,7 @@ import ResolvePanel from "./components/ResolvePanel.vue";
 import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
 import { buildSlotMappingFile } from "./resolve/export-slot-mapping.js";
+import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
 const appVersion = __APP_VERSION__;
@@ -108,7 +109,7 @@ const scanReport = useScanReport(state.graph);
 const resolveOverride = ref<SlotMappingOverride>({});
 provide(RESOLVE_OVERRIDE_KEY, resolveOverride);
 const resolvedTokenIds = computed<Set<string>>(() => new Set(Object.keys(resolveOverride.value)));
-const acceptedIds = ref<Set<string>>(new Set());
+const acceptedIds = ref<Set<string>>(loadAcceptedIds());
 const resolvables = computed<ResolvableDeviation[]>(() => heuristicExtendable(scanReport.value));
 const activeResolve = ref<string | null>(null);
 const activeDeviation = computed<ResolvableDeviation | null>(
@@ -120,6 +121,7 @@ function onToggleAccept(issueId: string): void {
   if (next.has(issueId)) next.delete(issueId);
   else next.add(issueId);
   acceptedIds.value = next;
+  saveAcceptedIds(next);
 }
 function onApply(tokenId: string, entry: SlotMappingEntry): void {
   resolveOverride.value = { ...resolveOverride.value, [tokenId]: entry };
