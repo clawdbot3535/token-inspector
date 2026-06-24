@@ -28,7 +28,9 @@ const ISSUES: ScanIssue[] = [
   mk("capability-gap", "MSGBYDESIGN"),
   mk("asymmetric-variant-coverage", "MSGFIGMA"),
   mk("custom-without-parts", "MSGMANUAL"),
-  mk("snap-to-tailwind", "MSGOTHER", "hint"),
+  // A synthetic kind no owner claims — "Other" is now a forward-compat bucket
+  // (every real scanner kind is routed since full owner-routing).
+  mk("future-unknown-kind", "MSGOTHER", "hint"),
   mk("capability-gap", "MSGBYDESIGNHINT", "hint"),
 ];
 

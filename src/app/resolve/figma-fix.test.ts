@@ -21,21 +21,30 @@ describe("isFigmaFix", () => {
     expect(isFigmaFix(issue("collection-anatomy-mismatch"))).toBe(true);
   });
 
+  it("is true for the semantic-structure + snap-to-tailwind kinds (Figma source adjustments)", () => {
+    expect(isFigmaFix(issue("single-mode-semantic"))).toBe(true);
+    expect(isFigmaFix(issue("mode-invariant-semantic"))).toBe(true);
+    expect(isFigmaFix(issue("snap-to-tailwind"))).toBe(true);
+  });
+
   it("is false for other owners' kinds", () => {
     expect(isFigmaFix(issue("capability-gap"))).toBe(false);       // by-design
     expect(isFigmaFix(issue("possible-typo"))).toBe(false);        // Data-Quality
     expect(isFigmaFix(issue("unsupported-part"))).toBe(false);     // Heuristic-Extension
   });
 
-  it("FIGMA_FIX_KINDS holds exactly the six Figma-Fix kinds", () => {
+  it("FIGMA_FIX_KINDS holds exactly its nine kinds", () => {
     expect([...FIGMA_FIX_KINDS].sort()).toEqual(
       [
         "asymmetric-size-coverage",
         "asymmetric-variant-coverage",
         "collection-anatomy-mismatch",
         "incomplete-size-variant",
+        "mode-invariant-semantic",
         "non-suffix-vs-size-conflict",
         "orphaned-size-key",
+        "single-mode-semantic",
+        "snap-to-tailwind",
       ].sort(),
     );
   });

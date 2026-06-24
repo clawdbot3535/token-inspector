@@ -12,7 +12,16 @@ export type Owner =
   | "manual-dev";
 
 // The Data-Quality owner has no classifier module — it keys off these kinds.
-const DATA_QUALITY_KINDS: ReadonlySet<string> = new Set(["possible-typo", "malformed-value"]);
+// possible-typo + malformed-value are joined by the three build-time GraphIssue
+// kinds (bridged to ScanIssues in scanner.ts:132): broken/duplicate/unknown-typed
+// source values are all "fix the Figma source data" — Data-Quality's domain.
+const DATA_QUALITY_KINDS: ReadonlySet<string> = new Set([
+  "possible-typo",
+  "malformed-value",
+  "unresolved-alias",
+  "duplicate-id",
+  "unknown-type",
+]);
 
 // Owner kind-sets are disjoint (verified across all five owners), so the first
 // matching set is the unique owner. owner-of.ts imports the owner modules for their
