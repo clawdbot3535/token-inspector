@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.57.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.4) — 2026-06-24
+
+### Fixed
+
+- **The Scan view's empty-state message now reflects the active owner filter.** When the Issues tab's filtered
+  list is empty, the "No … issues." line previously reflected only the severity filter — so filtering to an
+  owner that has no issues (while other owners do) misleadingly showed "No issues." It now reads both filters:
+  e.g. "No Figma-Fix issues." (owner only), "No warning issues." (severity only), "No by-design warning issues."
+  (both). The wording logic moved into a new pure, unit-tested view-layer helper
+  `src/app/empty-issues-message.ts` (`emptyIssuesMessage(severity, owner)`), mirroring the `owner-badges.ts`
+  pattern — it reads the owner label from the `OWNER_FILTERS` registry (single source, no second owner→text
+  mapping) and drops each qualifier when its filter is "all". The severity-only behavior is preserved exactly.
+  981 tests.
+
 ## [0.57.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.3) — 2026-06-24
 
 ### Changed
