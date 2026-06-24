@@ -249,12 +249,13 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="accept-issue"
                 @click.stop="$emit('accept', issue.id)"
               >Accept</button>
-              <span
+              <button
                 v-else-if="ownerOf(issue) === 'by-design' && issueAccepted(issue)"
-                class="ml-2 text-[10px] underline cursor-pointer text-teal-600 dark:text-teal-400"
+                type="button"
+                class="ml-2 text-[10px] underline text-teal-600 dark:text-teal-400"
                 data-testid="accept-done"
                 @click.stop="$emit('accept', issue.id)"
-              >✓ accepted</span>
+              >✓ accepted</button>
             </div>
           </li>
         </ul>

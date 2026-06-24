@@ -28,4 +28,10 @@ describe("HeaderStatusStrip accept subtraction", () => {
     expect(w.text()).toContain("1 warnings");
     expect(w.text()).not.toContain("2 warnings");
   });
+
+  it("subtracts an accepted by-design issue from the hint count too", () => {
+    const hintIssues = [issue("h1", "capability-gap", "hint"), issue("h2", "state-via-prop", "hint")];
+    const w = mount(HeaderStatusStrip, { props: { report: report(hintIssues), scanViewActive: false, accepted: new Set(["h1"]) } });
+    expect(w.text()).toContain("1 hints");
+  });
 });
