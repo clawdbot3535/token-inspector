@@ -108,12 +108,19 @@ const scanReport = useScanReport(state.graph);
 const resolveOverride = ref<SlotMappingOverride>({});
 provide(RESOLVE_OVERRIDE_KEY, resolveOverride);
 const resolvedTokenIds = computed<Set<string>>(() => new Set(Object.keys(resolveOverride.value)));
+const acceptedIds = ref<Set<string>>(new Set());
 const resolvables = computed<ResolvableDeviation[]>(() => heuristicExtendable(scanReport.value));
 const activeResolve = ref<string | null>(null);
 const activeDeviation = computed<ResolvableDeviation | null>(
   () => resolvables.value.find((r) => r.tokenId === activeResolve.value) ?? null,
 );
 function onResolve(tokenId: string): void { activeResolve.value = tokenId; }
+function onToggleAccept(issueId: string): void {
+  const next = new Set(acceptedIds.value);
+  if (next.has(issueId)) next.delete(issueId);
+  else next.add(issueId);
+  acceptedIds.value = next;
+}
 function onApply(tokenId: string, entry: SlotMappingEntry): void {
   resolveOverride.value = { ...resolveOverride.value, [tokenId]: entry };
   activeResolve.value = null;
@@ -659,6 +666,7 @@ function downloadAll() {
             :report="scanReport"
             :scan-view-active="state.view.value === 'scan'"
             :resolved="resolvedTokenIds"
+            :accepted="acceptedIds"
             @open-scan="state.view.value = state.view.value === 'scan' ? 'inspector' : 'scan'"
           />
 
@@ -774,8 +782,10 @@ function downloadAll() {
             <ScanView
               :report="scanReport"
               :resolved="resolvedTokenIds"
+              :accepted="acceptedIds"
               @select-tokens="onScanSelectTokens"
               @resolve="onResolve"
+              @accept="onToggleAccept"
             />
             <ResolvePanel v-if="activeDeviation" :deviation="activeDeviation" @apply="onApply" />
             <UButton v-if="Object.keys(resolveOverride).length > 0" size="xs" variant="outline" data-testid="download-slot-mapping" @click="downloadSlotMapping">Download slot-mapping.json</UButton>
