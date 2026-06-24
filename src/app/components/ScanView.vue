@@ -96,6 +96,15 @@ async function copyRename(issue: ScanIssue): Promise<void> {
   }
 }
 
+async function copyFigmaTokens(issue: ScanIssue): Promise<void> {
+  if (!issue.figmaFixTokens?.length) return;
+  try {
+    await navigator.clipboard?.writeText(issue.figmaFixTokens.join("\n"));
+  } catch {
+    // clipboard unavailable — the token names are still listed in the message
+  }
+}
+
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
   { value: "issues", label: "Issues" },
   { value: "readiness", label: "Readiness" },
@@ -222,6 +231,13 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 :data-testid="ownerOf(issue)"
                 :title="ownerBadge(ownerOf(issue))!.title"
               >{{ ownerBadge(ownerOf(issue))!.label }}</span>
+              <button
+                v-if="issue.figmaFixTokens?.length"
+                type="button"
+                class="ml-1 text-[10px] underline text-violet-700 dark:text-violet-300"
+                data-testid="figma-fix-copy"
+                @click.stop="copyFigmaTokens(issue)"
+              >📋 Copy {{ issue.figmaFixTokens.length }} token{{ issue.figmaFixTokens.length === 1 ? '' : 's' }}</button>
             </div>
           </li>
         </ul>
