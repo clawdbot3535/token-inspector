@@ -11,8 +11,8 @@ export type Owner =
   | "figma-fix"
   | "manual-dev";
 
-// The Data-Quality owner has no classifier module — it keys off this one kind.
-const DATA_QUALITY_KINDS: ReadonlySet<string> = new Set(["possible-typo"]);
+// The Data-Quality owner has no classifier module — it keys off these kinds.
+const DATA_QUALITY_KINDS: ReadonlySet<string> = new Set(["possible-typo", "malformed-value"]);
 
 // Owner kind-sets are disjoint (verified across all five owners), so the first
 // matching set is the unique owner. owner-of.ts imports the owner modules for their

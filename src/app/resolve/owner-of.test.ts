@@ -15,6 +15,7 @@ describe("ownerOf", () => {
   it("maps each owner's kind to that owner", () => {
     expect(ownerOf(issue("unsupported-part"))).toBe("heuristic");
     expect(ownerOf(issue("possible-typo"))).toBe("data-quality");
+    expect(ownerOf(issue("malformed-value"))).toBe("data-quality");
     expect(ownerOf(issue("capability-gap"))).toBe("by-design");
     expect(ownerOf(issue("asymmetric-variant-coverage"))).toBe("figma-fix");
     expect(ownerOf(issue("custom-without-parts"))).toBe("manual-dev");
