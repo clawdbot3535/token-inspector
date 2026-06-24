@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.57.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.1) — 2026-06-24
+
+### Added
+
+- **Malformed token values get an advisory hint (Data-Quality owner v2).** A `malformed-value` deviation
+  (a color `$value` that isn't a Figma `{components, hex}` object, or a number/dimension `$value` that isn't
+  a number) is now routed to the **Data-Quality** owner (it was unowned/"Other") and shows a
+  **🛠 fix the $value in the Figma source** hint in the Scan view, with a tooltip stating the expected shape.
+  This completes the Data-Quality owner alongside the `possible-typo` rename hint. Advisory and source-side —
+  no copy (there's no single corrected value); the severity stays `error` (a malformed value breaks
+  rendering — owner is orthogonal to severity). Implemented by adding `malformed-value` to
+  `DATA_QUALITY_KINDS` + one ScanView hint span gated on the kind (mutually exclusive with the typo hint); no
+  scanner/`ScanIssue`/build-graph change. 971 tests.
+
 ## [0.57.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.0) — 2026-06-24
 
 ### Added
