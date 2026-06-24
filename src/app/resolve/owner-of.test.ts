@@ -18,6 +18,7 @@ describe("ownerOf", () => {
     expect(ownerOf(issue("malformed-value"))).toBe("data-quality");
     expect(ownerOf(issue("capability-gap"))).toBe("by-design");
     expect(ownerOf(issue("asymmetric-variant-coverage"))).toBe("figma-fix");
+    expect(ownerOf(issue("collection-anatomy-mismatch"))).toBe("figma-fix");
     expect(ownerOf(issue("custom-without-parts"))).toBe("manual-dev");
   });
 
