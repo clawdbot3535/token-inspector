@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.57.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.0) — 2026-06-24
+
+### Added
+
+- **Accept by-design deviations to clear them from the count (by-design owner v2).** A by-design issue
+  (`⊘ capability-gap` / `state-via-prop` / `unsupported-state`) in the Scan view now has an **Accept** toggle:
+  clicking marks it acknowledged (**✓ accepted**, click again to un-accept) and **subtracts it from the header
+  `N errors · warnings · hints` count**. This is the dismiss half of the by-design owner — v1 explained, v2
+  lets you clear reviewed constraints from the noise. It is the first *passive* resolution action, orthogonal
+  to the Heuristic owner's active *resolve*: accept is keyed by `issue.id` (so `capability-gap`, which has no
+  tokens, works), held in-session (a ref, like the resolve override), and feeds only presentation + the count
+  — not the recipe engine. Backed by a pure `acceptedByDesignIds(report, accepted)` helper (mirrors
+  `resolvedIssueIds`); the header subtracts `resolved ∪ accepted`. Only by-design issues are acceptable; no
+  scanner/`ScanIssue`/engine/export change. 968 tests.
+
 ## [0.56.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.56.0) — 2026-06-24
 
 ### Added
