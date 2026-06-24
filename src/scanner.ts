@@ -860,15 +860,17 @@ export function detectAsymmetricVariantCoverage(
         haveCount === 1
           ? ` Only one variant defines this — likely intentional (e.g. outline is the only variant with a border), but worth confirming.`
           : ``;
+      const tokensToAdd = missing.map((v) => `${prefix}-${v}-${utilityDisplay}`);
 
       issues.push({
         id: `dq-asym-variant-${prefix}-${cellKey.replace("|", "-")}`,
         category: "data-quality",
         severity,
         kind: "asymmetric-variant-coverage",
-        message: `${prefix}.${utilityDisplay} is defined on [${haveStr}] but missing on [${missingStr}].${intentionalNote} Add ${missing.map((v) => `\`${prefix}-${v}-${utilityDisplay}\``).join(", ")} in Figma if the gap is unintentional.`,
+        message: `${prefix}.${utilityDisplay} is defined on [${haveStr}] but missing on [${missingStr}].${intentionalNote} Add ${tokensToAdd.map((t) => `\`${t}\``).join(", ")} in Figma if the gap is unintentional.`,
         tokenIds: [],
         componentName: prefix,
+        figmaFixTokens: tokensToAdd,
       });
     }
   }

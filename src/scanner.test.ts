@@ -438,6 +438,23 @@ describe("scanGraph — asymmetric variant coverage", () => {
     expect(finding!.message).toContain("`badge-error-text`");
   });
 
+  it("carries the tokens-to-add as structured figmaFixTokens", () => {
+    const graph = makeGraph([
+      makeNode({ id: "badge-accent-bg", layer: "component", type: "color", source: "global", base: "#001" }),
+      makeNode({ id: "badge-accent-text", layer: "component", type: "color", source: "global", base: "#002" }),
+      makeNode({ id: "badge-error-bg", layer: "component", type: "color", source: "global", base: "#003" }),
+      // error MISSING text → must suggest adding `badge-error-text`
+    ]);
+    const report = scanGraph(graph, { components: ["button"] });
+    const finding = report.issues.find(
+      (i) => i.kind === "asymmetric-variant-coverage" && i.componentName === "badge" && i.message.includes("text"),
+    );
+    expect(finding).toBeDefined();
+    expect(finding!.figmaFixTokens).toEqual(["badge-error-text"]);
+    // message text is unchanged (still lists the token wrapped in backticks)
+    expect(finding!.message).toContain("`badge-error-text`");
+  });
+
   it("treats trailing 'error' as a state suffix, not a variant — no false positives on chip", () => {
     // chip-bg-error: bg is the utility namespace; error is a state modifier
     // at the trailing position. Must not be misread as variant=bg, util=error.
