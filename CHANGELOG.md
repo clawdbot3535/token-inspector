@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.55.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.55.1) — 2026-06-24
+
+### Changed
+
+- **Owner badges render from a shared registry.** The three static advisory badges in the Scan view
+  (`⊘ by-design`, `🎨 fix in Figma`, `🔧 hand-code`) — previously three near-duplicate `<span>` branches —
+  now render from one registry-driven span backed by a new view-layer `src/app/owner-badges.ts`
+  (`OWNER_BADGES` + `ownerBadge(owner)`), keyed off the v0.55.0 `ownerOf(issue)` aggregator. The typo hint's
+  gate is re-expressed from the hardcoded `possible-typo` kind literal to `ownerOf(issue) === 'data-quality'`,
+  removing that literal's duplication. Behaviour-preserving — identical badges, testids, colours, titles, and
+  typo gating, proven by the unchanged badge/typo tests. Presentation stays in the view layer; the resolve
+  layer is untouched. 954 tests.
+
 ## [0.55.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.55.0) — 2026-06-24
 
 ### Added
