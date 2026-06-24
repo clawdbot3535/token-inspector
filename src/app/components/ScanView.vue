@@ -7,12 +7,13 @@ import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { ownerOf, OWNER_FILTERS, type OwnerFilter } from "../resolve/owner-of.js";
 import { ownerBadge } from "../owner-badges.js";
 
-interface Props { report: ScanReport; resolved?: ReadonlySet<string>; }
+interface Props { report: ScanReport; resolved?: ReadonlySet<string>; accepted?: ReadonlySet<string>; }
 interface Emits {
   (event: "select-tokens", tokenIds: readonly string[]): void;
   (event: "resolve", tokenId: string): void;
+  (event: "accept", issueId: string): void;
 }
-const props = withDefaults(defineProps<Props>(), { resolved: () => new Set<string>() });
+const props = withDefaults(defineProps<Props>(), { resolved: () => new Set<string>(), accepted: () => new Set<string>() });
 const emit = defineEmits<Emits>();
 
 type Tab = "issues" | "readiness" | "forecast";
@@ -85,6 +86,9 @@ function issueResolvableToken(issue: ScanIssue): string | null {
 }
 function issueResolved(issue: ScanIssue): boolean {
   return resolvedIds.value.has(issue.id);
+}
+function issueAccepted(issue: ScanIssue): boolean {
+  return props.accepted.has(issue.id);
 }
 
 async function copyRename(issue: ScanIssue): Promise<void> {
@@ -238,6 +242,20 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="figma-fix-copy"
                 @click.stop="copyFigmaTokens(issue)"
               >📋 Copy {{ issue.figmaFixTokens.length }} token{{ issue.figmaFixTokens.length === 1 ? '' : 's' }}</button>
+              <button
+                v-if="ownerOf(issue) === 'by-design' && !issueAccepted(issue)"
+                type="button"
+                class="ml-2 text-[10px] underline text-zinc-500 dark:text-zinc-400"
+                data-testid="accept-issue"
+                @click.stop="$emit('accept', issue.id)"
+              >Accept</button>
+              <button
+                v-else-if="ownerOf(issue) === 'by-design' && issueAccepted(issue)"
+                type="button"
+                class="ml-2 text-[10px] underline text-teal-600 dark:text-teal-400"
+                data-testid="accept-done"
+                @click.stop="$emit('accept', issue.id)"
+              >✓ accepted</button>
             </div>
           </li>
         </ul>
