@@ -229,6 +229,12 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 <button type="button" class="underline" data-testid="typo-copy" @click.stop="copyRename(issue)">Copy</button>
               </span>
               <span
+                v-if="ownerOf(issue) === 'data-quality' && issue.kind === 'malformed-value'"
+                class="ml-2 inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300"
+                data-testid="malformed-hint"
+                title="A color $value must be a Figma {components, hex} object; a number/dimension $value must be a number."
+              >🛠 fix the $value in the Figma source</span>
+              <span
                 v-if="ownerBadge(ownerOf(issue))"
                 class="ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px]"
                 :class="ownerBadge(ownerOf(issue))!.cls"
