@@ -184,6 +184,8 @@ export interface ScanIssue {
   /** For possible-typo: the typo'd path segment and its suggested correction. */
   typoFrom?: string;
   typoTo?: string;
+  /** For asymmetric-variant-coverage: the exact token names to add in Figma. */
+  figmaFixTokens?: readonly string[];
 }
 
 export interface CompletenessScore {
