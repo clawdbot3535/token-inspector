@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.57.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.3) — 2026-06-24
+
+### Changed
+
+- **`collection-anatomy-mismatch` now routes to the Figma-Fix owner (Figma-Fix owner v2 completion).**
+  A `collection-anatomy-mismatch` deviation (a component that *looks custom* — has parts with no Nuxt slot —
+  yet is declared in a non-`components/custom` Figma collection, i.e. mis-filed in the source) now gets the
+  muted violet **🎨 fix in Figma** badge and is bucketed under the **Figma-Fix** owner filter, instead of
+  falling into "Other". Its message already states the one fix ("consider moving it to `components/custom`"),
+  so this is pure advisory routing — no copy button, no message change. Because owner routing is set-driven
+  (`ownerOf` first-matches over the disjoint kind-sets, and the badge + owner filter follow automatically),
+  the entire change is one entry in `FIGMA_FIX_KINDS` (now 6 kinds) plus a broadened `isFigmaFix` JSDoc; no
+  ScanView / `ownerOf` / scanner / type change. This completes the Figma-Fix owner. 976 tests.
+
 ## [0.57.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.57.2) — 2026-06-24
 
 ### Added
