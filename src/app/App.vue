@@ -145,12 +145,16 @@ const rendered = useRenderedOutput(
   state,
   computed(() => scanReport.value.completeness),
   customParts,
+  resolveOverride,
 );
 // Browser render omits defaultSizeByComponent (no slot-mapping.json in the browser) — matches the other web renders. Drives both tab visibility and download.
 const customOutputText = computed(() => {
   const g = state.graph.value;
   if (!g) return "";
-  return customComponentsRenderer.render(g, { customParts: customParts.value }).text;
+  return customComponentsRenderer.render(g, {
+    customParts: customParts.value,
+    slotMappingOverride: resolveOverride.value,
+  }).text;
 });
 // The custom-components.ts tab is only reachable when the rendered text is non-empty.
 const outputTabs = computed(() =>
@@ -515,6 +519,7 @@ function downloadAll() {
           ? appConfigRenderer.render(g, {
               completeness: scanReport.value.completeness,
               customComponents: new Set(customParts.value.keys()),
+              slotMappingOverride: resolveOverride.value,
             }).text
           : r.render(g).text,
     })),
@@ -597,6 +602,7 @@ function downloadAll() {
             color="primary"
             variant="ghost"
             size="xs"
+            data-testid="download-all"
             @click="downloadAll"
           >
             Download .zip

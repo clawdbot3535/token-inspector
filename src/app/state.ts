@@ -11,6 +11,7 @@ import type {
   TokenType,
 } from "@core/token-graph.js";
 import type { RenderedText, CompletenessScore } from "@core/token-graph.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
 
 export type ViewMode = "inspector" | "scan";
@@ -67,6 +68,7 @@ export function useRenderedOutput(
   state: AppState,
   completeness?: Ref<ReadonlyArray<CompletenessScore> | undefined>,
   customParts?: Ref<ReadonlyMap<string, ReadonlyArray<string>> | undefined>,
+  slotMappingOverride?: Ref<SlotMappingOverride | undefined>,
 ) {
   return computed<RenderedText | null>(() => {
     const g = state.graph.value;
@@ -77,10 +79,14 @@ export function useRenderedOutput(
         customComponents: customParts?.value
           ? new Set(customParts.value.keys())
           : undefined,
+        slotMappingOverride: slotMappingOverride?.value,
       });
     }
     if (state.outputTab.value === customComponentsRenderer.id) {
-      return customComponentsRenderer.render(g, { customParts: customParts?.value });
+      return customComponentsRenderer.render(g, {
+        customParts: customParts?.value,
+        slotMappingOverride: slotMappingOverride?.value,
+      });
     }
     const renderer = defaultRenderers.find((r) => r.id === state.outputTab.value);
     return renderer ? renderer.render(g) : null;
