@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { ScanReport, ScanIssue } from "@core/token-graph.js";
+import type { ScanReport, ScanIssue, TokenGraph } from "@core/token-graph.js";
 import { groupIssuesByComponent } from "../scan-grouping.js";
 import { heuristicExtendable } from "../resolve/heuristic-extendable.js";
 import { resolvedIssueIds } from "../resolve/resolved-issues.js";
 import { ownerOf, OWNER_FILTERS, type OwnerFilter } from "../resolve/owner-of.js";
+import { typoRenameImpact, type TokenRenameImpact } from "../resolve/typo-impact.js";
 import { ownerBadge } from "../owner-badges.js";
 import { emptyIssuesMessage } from "../empty-issues-message.js";
 
-interface Props { report: ScanReport; resolved?: ReadonlySet<string>; accepted?: ReadonlySet<string>; }
+interface Props { report: ScanReport; resolved?: ReadonlySet<string>; accepted?: ReadonlySet<string>; graph?: TokenGraph | null; }
 interface Emits {
   (event: "select-tokens", tokenIds: readonly string[]): void;
   (event: "resolve", tokenId: string): void;
@@ -110,6 +111,31 @@ async function copyFigmaTokens(issue: ScanIssue): Promise<void> {
   }
 }
 
+// Typo rename impact preview (Data-Quality, advisory). Read-only: shows whether
+// fixing the typo in Figma would change how the token maps. Needs the graph prop.
+const expandedPreviews = ref<ReadonlySet<string>>(new Set());
+function togglePreview(issueId: string): void {
+  const next = new Set(expandedPreviews.value);
+  if (next.has(issueId)) next.delete(issueId);
+  else next.add(issueId);
+  expandedPreviews.value = next;
+}
+function previewExpanded(issueId: string): boolean {
+  return expandedPreviews.value.has(issueId);
+}
+function showPreviewToggle(issue: ScanIssue): boolean {
+  return !!props.graph && issue.kind === "possible-typo" && !!issue.typoTo;
+}
+function typoImpacts(issue: ScanIssue): TokenRenameImpact[] {
+  return props.graph ? typoRenameImpact(props.graph, issue) : [];
+}
+const verdictClass = (v: TokenRenameImpact["verdict"]): string =>
+  ({
+    recovers: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+    corrects: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+    cosmetic: "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
+  })[v] ?? "";
+
 const TABS: ReadonlyArray<{ value: Tab; label: string }> = [
   { value: "issues", label: "Issues" },
   { value: "readiness", label: "Readiness" },
@@ -205,6 +231,20 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
               <div v-if="issue.componentName && issue.variantKey" class="text-zinc-400 font-mono text-[10px]">
                 {{ issue.componentName }} / {{ issue.variantKey }}
               </div>
+              <div
+                v-if="previewExpanded(issue.id)"
+                data-testid="typo-preview"
+                class="mt-1 space-y-0.5 rounded bg-zinc-50 dark:bg-zinc-800/50 p-1.5 text-[10px] font-mono"
+                @click.stop
+              >
+                <div v-for="imp in typoImpacts(issue)" :key="imp.from" class="flex flex-wrap items-center gap-1">
+                  <code>{{ imp.from }}</code>
+                  <span class="text-zinc-400">→</span>
+                  <code class="text-emerald-700 dark:text-emerald-300">{{ imp.to }}</code>
+                  <span class="text-zinc-400">{{ imp.before }} ⇒ {{ imp.after }}</span>
+                  <span class="rounded px-1" :class="verdictClass(imp.verdict)">{{ imp.verdict }}</span>
+                </div>
+              </div>
             </div>
             <div class="shrink-0 flex items-center gap-1">
               <span v-if="issue.tokenIds.length > 0" class="text-[10px] text-zinc-400">
@@ -229,6 +269,13 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 💡 <code>{{ issue.typoFrom }}</code> → <code>{{ issue.typoTo }}</code>
                 <button type="button" class="underline" data-testid="typo-copy" @click.stop="copyRename(issue)">Copy</button>
               </span>
+              <button
+                v-if="showPreviewToggle(issue)"
+                type="button"
+                class="ml-2 text-[10px] underline text-sky-700 dark:text-sky-300"
+                data-testid="typo-preview-toggle"
+                @click.stop="togglePreview(issue.id)"
+              >{{ previewExpanded(issue.id) ? 'Hide' : 'Preview' }}</button>
               <span
                 v-if="ownerOf(issue) === 'data-quality' && issue.kind === 'malformed-value'"
                 class="ml-2 inline-flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300"
