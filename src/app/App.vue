@@ -785,6 +785,7 @@ function downloadAll() {
               :report="scanReport"
               :resolved="resolvedTokenIds"
               :accepted="acceptedIds"
+              :graph="state.graph.value"
               @select-tokens="onScanSelectTokens"
               @resolve="onResolve"
               @accept="onToggleAccept"

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.58.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.58.1) — 2026-06-25
+
+### Added
+
+- **Typo issues now carry a read-only "Preview" that shows whether fixing the typo would change how the
+  token maps (Data-Quality rename-impact preview).** A `possible-typo` deviation already showed a copy-able
+  `💡 from → to` rename hint, but a designer couldn't tell whether the typo was *costing* them a mapped token
+  or was merely cosmetic. Each typo issue now has a **Preview** toggle (shown when the inspector has the token
+  graph) that expands an inline before→after for every affected token: the corrected id, how it maps today vs.
+  after the fix, and a verdict — **recovers** (an unmapped token becomes mapped, e.g. `button-heigth-md` →
+  `button-height-md` starts mapping to `slots.base · height`), **corrects** (the mapping changes), or
+  **cosmetic** (no output change, e.g. an auto-normalized `line-heigth`). It stays advisory: the fix still
+  belongs in the Figma source — the preview only *measures* the impact, it does not apply the rename.
+- The impact is computed by a new pure module `src/app/resolve/typo-impact.ts` (`typoRenameImpact(graph,
+  issue)`) that runs the real slot-mapping path (`getSlotMapping` from `@tg/grammar`) on both the typo'd id and
+  the corrected id — no graph mutation, no recipe-engine change, no `provide`/`inject`. The impact is measured
+  at the component slot-mapping level; a token that doesn't slot-map (a primitive/typography token) reports
+  `cosmetic`, accurate for the current corpus. ScanView gains an additive optional `graph` prop (passed from
+  App.vue); without it the Preview toggle simply doesn't render. Scanner, `ScanIssue`, owner routing, badges
+  and header counts are all unchanged. 993 tests.
+
 ## [0.58.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.58.0) — 2026-06-24
 
 ### Changed
