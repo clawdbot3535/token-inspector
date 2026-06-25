@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildGraph } from "../../build-graph.js";
 import type { SourceFile } from "../../token-graph.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import { buildKitFiles } from "./kit-emitter.js";
 
 function buttonGraph() {
@@ -9,6 +10,16 @@ function buttonGraph() {
   ];
   return buildGraph(sources);
 }
+
+// button-mystery-radius is unmapped until a resolve override routes it into the
+// button recipe (button is an allow-list component the kit renders).
+function mysteryGraph() {
+  return buildGraph([
+    { name: "global", data: { button: { mystery: { radius: { $value: 8, $type: "dimension" } } } } },
+  ] as SourceFile[]);
+}
+const contentByPath = (graph: ReturnType<typeof buildGraph>, override?: SlotMappingOverride) =>
+  new Map(buildKitFiles(graph, override).map((f) => [f.path, f.content] as const));
 
 describe("buildKitFiles", () => {
   it("emits a self-contained runnable kit under kit/", () => {
@@ -39,5 +50,17 @@ describe("buildKitFiles", () => {
     const t = new Map(buildKitFiles(buttonGraph()).map((f) => [f.path, f.content] as const)).get("kit/theme.ts")!;
     expect(t).toContain("export const theme");
     expect(t).toContain('"colors"');
+  });
+  it("threads a resolve override into the kit theme AND gallery", () => {
+    const override: SlotMappingOverride = {
+      "button-mystery-radius": { slot: "base", utilityType: "rounded", variantAxis: null, variantKey: null, statePrefix: null },
+    };
+    const withOverride = contentByPath(mysteryGraph(), override);
+    const without = contentByPath(mysteryGraph());
+    // theme.ts is built by buildKitTheme, src/App.vue by buildKitGallery — both
+    // build component recipes, so both must reflect the override.
+    expect(withOverride.get("kit/theme.ts")).not.toBe(without.get("kit/theme.ts"));
+    expect(withOverride.get("kit/src/App.vue")).not.toBe(without.get("kit/src/App.vue"));
+    expect(withOverride.get("kit/theme.ts")).toContain("rounded");
   });
 });

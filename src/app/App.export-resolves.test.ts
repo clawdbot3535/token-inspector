@@ -90,4 +90,14 @@ describe("App export reflects resolves", () => {
     // so the exported recipe differs from the un-resolved one.
     expect(withOverride).not.toBe(without);
   });
+
+  it("the exported runnable kit (kit/theme.ts) reflects the applied resolve override", async () => {
+    // The kit renders allow-list components, so button-mystery-radius lands in
+    // the kit theme directly (downloadAll → buildKitFiles(g, resolveOverride)).
+    const withOverride = await exportEntry([sourceFile(), overrideFile()], "kit/theme.ts");
+    const without = await exportEntry([sourceFile()], "kit/theme.ts");
+    expect(withOverride).toBeDefined();
+    expect(without).toBeDefined();
+    expect(withOverride).not.toBe(without);
+  });
 });

@@ -1,5 +1,6 @@
 import type { TokenGraph } from "../../token-graph.js";
 import type { ComponentRecipe } from "../../recipe-engine.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import { buildComponentRecipes } from "../../recipe-engine.js";
 import { COMPONENT_ALLOW_LIST, deriveRoles } from "../app-config.js";
 
@@ -11,9 +12,9 @@ export interface KitTheme {
   [component: string]: ComponentRecipe | Record<string, string> | undefined;
 }
 
-export function buildKitTheme(graph: TokenGraph): KitTheme {
+export function buildKitTheme(graph: TokenGraph, slotMappingOverride?: SlotMappingOverride): KitTheme {
   const roles = deriveRoles(graph);
-  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST] });
+  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST], slotMappingOverride });
   const theme: KitTheme = { colors: { ...roles } };
   for (const name of COMPONENT_ALLOW_LIST) {
     const recipe = recipes[name];

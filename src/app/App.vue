@@ -531,7 +531,7 @@ function downloadAll() {
           data: customOutputText.value,
         }]
       : []),
-    ...buildKitFiles(g).map((f) => ({ name: f.path, data: f.content })),
+    ...buildKitFiles(g, resolveOverride.value).map((f) => ({ name: f.path, data: f.content })),
     // Carry the session resolves with the bundle so the CLI/build (and a later
     // reimport) can apply the same slot-mapping overrides. Empty → no entry.
     ...slotMappingBundleEntry(resolveOverride.value),

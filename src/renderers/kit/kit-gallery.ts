@@ -1,4 +1,5 @@
 import type { TokenGraph } from "../../token-graph.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import { buildComponentRecipes } from "../../recipe-engine.js";
 import { COMPONENT_ALLOW_LIST } from "../app-config.js";
 
@@ -25,8 +26,8 @@ const GALLERY_SNIPPETS: Record<string, string> = {
   // chip / sidebar (custom components) deferred from gallery v1.
 };
 
-export function buildKitGallery(graph: TokenGraph): string {
-  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST] });
+export function buildKitGallery(graph: TokenGraph, slotMappingOverride?: SlotMappingOverride): string {
+  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST], slotMappingOverride });
   const present = COMPONENT_ALLOW_LIST.filter((name) => recipes[name] && GALLERY_SNIPPETS[name]);
   const sections = present
     .map(
