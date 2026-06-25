@@ -111,6 +111,15 @@ async function copyFigmaTokens(issue: ScanIssue): Promise<void> {
   }
 }
 
+async function copySnap(issue: ScanIssue): Promise<void> {
+  if (!issue.snapTo) return;
+  try {
+    await navigator.clipboard?.writeText(issue.snapTo);
+  } catch {
+    // clipboard unavailable — the suggested value is still shown in the message
+  }
+}
+
 // Typo rename impact preview (Data-Quality, advisory). Read-only: shows whether
 // fixing the typo in Figma would change how the token maps. Needs the graph prop.
 const expandedPreviews = ref<ReadonlySet<string>>(new Set());
@@ -296,6 +305,13 @@ const SEVERITY_FILTERS: ReadonlyArray<{ value: SeverityFilter; label: string }> 
                 data-testid="figma-fix-copy"
                 @click.stop="copyFigmaTokens(issue)"
               >📋 Copy {{ issue.figmaFixTokens.length }} token{{ issue.figmaFixTokens.length === 1 ? '' : 's' }}</button>
+              <button
+                v-if="issue.kind === 'snap-to-tailwind' && issue.snapTo"
+                type="button"
+                class="ml-2 text-[10px] underline text-violet-700 dark:text-violet-300"
+                data-testid="snap-copy"
+                @click.stop="copySnap(issue)"
+              >📋 Copy {{ issue.snapTo }}</button>
               <button
                 v-if="ownerOf(issue) === 'by-design' && !issueAccepted(issue)"
                 type="button"

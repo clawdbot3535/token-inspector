@@ -679,6 +679,7 @@ export function scanGraph(graph: TokenGraph, options: ScanOptions): ScanReport {
           kind: "snap-to-tailwind",
           message: `${node.id} = ${value} is close to ${suggestion.utility} (${suggestion.value}) — consider snapping.`,
           tokenIds: [node.id],
+          snapTo: suggestion.value,
         });
       }
     }

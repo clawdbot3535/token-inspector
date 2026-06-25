@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.60.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.60.0) — 2026-06-25
+
+### Added
+
+- **`snap-to-tailwind` hints now have a one-click "Copy" for the suggested value.** When a primitive sits a
+  step or two off the Tailwind scale, the Scan view already noted it (e.g. *"`spacing-custom-5` = 5px is close
+  to p-1 (4px) — consider snapping."*), but acting on it meant re-typing the value. The hint now shows a
+  **📋 Copy `<value>`** button that copies the Tailwind-aligned value (e.g. `4px`) — the change you make to the
+  token in Figma. Mirrors the existing typo and Figma-Fix copy affordances.
+- Backed by a new structured `snapTo` field on the `ScanIssue` (the scanner already computed the value for the
+  message; it now also carries it, byte-identically — the message is unchanged). The Copy button is gated on
+  `kind === "snap-to-tailwind"`, sitting alongside the kind's existing 🎨 Figma-Fix badge. This is the one
+  newly-routed (v0.58.0) kind with a concrete copy-able artifact; the others remain advisory (their message is
+  the action). No scanner-logic, owner-routing, or count change. 1010 tests.
+
 ## [0.59.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.2) — 2026-06-25
 
 ### Fixed
