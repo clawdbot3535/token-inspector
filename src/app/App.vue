@@ -47,7 +47,7 @@ import GitLoader from "./components/GitLoader.vue";
 import ResolvePanel from "./components/ResolvePanel.vue";
 import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
-import { buildSlotMappingFile } from "./resolve/export-slot-mapping.js";
+import { buildSlotMappingFile, slotMappingBundleEntry } from "./resolve/export-slot-mapping.js";
 import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
@@ -472,13 +472,15 @@ async function handleFiles(files: FileList | readonly File[] | null) {
   if (!files || files.length === 0) return;
   state.loadError.value = null;
   try {
-    const { sources, figmaMapping: dropped, warnings } = await loadSources([...files]);
+    const { sources, figmaMapping: dropped, slotMapping, warnings } = await loadSources([...files]);
     if (warnings.length > 0) console.warn("Load warnings:", warnings);
-    if (sources.length === 0 && !dropped) {
+    if (sources.length === 0 && !dropped && !slotMapping) {
       state.loadError.value = "No recognized token files in drop.";
       return;
     }
     if (dropped) droppedMapping.value = dropped;
+    // Reimport a slot-mapping.json: restore the session resolves (replace).
+    if (slotMapping?.overrides) resolveOverride.value = slotMapping.overrides;
     if (sources.length > 0) {
       state.graph.value = buildGraph(sources);
       state.selection.value = null;
@@ -525,6 +527,9 @@ function downloadAll() {
         }]
       : []),
     ...buildKitFiles(g).map((f) => ({ name: f.path, data: f.content })),
+    // Carry the session resolves with the bundle so the CLI/build (and a later
+    // reimport) can apply the same slot-mapping overrides. Empty → no entry.
+    ...slotMappingBundleEntry(resolveOverride.value),
   ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }
