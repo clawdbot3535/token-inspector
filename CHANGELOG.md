@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.59.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.1) — 2026-06-25
+
+### Fixed
+
+- **The generated output — the on-screen code tabs AND the downloaded bundle — now reflects your resolves.**
+  The live Kit preview already re-rendered with the session's resolve overrides, but the generated
+  `app.config.ts` / `custom-components.ts` (both the on-screen output tabs and the files in
+  `tokens-bundle.zip`) ignored them — so the code you read and shipped silently diverged from the preview,
+  and (since v0.59.0) from the `slot-mapping.json` the bundle carries. The resolve override is now threaded
+  into every recipe-based render, so the output matches the preview and the bundled mapping.
+- Implemented by threading a `slotMappingOverride` through the render path: `customComponentsRenderer` gained
+  the option (passed into `buildCustomRecipes`, which already accepted it; `appConfigRenderer` already had it),
+  `useRenderedOutput` gained a fourth `slotMappingOverride` ref param (so the on-screen tabs honor it), and
+  App.vue passes the session `resolveOverride` to the on-screen render, the `custom-components.ts` download
+  text, and the bundle's `app.config.ts` render. `tokens.css` is unaffected (no recipes). Out of scope (a
+  possible follow-on): the runnable `kit/` files in the bundle are not yet threaded. 1005 tests.
+
 ## [0.59.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.0) — 2026-06-25
 
 ### Added

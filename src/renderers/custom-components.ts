@@ -5,6 +5,7 @@
 
 import type { TextRenderer, TokenGraph, RenderedText } from "../token-graph.js";
 import type { ComponentRecipe } from "../recipe-engine.js";
+import type { SlotMappingOverride } from "@tg/grammar";
 import { buildCustomRecipes, buildOverlayRecipes } from "../custom-recipe-engine.js";
 import { LineBuilder } from "./line-builder.js";
 
@@ -12,6 +13,8 @@ export interface CustomComponentsRendererOptions {
   /** component → foreign parts, from customPartsByComponent(scanReport). */
   customParts?: ReadonlyMap<string, ReadonlyArray<string>>;
   defaultSizeByComponent?: Readonly<Record<string, string>>;
+  /** Session resolve overrides, so the rendered output matches the Kit preview. */
+  slotMappingOverride?: SlotMappingOverride;
 }
 
 interface CustomComponentsRenderer extends TextRenderer {
@@ -25,6 +28,7 @@ export const customComponentsRenderer: CustomComponentsRenderer = {
     const recipes = {
       ...buildCustomRecipes(graph, parts, {
         defaultSizeByComponent: options?.defaultSizeByComponent,
+        slotMappingOverride: options?.slotMappingOverride,
       }),
       ...buildOverlayRecipes(graph),
     };
