@@ -63,4 +63,19 @@ describe("loadSources", () => {
     expect(figmaMapping).toBeNull();
     expect(warnings.join(" ")).toMatch(/figma-mapping/i);
   });
+
+  it("loads a slot-mapping.json's overrides for reimport", async () => {
+    const overrides = {
+      "button-mystery-bg": { slot: "base", utilityType: "bg-color", variantAxis: null, variantKey: null, statePrefix: null },
+    };
+    const { slotMapping } = await loadSources([jsonFile("slot-mapping.json", { overrides })]);
+    expect(slotMapping?.overrides).toEqual(overrides);
+  });
+
+  it("skips a malformed slot-mapping.json with a warning", async () => {
+    const bad = new File(["{ not json"], "slot-mapping.json", { type: "application/json" });
+    const { slotMapping, warnings } = await loadSources([bad]);
+    expect(slotMapping).toBeNull();
+    expect(warnings.join(" ")).toMatch(/slot-mapping/i);
+  });
 });

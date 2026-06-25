@@ -6,6 +6,7 @@
 
 import type { SourceFile, SourceLayer } from "@core/token-graph.js";
 import type { FigmaMappingFile } from "./figma-mapping.js";
+import { parseSlotMappingFile, type LoadedSlotMapping } from "@core/slot-mapping-loader.js";
 import { unzipToFiles } from "./unzip.js";
 
 const FILENAME_TO_LAYER: Record<string, SourceLayer> = {
@@ -18,6 +19,7 @@ const FILENAME_TO_LAYER: Record<string, SourceLayer> = {
 };
 
 const FIGMA_MAPPING_FILENAMES = new Set(["figma-mapping.json", "figma.json"]);
+const SLOT_MAPPING_FILENAMES = new Set(["slot-mapping.json"]);
 
 function detectLayer(filename: string): SourceLayer | null {
   const base = filename.toLowerCase().split("/").pop() ?? filename.toLowerCase();
@@ -27,6 +29,11 @@ function detectLayer(filename: string): SourceLayer | null {
 function isFigmaMappingFile(filename: string): boolean {
   const base = filename.toLowerCase().split("/").pop() ?? filename.toLowerCase();
   return FIGMA_MAPPING_FILENAMES.has(base);
+}
+
+function isSlotMappingFile(filename: string): boolean {
+  const base = filename.toLowerCase().split("/").pop() ?? filename.toLowerCase();
+  return SLOT_MAPPING_FILENAMES.has(base);
 }
 
 function isZip(file: File): boolean {
@@ -71,6 +78,7 @@ async function readJson(file: File): Promise<unknown> {
 export interface LoadResult {
   sources: SourceFile[];
   figmaMapping: FigmaMappingFile | null;
+  slotMapping: LoadedSlotMapping | null;
   warnings: string[];
 }
 
@@ -79,10 +87,22 @@ export async function loadSources(files: readonly File[]): Promise<LoadResult> {
   const warnings: string[] = [];
   const seen = new Set<SourceLayer>();
   let figmaMapping: FigmaMappingFile | null = null;
+  let slotMapping: LoadedSlotMapping | null = null;
 
   const expanded = await expandZips(files, warnings);
 
   for (const file of expanded) {
+    // Optional resolve-override side-car (mirrors figma-mapping.json): parse it
+    // so App.vue can restore the session's slot-mapping overrides on reimport.
+    if (isSlotMappingFile(file.name)) {
+      try {
+        slotMapping = parseSlotMappingFile(await file.text());
+      } catch (cause) {
+        const msg = cause instanceof Error ? cause.message : String(cause);
+        warnings.push(`Invalid slot-mapping.json (skipped): ${msg}`);
+      }
+      continue;
+    }
     if (isFigmaMappingFile(file.name)) {
       const data = await readJson(file);
       const components = (data as FigmaMappingFile | null)?.components;
@@ -118,5 +138,5 @@ export async function loadSources(files: readonly File[]): Promise<LoadResult> {
     seen.add(layer);
   }
 
-  return { sources, figmaMapping, warnings };
+  return { sources, figmaMapping, slotMapping, warnings };
 }
