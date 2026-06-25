@@ -23,10 +23,15 @@ export interface ExportFile {
 }
 
 /** Builds a self-contained runnable Vite + @nuxt/ui kit project as ExportFiles under `kit/`.
- *  `slotMappingOverride` (the session resolves) threads into the recipe-based theme + gallery
- *  so the runnable kit matches the rest of the export. */
-export function buildKitFiles(graph: TokenGraph, slotMappingOverride?: SlotMappingOverride): ExportFile[] {
-  const theme = buildKitTheme(graph, slotMappingOverride);
+ *  `slotMappingOverride` (the session resolves) and `defaultSizeByComponent` (per-component
+ *  default size) thread into the recipe-based theme + gallery so the runnable kit matches the
+ *  rest of the export. */
+export function buildKitFiles(
+  graph: TokenGraph,
+  slotMappingOverride?: SlotMappingOverride,
+  defaultSizeByComponent?: Readonly<Record<string, string>>,
+): ExportFile[] {
+  const theme = buildKitTheme(graph, slotMappingOverride, defaultSizeByComponent);
   return [
     { path: "kit/package.json", content: KIT_PACKAGE_JSON },
     { path: "kit/vite.config.ts", content: KIT_VITE_CONFIG },
@@ -35,7 +40,7 @@ export function buildKitFiles(graph: TokenGraph, slotMappingOverride?: SlotMappi
     { path: "kit/theme.ts", content: `export const theme = ${JSON.stringify(theme, null, 2)} as const;\n` },
     { path: "kit/src/main.ts", content: KIT_MAIN_TS },
     { path: "kit/src/main.css", content: KIT_MAIN_CSS },
-    { path: "kit/src/App.vue", content: buildKitGallery(graph, slotMappingOverride) },
+    { path: "kit/src/App.vue", content: buildKitGallery(graph, slotMappingOverride, defaultSizeByComponent) },
     { path: "kit/README.md", content: KIT_README },
   ];
 }

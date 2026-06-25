@@ -66,6 +66,13 @@ const overrideFile = () =>
     "button-mystery-radius": { slot: "base", utilityType: "rounded", variantAxis: null, variantKey: null, statePrefix: null },
   } })], "slot-mapping.json", { type: "application/json" });
 
+// button-padding-x is a normal slot token (button stays allow-list, renders in
+// app.config.ts); a size sibling lets the imported defaultSize redirect it.
+const sizeSourceFile = () =>
+  new File([JSON.stringify({ button: { "padding-x": { $value: 8, $type: "dimension" }, "padding-x-lg": { $value: 16, $type: "dimension" } } })], "global.tokens.json", { type: "application/json" });
+const defaultSizeFile = () =>
+  new File([JSON.stringify({ components: { button: { defaultSize: "sm" } } })], "slot-mapping.json", { type: "application/json" });
+
 async function exportEntry(files: File[], name: string): Promise<string | undefined> {
   vi.stubGlobal("fetch", vi.fn(async () => new Response("not found", { status: 404 })));
   const wrapper = mount(App, mountOpts);
@@ -99,5 +106,16 @@ describe("App export reflects resolves", () => {
     expect(withOverride).toBeDefined();
     expect(without).toBeDefined();
     expect(withOverride).not.toBe(without);
+  });
+
+  it("the exported app.config.ts reflects an imported defaultSizeByComponent", async () => {
+    // Importing a slot-mapping.json with components.{defaultSize} captures it in
+    // App state, and downloadAll's app.config render redirects the non-suffix
+    // token to that size — so the exported config differs from the un-sized one.
+    const withSize = await exportEntry([sizeSourceFile(), defaultSizeFile()], "app.config.ts");
+    const without = await exportEntry([sizeSourceFile()], "app.config.ts");
+    expect(withSize).toBeDefined();
+    expect(without).toBeDefined();
+    expect(withSize).not.toBe(without);
   });
 });

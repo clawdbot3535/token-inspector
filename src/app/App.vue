@@ -108,6 +108,10 @@ const filteredNodes = useFilteredNodes(state);
 const scanReport = useScanReport(state.graph);
 const resolveOverride = ref<SlotMappingOverride>({});
 provide(RESOLVE_OVERRIDE_KEY, resolveOverride);
+// Per-component default size from an imported slot-mapping.json. Feeds only the
+// output renders (the live preview picks a representative size independently),
+// so — unlike resolveOverride — it is NOT provided.
+const defaultSizeByComponent = ref<Record<string, string>>({});
 const resolvedTokenIds = computed<Set<string>>(() => new Set(Object.keys(resolveOverride.value)));
 const acceptedIds = ref<Set<string>>(loadAcceptedIds());
 const resolvables = computed<ResolvableDeviation[]>(() => heuristicExtendable(scanReport.value));
@@ -146,6 +150,7 @@ const rendered = useRenderedOutput(
   computed(() => scanReport.value.completeness),
   customParts,
   resolveOverride,
+  defaultSizeByComponent,
 );
 // Browser render omits defaultSizeByComponent (no slot-mapping.json in the browser) — matches the other web renders. Drives both tab visibility and download.
 const customOutputText = computed(() => {
@@ -154,6 +159,7 @@ const customOutputText = computed(() => {
   return customComponentsRenderer.render(g, {
     customParts: customParts.value,
     slotMappingOverride: resolveOverride.value,
+    defaultSizeByComponent: defaultSizeByComponent.value,
   }).text;
 });
 // The custom-components.ts tab is only reachable when the rendered text is non-empty.
@@ -483,8 +489,10 @@ async function handleFiles(files: FileList | readonly File[] | null) {
       return;
     }
     if (dropped) droppedMapping.value = dropped;
-    // Reimport a slot-mapping.json: restore the session resolves (replace).
+    // Reimport a slot-mapping.json: restore the session resolves (replace) + the
+    // per-component default sizes.
     if (slotMapping?.overrides) resolveOverride.value = slotMapping.overrides;
+    if (slotMapping?.defaultSizeByComponent) defaultSizeByComponent.value = slotMapping.defaultSizeByComponent;
     if (sources.length > 0) {
       state.graph.value = buildGraph(sources);
       state.selection.value = null;
@@ -520,6 +528,7 @@ function downloadAll() {
               completeness: scanReport.value.completeness,
               customComponents: new Set(customParts.value.keys()),
               slotMappingOverride: resolveOverride.value,
+              defaultSizeByComponent: defaultSizeByComponent.value,
             }).text
           : r.render(g).text,
     })),
@@ -531,7 +540,7 @@ function downloadAll() {
           data: customOutputText.value,
         }]
       : []),
-    ...buildKitFiles(g, resolveOverride.value).map((f) => ({ name: f.path, data: f.content })),
+    ...buildKitFiles(g, resolveOverride.value, defaultSizeByComponent.value).map((f) => ({ name: f.path, data: f.content })),
     // Carry the session resolves with the bundle so the CLI/build (and a later
     // reimport) can apply the same slot-mapping overrides. Empty → no entry.
     ...slotMappingBundleEntry(resolveOverride.value),

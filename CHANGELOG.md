@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.61.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.61.0) — 2026-06-25
+
+### Added
+
+- **An imported `slot-mapping.json`'s `components.{defaultSize}` is now applied in the browser — completing
+  the import round-trip.** v0.59.0 let you re-import a `slot-mapping.json` to restore the session's resolve
+  overrides, but a per-component default size in that file (`components: { button: { defaultSize: "lg" } }`) was
+  parsed and then discarded. It's now captured on import and threaded into every output render — the on-screen
+  `app.config.ts` / `custom-components.ts` tabs, the downloaded bundle's renders, and the runnable `kit/` —
+  so the generated output honors it, matching the CLI. A non-suffix token (e.g. `button-padding-x`) with a
+  size sibling redirects to the configured default size instead of `md`.
+- Threaded alongside the resolve override: `useRenderedOutput` gained a fifth `defaultSizeByComponent` ref param,
+  `buildKitFiles → buildKitTheme` / `buildKitGallery` gained a third param (the `appConfig` / `custom` renderers
+  and `buildComponentRecipes` already accepted the option), and App.vue captures it on import into a new
+  `defaultSizeByComponent` ref passed to all four render sites. The **live preview is intentionally untouched** —
+  it picks a representative size (`md`/smallest) independently of the recipe's default-size designation, so it
+  does not consume `defaultSizeByComponent` (no `provide`/`inject` needed, unlike the resolve override). Niche by
+  nature (a hand-authored config field, not produced by the Resolve loop); no scanner/graph change. 1013 tests.
+
 ## [0.60.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.60.0) — 2026-06-25
 
 ### Added
