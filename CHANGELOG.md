@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.59.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.0) — 2026-06-25
+
+### Added
+
+- **`slot-mapping.json` now travels with the export bundle and can be re-imported (resolve round-trip).**
+  The Resolve loop lets you reroute unmapped tokens into a session `slot-mapping.json`, but that override only
+  left the app via a separate "Download slot-mapping.json" button — the main `tokens-bundle.zip` didn't carry
+  it, and re-loading your tokens lost every resolve. Now:
+  - **Export:** `Download all` folds a `slot-mapping.json` into `tokens-bundle.zip` whenever you have resolves
+    (none is added when there are none — no empty `{ overrides: {} }`). The standalone download button stays.
+  - **Import:** dropping or picking a `slot-mapping.json` (alone or inside a zip, alongside your token files)
+    restores the session's overrides live — the Kit re-renders, the Scan view shows the resolves as ✓ resolved,
+    and the header counts update. Loading one on its own no longer trips the "no token files" message.
+- Mirrors the existing `figma-mapping.json` side-car pattern: `loadSources` detects `slot-mapping.json` and
+  returns it on a new `LoadResult.slotMapping` (parsed via the existing `parseSlotMappingFile`; a malformed file
+  warns and is skipped). A new pure `slotMappingBundleEntry(override)` helper (in `export-slot-mapping.ts`)
+  produces the bundle entry. On import the overrides **replace** the session override (load-a-saved-state
+  semantics). Scope: only `overrides` feed the live recipe engine — a `slot-mapping.json`'s `defaultSizeByComponent`
+  is parsed but not applied in the browser (unchanged), and the bundle's pre-rendered `app.config.ts` is not
+  re-rendered with the override (the CLI is the consumer that applies the file). 1002 tests.
+
 ## [0.58.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.58.1) — 2026-06-25
 
 ### Added
