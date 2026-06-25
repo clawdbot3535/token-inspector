@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.59.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.2) — 2026-06-25
+
+### Fixed
+
+- **The runnable `kit/` project in the export bundle now reflects your resolves too — completing the
+  "output reflects resolves" pass.** v0.59.1 threaded the session resolve override into `app.config.ts` and
+  `custom-components.ts`, but the bundle's runnable Vite + `@nuxt/ui` kit (`kit/theme.ts` and the gallery
+  `kit/src/App.vue`) still built its recipes without it — so `npm run dev` inside the exported kit rendered the
+  un-resolved theme. The override is now threaded through `buildKitFiles → buildKitTheme` *and* `buildKitGallery`
+  (both independently call `buildComponentRecipes`), and App.vue's `Download .zip` passes the session
+  `resolveOverride`. Every recipe-based render in the bundle — `app.config.ts`, `custom-components.ts`, and the
+  `kit/` files — now matches the on-screen Kit preview and the bundled `slot-mapping.json`. The new param is
+  optional, so the CLI and existing callers are unchanged; the kit still renders only allow-list components (its
+  existing scope), and `kit/tokens.css` is unaffected (no recipes). 1007 tests.
+
 ## [0.59.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.59.1) — 2026-06-25
 
 ### Fixed
