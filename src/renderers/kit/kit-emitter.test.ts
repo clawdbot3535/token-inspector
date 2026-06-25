@@ -18,8 +18,19 @@ function mysteryGraph() {
     { name: "global", data: { button: { mystery: { radius: { $value: 8, $type: "dimension" } } } } },
   ] as SourceFile[]);
 }
-const contentByPath = (graph: ReturnType<typeof buildGraph>, override?: SlotMappingOverride) =>
-  new Map(buildKitFiles(graph, override).map((f) => [f.path, f.content] as const));
+// A non-suffix token (button-padding-x) with a size sibling (button-padding-x-lg)
+// redirects to the default size — "md" by default, or the configured size.
+function sizeGraph() {
+  return buildGraph([
+    { name: "global", data: { button: { "padding-x": { $value: 8, $type: "dimension" }, "padding-x-lg": { $value: 16, $type: "dimension" } } } },
+  ] as SourceFile[]);
+}
+const contentByPath = (
+  graph: ReturnType<typeof buildGraph>,
+  override?: SlotMappingOverride,
+  defaultSizeByComponent?: Readonly<Record<string, string>>,
+) =>
+  new Map(buildKitFiles(graph, override, defaultSizeByComponent).map((f) => [f.path, f.content] as const));
 
 describe("buildKitFiles", () => {
   it("emits a self-contained runnable kit under kit/", () => {
@@ -62,5 +73,11 @@ describe("buildKitFiles", () => {
     expect(withOverride.get("kit/theme.ts")).not.toBe(without.get("kit/theme.ts"));
     expect(withOverride.get("kit/src/App.vue")).not.toBe(without.get("kit/src/App.vue"));
     expect(withOverride.get("kit/theme.ts")).toContain("rounded");
+  });
+  it("threads defaultSizeByComponent into the kit theme", () => {
+    const withSize = contentByPath(sizeGraph(), undefined, { button: "sm" });
+    const without = contentByPath(sizeGraph());
+    // the non-suffix token redirects to "sm" instead of "md" → theme differs
+    expect(withSize.get("kit/theme.ts")).not.toBe(without.get("kit/theme.ts"));
   });
 });

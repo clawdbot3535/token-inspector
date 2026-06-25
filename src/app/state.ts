@@ -69,6 +69,7 @@ export function useRenderedOutput(
   completeness?: Ref<ReadonlyArray<CompletenessScore> | undefined>,
   customParts?: Ref<ReadonlyMap<string, ReadonlyArray<string>> | undefined>,
   slotMappingOverride?: Ref<SlotMappingOverride | undefined>,
+  defaultSizeByComponent?: Ref<Readonly<Record<string, string>> | undefined>,
 ) {
   return computed<RenderedText | null>(() => {
     const g = state.graph.value;
@@ -80,12 +81,14 @@ export function useRenderedOutput(
           ? new Set(customParts.value.keys())
           : undefined,
         slotMappingOverride: slotMappingOverride?.value,
+        defaultSizeByComponent: defaultSizeByComponent?.value,
       });
     }
     if (state.outputTab.value === customComponentsRenderer.id) {
       return customComponentsRenderer.render(g, {
         customParts: customParts?.value,
         slotMappingOverride: slotMappingOverride?.value,
+        defaultSizeByComponent: defaultSizeByComponent?.value,
       });
     }
     const renderer = defaultRenderers.find((r) => r.id === state.outputTab.value);

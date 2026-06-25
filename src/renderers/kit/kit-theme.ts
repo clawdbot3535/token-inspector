@@ -12,9 +12,13 @@ export interface KitTheme {
   [component: string]: ComponentRecipe | Record<string, string> | undefined;
 }
 
-export function buildKitTheme(graph: TokenGraph, slotMappingOverride?: SlotMappingOverride): KitTheme {
+export function buildKitTheme(
+  graph: TokenGraph,
+  slotMappingOverride?: SlotMappingOverride,
+  defaultSizeByComponent?: Readonly<Record<string, string>>,
+): KitTheme {
   const roles = deriveRoles(graph);
-  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST], slotMappingOverride });
+  const recipes = buildComponentRecipes(graph, { components: [...COMPONENT_ALLOW_LIST], slotMappingOverride, defaultSizeByComponent });
   const theme: KitTheme = { colors: { ...roles } };
   for (const name of COMPONENT_ALLOW_LIST) {
     const recipe = recipes[name];
