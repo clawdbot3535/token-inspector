@@ -252,6 +252,10 @@ describe("scanGraph — classification hints", () => {
     const hint = report.issues.find((i: ScanIssue) => i.kind === "snap-to-tailwind");
     expect(hint).toBeDefined();
     expect(hint?.message).toMatch(/p-1\b|p-1\.5/);
+    // Structured suggested value for the Copy affordance — byte-identical to the
+    // value the message already shows in parens (message unchanged, additive field).
+    expect(hint?.snapTo).toMatch(/^\d+px$/);
+    expect(hint?.message).toContain(`(${hint?.snapTo})`);
   });
 
   it("suggests text-* for font-size tokens, not p-*", () => {

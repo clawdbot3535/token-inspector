@@ -186,6 +186,8 @@ export interface ScanIssue {
   typoTo?: string;
   /** For asymmetric-variant-coverage: the exact token names to add in Figma. */
   figmaFixTokens?: readonly string[];
+  /** For snap-to-tailwind: the suggested Tailwind-aligned value to snap to (e.g. "14px"). */
+  snapTo?: string;
 }
 
 export interface CompletenessScore {
