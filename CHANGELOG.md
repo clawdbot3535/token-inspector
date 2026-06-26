@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.61.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.61.1) — 2026-06-26
+
+### Fixed
+
+- **The `build:tokens` CLI now emits the runnable `kit/` project too — its output matches the web app's
+  `Download .zip`.** The CLI wrote `tokens.css` + `app.config.ts` + `custom-components.ts` but not the runnable
+  Vite + `@nuxt/ui` kit (only the web app's download produced it), so the two export paths diverged. The CLI now
+  also writes the 9 `output/kit/` files via the existing `buildKitFiles`, threading the same `slot-mapping.json`
+  overrides + per-component default sizes it already applies to `app.config.ts`. Surfaced by an end-to-end QA pass
+  on the real Figma export (the kit builds with real Tailwind — 246 KB CSS — and the recipes' arbitrary values
+  land in the compiled output).
+- Also threaded `slotMappingOverride` into the CLI's `custom-components.ts` render (it already passed
+  `defaultSizeByComponent` but not the override), matching the web app so a resolved custom-component token is
+  reflected in the CLI output. Glue-only change in `scripts/build-cli.ts`; no `src/` change. 1013 tests.
+
 ## [0.61.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.61.0) — 2026-06-25
 
 ### Added
