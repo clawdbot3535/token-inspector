@@ -11,6 +11,7 @@ import { buildGraph } from "../src/build-graph.ts";
 import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { customComponentsRenderer } from "../src/renderers/custom-components.ts";
+import { buildKitFiles } from "../src/renderers/kit/kit-emitter.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph, customPartsByComponent } from "../src/scanner.ts";
 import type {
@@ -83,10 +84,18 @@ writeOut("nuxt/app.config.ts", appConfigRendered.text);
 
 const customRendered = customComponentsRenderer.render(graph, {
   customParts,
+  slotMappingOverride: slotMapping.overrides,
   defaultSizeByComponent: slotMapping.defaultSizeByComponent,
 });
 if (customRendered.text.trim().length > 0) {
   writeOut("nuxt/custom-components.ts", customRendered.text);
+}
+
+// Emit the runnable Vite + @nuxt/ui kit under output/kit/ — same artifact the
+// web app's "Download .zip" produces, so the CLI output is complete (resolves
+// the CLI/web-app kit asymmetry). Threads the same slot-mapping overrides.
+for (const file of buildKitFiles(graph, slotMapping.overrides, slotMapping.defaultSizeByComponent)) {
+  writeOut(file.path, file.content);
 }
 
 // ─── Scan report summary ──────────────────────────────────────────────────
