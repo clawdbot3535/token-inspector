@@ -1,6 +1,9 @@
 // Shared component-token vocabulary. Single source of truth for both the
 // scanner (asymmetric-variant detection) and slot-mapping (recipe mapping).
 
+import { GENERATED_NUXT_SLOTS } from "./nuxt-slots.generated.js";
+import { SLOT_OVERLAY } from "./nuxt-vocab-curated.js";
+
 /** Nuxt UI v4 visual variants (button-style). 2nd-segment variant axis. */
 export const BUTTON_VARIANT_KEYS: ReadonlySet<string> = new Set([
   "solid", "outline", "ghost", "link", "subtle", "soft",
@@ -142,41 +145,17 @@ export const RESTING_STATE_SHADOWED: ReadonlySet<string> = new Set(["switch"]);
  * parts today — add their slot sets here when they do (the detector skips
  * uninventoried components safely).
  */
-export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
-  ["accordion", new Set([
-    "root", "item", "header", "trigger", "content", "body",
-    "leadingIcon", "trailingIcon", "label",
-  ])],
-  ["button", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
-  ["badge", new Set(["base", "label", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailingIcon"])],
-  ["input", new Set(["root", "base", "leading", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailing", "trailingIcon"])],
-  ["textarea", new Set(["root", "base", "leading", "leadingIcon", "leadingAvatar", "leadingAvatarSize", "trailing", "trailingIcon"])],
-  ["chip", new Set(["root", "base"])],
-  ["checkbox", new Set(["root", "container", "base", "indicator", "icon", "wrapper", "label", "description"])],
-  ["dropdown", new Set([
-    "content", "input", "empty", "viewport", "arrow", "group", "label", "separator",
-    "item", "itemLeadingIcon", "itemLeadingAvatar", "itemLeadingAvatarSize", "itemTrailing",
-    "itemTrailingIcon", "itemTrailingKbds", "itemTrailingKbdsSize", "itemWrapper", "itemLabel",
-    "itemDescription", "itemLabelExternalIcon",
-  ])],
-  ["table", new Set(["root", "base", "caption", "thead", "tbody", "tfoot", "tr", "th", "td", "separator", "empty", "loading"])],
-  ["nav", new Set([
-    "root", "list", "label", "item", "link", "linkLeadingIcon", "linkLeadingAvatar",
-    "linkLeadingAvatarSize", "linkLeadingChipSize", "linkTrailing", "linkTrailingBadge",
-    "linkTrailingBadgeSize", "linkTrailingIcon", "linkLabel", "linkLabelExternalIcon",
-    "childList", "childLabel", "childItem", "childLink", "childLinkWrapper", "childLinkIcon",
-    "childLinkLabel", "childLinkLabelExternalIcon", "childLinkDescription", "separator",
-    "viewportWrapper", "viewport", "content", "indicator", "arrow",
-  ])],
-  ["switch", new Set(["root", "base", "container", "thumb", "icon", "wrapper", "label", "description"])],
-  ["radio", new Set(["root", "fieldset", "legend", "item", "container", "base", "indicator", "wrapper", "label", "description"])],
-  ["card", new Set(["root", "header", "title", "description", "body", "footer"])],
-  ["modal", new Set([
-    "overlay", "content", "header", "wrapper", "body", "footer",
-    "title", "description", "close",
-  ])],
-  ["progress", new Set(["root", "base", "indicator", "status", "steps", "step"])],
-]);
+// Composed from the codegen-derived Nuxt UI slots (nuxt-slots.generated.ts) with
+// the curated overlay (nuxt-vocab-curated.ts) winning per component. Slotless
+// components (empty set, e.g. kbd) are EXCLUDED so nuxtSlotsFor() returns undefined
+// for them — matching the pre-codegen behavior. Run `npm run gen:vocab` to re-sync
+// the generated base after a @nuxt/ui upgrade.
+export const NUXT_SLOTS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
+  [...GENERATED_NUXT_SLOTS.keys(), ...SLOT_OVERLAY.keys()]
+    .filter((c, i, a) => a.indexOf(c) === i)
+    .map((c) => [c, SLOT_OVERLAY.get(c) ?? GENERATED_NUXT_SLOTS.get(c)!] as const)
+    .filter(([, slots]) => slots.size > 0),
+);
 
 /** The Nuxt UI v4 theme slot names for a Figma component, or undefined if not inventoried. */
 export function nuxtSlotsFor(component: string): ReadonlySet<string> | undefined {
@@ -260,6 +239,7 @@ export const FIGMA_NUXT_PART_ALIAS: ReadonlyMap<string, string> = new Map([
   ["dot", "indicator"],
   ["fill", "indicator"],
   ["track", "base"],
+  ["desc", "description"], // toast-desc-* → the `description` slot
   // Composite (2-segment) part name: a `close` element that IS a button → the `close` slot.
   // Consulted by the 2-segment composite lookup in slot-mapping; the `button` descriptor is
   // thereby consumed so e.g. `chip-close-button-size` → close slot + size utility.
