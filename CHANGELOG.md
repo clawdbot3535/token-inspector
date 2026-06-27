@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.64.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.64.1) — 2026-06-27
+
+### Changed
+
+- **Internal: output targets are now first-class.** A new `Target` abstraction (`src/targets.ts`) groups each
+  component system's output behind one interface — `nuxt` (the Tailwind theme + `app.config.ts` recipes +
+  custom-components + the runnable kit) and `shadcn` (the theme `globals.css`) — exposed as a `TARGETS` registry.
+  The `build:tokens` CLI and the web app's `Download .zip` both iterate `TARGETS`, so adding a future target is a
+  single registry entry instead of an edit to both call sites (which is what adding shadcn in v0.64.0 required).
+  Also de-duplicates the `customParts` derivation that was repeated across the two call sites. No new output and the
+  CLI output is byte-identical.
+- **The download `.zip` now mirrors the CLI output layout.** `tokens.css`, `app.config.ts`, and
+  `custom-components.ts` previously sat at the zip root while `kit/` and `shadcn/` were nested; they now live under
+  `css/` and `nuxt/` like the CLI's `output/`, so the bundle unzips to the same clean `css/ nuxt/ kit/ shadcn/`
+  structure. File contents are unchanged. `REPORT.md` and `slot-mapping.json` remain at the root (they are
+  cross-cutting, not target output).
+
 ## [0.64.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.64.0) — 2026-06-27
 
 ### Added
