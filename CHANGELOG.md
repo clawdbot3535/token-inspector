@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.64.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.64.0) — 2026-06-27
+
+### Added
+
+- **The inspector now emits a second target: a shadcn/ui theme (`shadcn/globals.css`) — the first step toward
+  multi-target output beyond Nuxt UI.** shadcn theming is primarily CSS variables (components are copied in and read
+  `--background`, `--primary`, `--radius`, …), so a real, usable shadcn theme is reachable WITHOUT the per-component
+  recipe machinery. The new renderer maps the Figma semantic tokens to shadcn's CSS-variable convention and emits a
+  complete `globals.css`: a `:root` block (light values), a `.dark` block (dark values), and an `@theme inline` block
+  (so `bg-background`, `text-foreground`, `border-border`, the `--radius-*` scale, etc. work as Tailwind v4 utilities).
+  Emitted by both the `build:tokens` CLI (`output/shadcn/globals.css`) and the web app's `Download .zip` bundle.
+- The mapping is curated but near 1:1 — both vocabularies follow the same modern semantic conventions, so the Figma
+  taxonomy the designer already built (`color-bg-base`, `color-action-bg`, `color-state-focus-ring`,
+  `color-status-error-*`, …) maps cleanly onto shadcn's (`--background`, `--primary`, `--ring`, `--destructive`, …).
+  Validated end-to-end on the real export: all of shadcn's core color vars resolved. A shadcn var whose source token
+  is absent is skipped (never broken CSS) and listed in a trailing comment; `--chart-*` / `--sidebar-*` (no clean
+  Figma equivalent) are noted for manual addition.
+- Backed by a new pure module `src/renderers/shadcn/shadcn-theme.ts` (`buildShadcnTheme(graph): string`). Hex values
+  (valid + dependency-free; oklch is a possible v2). No scanner/recipe-engine change. 1036 tests.
+
 ## [0.63.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.63.0) — 2026-06-27
 
 ### Added
