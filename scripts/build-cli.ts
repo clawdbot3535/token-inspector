@@ -8,14 +8,11 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
-import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
-import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
-import { customComponentsRenderer } from "../src/renderers/custom-components.ts";
-import { buildKitFiles } from "../src/renderers/kit/kit-emitter.ts";
+import { COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { buildHealthReport } from "../src/app/report/health-report.ts";
-import { buildShadcnTheme } from "../src/renderers/shadcn/shadcn-theme.ts";
+import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
-import { scanGraph, customPartsByComponent } from "../src/scanner.ts";
+import { scanGraph } from "../src/scanner.ts";
 import type {
   ScanIssue,
   ScanSeverity,
@@ -68,44 +65,21 @@ const graph = buildGraph(sources);
 // `// Incomplete in Figma` comments in app.config.ts.
 const scanReport = scanGraph(graph, { components: COMPONENT_ALLOW_LIST });
 
-// Components the scanner flagged `component-looks-custom`. These are routed
-// OUT of app.config.ts (a pointer comment replaces their ui: block) and INTO
-// output/nuxt/custom-components.ts as hand-built recipes.
-const customParts = customPartsByComponent(scanReport);
-
-const cssRendered = tokensCssRenderer.render(graph);
-const appConfigRendered = appConfigRenderer.render(graph, {
+// Emit every output target (Nuxt UI recipes + runnable kit, shadcn theme, …).
+// Each target bundles its own files; adding one is a single registry entry in
+// src/targets.ts — this loop never changes.
+const targetCtx: TargetContext = {
+  graph,
+  scanReport,
   slotMappingOverride: slotMapping.overrides,
   defaultSizeByComponent: slotMapping.defaultSizeByComponent,
-  completeness: scanReport.completeness,
-  customComponents: new Set(customParts.keys()),
-});
-
-writeOut("css/tokens.css", cssRendered.text);
-writeOut("nuxt/app.config.ts", appConfigRendered.text);
-
-const customRendered = customComponentsRenderer.render(graph, {
-  customParts,
-  slotMappingOverride: slotMapping.overrides,
-  defaultSizeByComponent: slotMapping.defaultSizeByComponent,
-});
-if (customRendered.text.trim().length > 0) {
-  writeOut("nuxt/custom-components.ts", customRendered.text);
+};
+for (const target of TARGETS) {
+  for (const file of target.emit(targetCtx)) writeOut(file.path, file.content);
 }
 
-// Emit the runnable Vite + @nuxt/ui kit under output/kit/ — same artifact the
-// web app's "Download .zip" produces, so the CLI output is complete (resolves
-// the CLI/web-app kit asymmetry). Threads the same slot-mapping overrides.
-for (const file of buildKitFiles(graph, slotMapping.overrides, slotMapping.defaultSizeByComponent)) {
-  writeOut(file.path, file.content);
-}
-
-// Shareable, stakeholder-readable health digest of the scan.
+// Cross-cutting (not a target): a shareable, stakeholder-readable health digest.
 writeOut("REPORT.md", buildHealthReport(graph, scanReport));
-
-// shadcn/ui theme (globals.css) from the same Figma semantic tokens — a second
-// output target (see src/renderers/shadcn/).
-writeOut("shadcn/globals.css", buildShadcnTheme(graph));
 
 // ─── Scan report summary ──────────────────────────────────────────────────
 // Group by severity for a stable CI-friendly digest. Errors block the
