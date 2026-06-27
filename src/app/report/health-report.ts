@@ -1,5 +1,7 @@
 import type { TokenGraph, ScanReport } from "@core/token-graph.js";
 import { ownerOf, type Owner } from "../resolve/owner-of.js";
+import { shadcnThemeStats } from "../../renderers/shadcn/shadcn-theme.js";
+import { genericTokenStats } from "../../renderers/generic/generic-tokens.js";
 
 // A shareable, stakeholder-readable Markdown digest of the scan. Pure aggregation
 // over (graph, scanReport) — no new analysis. The owner taxonomy is the heart of
@@ -71,6 +73,24 @@ export function buildHealthReport(graph: TokenGraph, report: ScanReport): string
     for (const i of designerItems) lines.push(`- [ ] ${i.message}`);
     lines.push("");
   }
+
+  // ── Output targets ───────────────────────────────────────────────────────
+  // Summarize the whole multi-target output, not just the Nuxt mapping — and
+  // surface each target's coverage (the shadcn gaps otherwise hide in a comment).
+  const shadcn = shadcnThemeStats(graph);
+  const generic = genericTokenStats(graph);
+  const shadcnCoverage =
+    shadcn.missing.length > 0
+      ? `${shadcn.mapped} theme vars (${shadcn.missing.length} skipped — no source token)`
+      : `${shadcn.mapped} theme vars (\`--chart-*\`/\`--sidebar-*\` have no Figma equivalent — add manually)`;
+  lines.push("## Output targets", "");
+  lines.push("| Target | Output | Coverage |", "| --- | --- | --- |");
+  lines.push(`| Nuxt UI | \`nuxt/app.config.ts\` + runnable \`kit/\` | ${componentCount} components |`);
+  lines.push(`| shadcn/ui | \`shadcn/globals.css\` | ${shadcnCoverage} |`);
+  lines.push(
+    `| Generic | \`tokens/variables.css\` + \`tokens/tokens.json\` | ${generic.total} design tokens (${generic.dark} with dark-mode) |`,
+  );
+  lines.push("");
 
   // ── Output forecast ──────────────────────────────────────────────────────
   const f = report.forecast.tokensCss;

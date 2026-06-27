@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { buildGenericCss, buildGenericJson } from "./generic-tokens.js";
+import { buildGenericCss, buildGenericJson, genericTokenStats } from "./generic-tokens.js";
 import type { TokenGraph, TokenNode } from "../../token-graph.js";
 
 const node = (
@@ -62,5 +62,13 @@ describe("buildGenericJson", () => {
 
   it("excludes component-layer tokens", () => {
     expect(json["button-bg"]).toBeUndefined();
+  });
+});
+
+describe("genericTokenStats", () => {
+  it("counts the non-component tokens + how many have a dark override", () => {
+    const stats = genericTokenStats(g);
+    expect(stats.total).toBe(3); // color-bg-base, color-accent-500, rounded-md (button-bg excluded)
+    expect(stats.dark).toBe(1); // only color-bg-base has a dark value
   });
 });

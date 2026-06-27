@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { buildShadcnTheme } from "./shadcn-theme.js";
+import { buildShadcnTheme, shadcnThemeStats } from "./shadcn-theme.js";
 import type { TokenGraph, TokenNode } from "../../token-graph.js";
 
 const node = (id: string, cssValue: { base?: string; light?: string; dark?: string }): TokenNode =>
@@ -61,5 +61,20 @@ describe("buildShadcnTheme", () => {
   it("falls back to a default radius when no radius token exists", () => {
     const css2 = buildShadcnTheme(graph([node("color-bg-base", { light: "#fff", dark: "#000" })]));
     expect(css2).toContain("--radius: 0.5rem;");
+  });
+});
+
+describe("shadcnThemeStats", () => {
+  it("reports the mapped count + the missing (absent-token) vars", () => {
+    const stats = shadcnThemeStats(
+      graph([
+        node("color-bg-base", { light: "#fff", dark: "#000" }), // → background, card, popover
+        node("color-action-bg", { light: "#00f", dark: "#00f" }), // → primary
+      ]),
+    );
+    expect(stats.mapped).toBeGreaterThanOrEqual(2);
+    // color-text-primary etc. are absent → their vars land in missing.
+    expect(stats.missing.length).toBeGreaterThan(0);
+    expect(stats.missing.some((m) => m.includes("foreground"))).toBe(true);
   });
 });

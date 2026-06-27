@@ -44,7 +44,7 @@ interface Row {
   readonly dark?: string;
 }
 
-export function buildShadcnTheme(graph: TokenGraph): string {
+function resolveRows(graph: TokenGraph): { rows: Row[]; missing: string[] } {
   const rows: Row[] = [];
   const missing: string[] = [];
   for (const [cssVar, tokenId] of COLOR_MAP) {
@@ -55,6 +55,19 @@ export function buildShadcnTheme(graph: TokenGraph): string {
     }
     rows.push({ cssVar, light: node.cssValue.light ?? node.cssValue.base, dark: node.cssValue.dark });
   }
+  return { rows, missing };
+}
+
+/** Coverage of the shadcn theme: how many of the curated vars resolved to a
+ *  Figma token, and which had no source token. (`--chart-*`/`--sidebar-*` are
+ *  not counted — they are deliberately not attempted, see the renderer comment.) */
+export function shadcnThemeStats(graph: TokenGraph): { mapped: number; missing: readonly string[] } {
+  const { rows, missing } = resolveRows(graph);
+  return { mapped: rows.length, missing };
+}
+
+export function buildShadcnTheme(graph: TokenGraph): string {
+  const { rows, missing } = resolveRows(graph);
 
   let radius = RADIUS_FALLBACK;
   for (const cand of RADIUS_TOKEN_CANDIDATES) {
