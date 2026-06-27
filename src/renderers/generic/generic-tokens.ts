@@ -19,12 +19,19 @@ function collect(graph: TokenGraph): GenericToken[] {
   const out: GenericToken[] = [];
   for (const node of graph.nodes.values()) {
     if (node.layer === "component") continue;
-    const value = node.cssValue.base ?? node.cssValue.light;
+    const value = node.cssValue?.base ?? node.cssValue?.light;
     if (value === undefined) continue;
-    const dark = node.cssValue.dark;
+    const dark = node.cssValue?.dark;
     out.push(dark !== undefined && dark !== value ? { id: node.id, value, dark } : { id: node.id, value });
   }
   return out.sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** Coverage of the generic export: how many design tokens were emitted and how
+ *  many carry a dark-mode override. */
+export function genericTokenStats(graph: TokenGraph): { total: number; dark: number } {
+  const tokens = collect(graph);
+  return { total: tokens.length, dark: tokens.filter((t) => t.dark !== undefined).length };
 }
 
 export function buildGenericCss(graph: TokenGraph): string {

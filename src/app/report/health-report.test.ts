@@ -72,4 +72,11 @@ describe("buildHealthReport", () => {
     expect(md).toContain("12"); // tailwindMatches
     expect(md).toContain("theme extension");
   });
+
+  it("has an Output targets section summarizing all three targets", () => {
+    expect(md).toContain("Output targets");
+    expect(md).toContain("Nuxt UI");
+    expect(md).toContain("shadcn");
+    expect(md).toContain("Generic");
+  });
 });
