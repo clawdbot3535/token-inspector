@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.65.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.1) — 2026-06-27
+
+### Added
+
+- **The health report now summarizes the whole multi-target output.** A new **Output targets** section in
+  `REPORT.md` lists each target — Nuxt UI (`app.config.ts` + kit, with the component count), shadcn/ui
+  (`globals.css`, with the mapped-var count + the note that `--chart-*`/`--sidebar-*` have no Figma equivalent),
+  and Generic (`variables.css` + `tokens.json`, with the token + dark-mode counts). Until now the report only
+  described the Nuxt mapping; the shadcn and generic targets had no feedback at all, and the shadcn coverage gap
+  hid in a CSS comment nobody reads. The diagnostic layer now covers every output.
+- Backed by two small coverage helpers exposed from the renderers: `shadcnThemeStats(graph)` and
+  `genericTokenStats(graph)` (each reuses the renderer's own resolve/collect pass — no duplication). No scanner
+  or recipe-engine change. 1049 tests.
+
 ## [0.65.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.0) — 2026-06-27
 
 ### Added
