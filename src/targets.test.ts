@@ -17,8 +17,15 @@ function ctx(): TargetContext {
 const targetById = (id: string) => TARGETS.find((t) => t.id === id)!;
 
 describe("targets registry", () => {
-  it("registers the nuxt + shadcn targets in order", () => {
-    expect(TARGETS.map((t) => t.id)).toEqual(["nuxt", "shadcn"]);
+  it("registers the nuxt + shadcn + generic targets in order", () => {
+    expect(TARGETS.map((t) => t.id)).toEqual(["nuxt", "shadcn", "generic"]);
+  });
+
+  it("the generic target emits the framework-agnostic tokens/ files", () => {
+    expect(targetById("generic").emit(ctx()).map((f) => f.path)).toEqual([
+      "tokens/variables.css",
+      "tokens/tokens.json",
+    ]);
   });
 
   it("the nuxt target emits the nested css/ + nuxt/ + kit/ paths", () => {
