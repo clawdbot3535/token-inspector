@@ -186,9 +186,17 @@ export const COMPONENT_BASE_SLOT: ReadonlyMap<string, string> = new Map([
   ["modal", "content"],
 ]);
 
-/** The base slot for a component's bare tokens (`base` unless overridden). */
+/** The base slot for a component's bare (no sub-element) tokens. Most components
+ *  style their bare tokens on `base`; some (toast, alert, …) have no `base` slot
+ *  and use `root`. Auto-derive `root` when there is no `base` slot, so root-based
+ *  components need no per-component entry — explicit overrides (content-based ones
+ *  like modal/dropdown) still win. */
 export function defaultBaseSlot(component: string): string {
-  return COMPONENT_BASE_SLOT.get(component) ?? "base";
+  const explicit = COMPONENT_BASE_SLOT.get(component);
+  if (explicit) return explicit;
+  const slots = nuxtSlotsFor(component);
+  if (slots && !slots.has("base") && slots.has("root")) return "root";
+  return "base";
 }
 
 /**
