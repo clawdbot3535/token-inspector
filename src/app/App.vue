@@ -30,6 +30,7 @@ import { getSlotMapping } from "@tg/grammar";
 import { utilityForMapping } from "@core/recipe-engine.js";
 import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
 import { buildKitFiles } from "@core/renderers/kit/kit-emitter.js";
+import { buildShadcnTheme } from "@core/renderers/shadcn/shadcn-theme.js";
 import { customPartsByComponent, declaredCustomComponents } from "@core/scanner.js";
 import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
@@ -547,6 +548,8 @@ function downloadAll() {
     ...slotMappingBundleEntry(resolveOverride.value),
     // Shareable, stakeholder-readable health digest of the scan.
     { name: "REPORT.md", data: buildHealthReport(g, scanReport.value) },
+    // A shadcn/ui theme (globals.css) from the same Figma tokens — a second target.
+    { name: "shadcn/globals.css", data: buildShadcnTheme(g) },
   ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }

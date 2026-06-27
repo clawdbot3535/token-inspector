@@ -115,6 +115,13 @@ describe("App export reflects resolves", () => {
     expect(report).toContain("Deviations by owner");
   });
 
+  it("the bundle includes a shadcn/globals.css theme", async () => {
+    const css = await exportEntry([sizeSourceFile()], "shadcn/globals.css");
+    expect(css).toBeDefined();
+    expect(css).toContain(":root {");
+    expect(css).toContain("@theme inline {");
+  });
+
   it("the exported app.config.ts reflects an imported defaultSizeByComponent", async () => {
     // Importing a slot-mapping.json with components.{defaultSize} captures it in
     // App state, and downloadAll's app.config render redirects the non-suffix
