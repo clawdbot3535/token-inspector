@@ -115,18 +115,26 @@ that flips reveals a reconciliation decision to make explicit (adopt vs overlay)
 - **Codegen sanity:** optional test asserting the committed generated file is in sync with a fresh codegen run
   (so drift is caught).
 
+## Resolved decisions (spec review, 2026-06-27)
+
+- **Theme-file scope → curated include-list.** The codegen generates only for a curated **include-list** of
+  genuine component themes (form + display + overlay: button, badge, input, select, checkbox, radio, switch,
+  textarea, toast, alert, tooltip, popover, tabs, breadcrumb, card, modal, drawer, table, accordion,
+  navigation-menu, dropdown-menu, progress, kbd, chip, avatar, …) — NOT all ~60 (excludes Pro/app-shell/content:
+  `dashboard-*`, `chat-*`, `editor-*`, `blog-post*`, `prose`, `auth-form`, `header`, `footer`, …). Keeps the
+  generated file focused. The include-list is itself curated (and easy to extend as the kit grows).
+- **`COMPONENT_ANATOMY` → stays curated at its current subset; NOT generated.** Anatomy currently covers only the
+  **5 composites** (nav, accordion, modal, table, dropdown) for the coverage view; `button` and the other 10
+  inventoried components already have **no** anatomy entry (asserted in `component-anatomy.test.ts:71`). So
+  newly-supported components (toast, alert, …) simply get no anatomy entry — same as button today, no breakage.
+  **CONSTRAINT (additional regression guard):** `component-anatomy.test.ts:31-34` asserts `anatomy[comp].keys ==
+  NUXT_SLOTS[comp]` for the 5 composites. The codegen reconciliation MUST keep those 5 composites' generated slot
+  sets **byte-identical to the current hand-curated ones** (or update anatomy in lockstep). The anatomy mirror
+  test is therefore an extra guard beyond the 1013-test suite — if it flips, the codegen changed a composite's
+  slots and the reconciliation/overlay must restore them.
+
 ## Open implementation details (for the plan)
 
 - Exact AST-extraction of `slots` keys (handle both object- and function-form default exports).
 - The `default` toast color variant (Nuxt colors are success/error/warning/info/primary/neutral; `default` is not
   a Nuxt color → map to neutral or treat as the base; decide during impl, non-blocking).
-- Whether `COMPONENT_ANATOMY` (component-anatomy.ts, "keys mirror NUXT_SLOTS exactly") must also be regenerated /
-  kept in sync — it currently mirrors NUXT_SLOTS for the coverage view. New components would lack anatomy; decide
-  whether anatomy is generated too or stays curated for the inventoried subset.
-- **Which theme files to include.** Nuxt UI's `src/theme/` has ~60+ files, many irrelevant to a token kit
-  (Pro/app-shell/content: `dashboard-*`, `chat-*`, `editor-*`, `blog-post*`, `prose`, `auth-form`, `header`,
-  `footer`, …). Generating for *all* is harmless (extra allow-list entries are no-ops without tokens) but noisy.
-  Decide in the plan: include all, or filter to a "form + display + overlay" component subset (button, badge,
-  input, select, checkbox, radio, switch, textarea, toast, alert, tooltip, popover, tabs, breadcrumb, card,
-  modal, drawer, table, accordion, navigation-menu, dropdown-menu, progress, kbd, chip, avatar, …). Leaning
-  toward a curated **include-list** of genuine component themes to keep the generated file focused.
