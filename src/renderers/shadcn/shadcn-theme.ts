@@ -1,4 +1,5 @@
 import type { TokenGraph } from "../../token-graph.js";
+import { hexToOklch } from "./oklch.js";
 
 // A shadcn/ui theme (globals.css) generated from the Figma semantic tokens.
 // shadcn theming is primarily CSS variables — components are copied in and read
@@ -83,11 +84,11 @@ export function buildShadcnTheme(graph: TokenGraph): string {
 
   lines.push(":root {");
   lines.push(`  --radius: ${radius};`);
-  for (const r of rows) if (r.light) lines.push(`  --${r.cssVar}: ${r.light};`);
+  for (const r of rows) if (r.light) lines.push(`  --${r.cssVar}: ${hexToOklch(r.light)};`);
   lines.push("}", "");
 
   lines.push(".dark {");
-  for (const r of rows) if (r.dark) lines.push(`  --${r.cssVar}: ${r.dark};`);
+  for (const r of rows) if (r.dark) lines.push(`  --${r.cssVar}: ${hexToOklch(r.dark)};`);
   lines.push("}", "");
 
   lines.push("@theme inline {");

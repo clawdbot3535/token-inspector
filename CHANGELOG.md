@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.65.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.2) — 2026-06-27
+
+### Changed
+
+- **The shadcn theme now emits `oklch()` colors instead of hex — matching shadcn/ui's own convention.** shadcn's
+  default `globals.css` is written in OKLCH, so our export now drops in alongside the shadcn defaults without a
+  hex/oklch mix. Colors are perceptually identical; only the notation changed. `--radius` stays a px length.
+- Backed by a new pure, dependency-free `hexToOklch` (`src/renderers/shadcn/oklch.ts`) — Björn Ottosson's reference
+  sRGB → linear → LMS → OKLab → OKLCH conversion, validated against white/black/red reference values. Achromatic
+  colors pin hue to `0` (`oklch(L 0 0)`, shadcn's convention); non-hex values pass through unchanged. 1055 tests.
+
 ## [0.65.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.1) — 2026-06-27
 
 ### Added

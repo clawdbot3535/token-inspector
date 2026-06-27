@@ -32,16 +32,16 @@ describe("buildShadcnTheme", () => {
     ]),
   );
 
-  it("emits :root with light values + the radius", () => {
+  it("emits :root with light values as oklch + the radius (px, unconverted)", () => {
     expect(css).toContain(":root {");
     expect(css).toContain("--radius: 6px;");
-    expect(css).toContain("--background: #FFFFFF;");
-    expect(css).toContain("--primary: #4F63D2;");
-    expect(css).toContain("--ring: #818CF8;");
+    expect(css).toContain("--background: oklch(1 0 0);"); // #FFFFFF → white
+    expect(css).toContain("--primary: oklch("); // #4F63D2 → oklch (exact value covered by oklch.test)
+    expect(css).toContain("--ring: oklch(");
   });
 
-  it("emits a .dark block with the dark values (in mapping order)", () => {
-    expect(css).toMatch(/\.dark \{[\s\S]*--background: #09090B;[\s\S]*--ring: #A5B4FC;/);
+  it("emits a .dark block with the dark values as oklch (in mapping order)", () => {
+    expect(css).toMatch(/\.dark \{[\s\S]*--background: oklch\([\s\S]*--ring: oklch\(/);
   });
 
   it("emits @theme inline mapping vars to Tailwind color + radius utilities", () => {
