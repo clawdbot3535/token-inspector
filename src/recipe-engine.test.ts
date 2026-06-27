@@ -1115,3 +1115,19 @@ describe("buildComponentRecipes — progress", () => {
     expect(r.progress?.variants?.size?.md?.base).toContain("h-[8px]");
   });
 });
+
+describe("buildComponentRecipes — toast (codegen-added component)", () => {
+  it("maps toast tokens to the toast recipe slots", () => {
+    const graph = makeGraph([
+      makeNode({ id: "toast-bg", layer: "component", type: "color", source: "global", base: "#ffffff" }),
+      makeNode({ id: "toast-radius", layer: "component", type: "dimension", source: "global", base: "8px" }),
+      makeNode({ id: "toast-title-font-weight", layer: "component", type: "number", source: "global", base: "600" }),
+      makeNode({ id: "toast-desc-font-size", layer: "component", type: "dimension", source: "global", base: "12px" }),
+    ]);
+    const recipe = buildComponentRecipes(graph, { components: ["toast"] }).toast;
+    expect(recipe).toBeDefined();
+    const slotsJson = JSON.stringify(recipe?.slots);
+    expect(slotsJson).toContain("title");       // toast-title-* → title slot
+    expect(slotsJson).toContain("description"); // toast-desc-* → description slot (via desc alias)
+  });
+});

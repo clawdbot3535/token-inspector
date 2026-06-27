@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.62.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.62.0) — 2026-06-27
+
+### Added
+
+- **The component slot vocabulary is now derived from Nuxt UI itself (codegen) — new Figma components are
+  auto-supported, and `toast` is the first.** The Figma kit is a moving target; previously every new component
+  needed a hand-edit to the grammar's `NUXT_SLOTS` map. Now a codegen script (`npm run gen:vocab`) reads the
+  installed `@nuxt/ui` version, fetches that release's theme definitions, and generates the per-component slot
+  vocabulary for a curated include-list of ~25 genuine components (button, badge, input, toast, alert, tooltip,
+  popover, tabs, select, breadcrumb, drawer, avatar, …). A Figma component that is a Nuxt UI component is therefore
+  emitted automatically once its tokens appear — no per-component code edit. Re-run `npm run gen:vocab` after a
+  `@nuxt/ui` upgrade to re-sync.
+- **`toast` support falls out of this for free** — validated end-to-end on the real Figma export: a complete
+  `ui.toast` recipe (root / title / description / progress + default·error·info·success·warning color variants),
+  with `toast-desc-*` aliased to the `description` slot and the bare tokens routed to `root`.
+- Mechanics: `NUXT_SLOTS` is composed from the generated base (`nuxt-slots.generated.ts`, committed + deterministic)
+  plus a small curated overlay (`nuxt-vocab-curated.ts`) for the few things Nuxt UI can't tell us — Figma↔Nuxt name
+  differences (`nav→navigation-menu`, `dropdown→dropdown-menu`, `radio→radio-group`), deliberate deviations (`chip`),
+  and the `desc→description` alias. `COMPONENT_ALLOW_LIST` is derived from the generated set. `defaultBaseSlot` now
+  auto-derives `root` when a component has no `base` slot, so root-based components (toast, alert, …) need no entry.
+- **Reconciliation was clean:** 14 of the 15 inventoried components matched the codegen exactly; only `textarea`'s
+  hand entry had over-transcribed `input`'s slots, and the generated 2-slot set is the real Nuxt UI textarea theme
+  (adopted, no test or real-data impact). The 5 composites' slots are unchanged (the `component-anatomy` mirror test
+  guards them); `COMPONENT_ANATOMY` stays curated at its subset. No recipe-engine / scanner change. 1024 tests.
+
 ## [0.61.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.61.1) — 2026-06-26
 
 ### Fixed

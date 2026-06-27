@@ -16,6 +16,7 @@ import {
   type ComponentRecipe,
 } from "../recipe-engine.js";
 import type { SlotMappingOverride } from "@tg/grammar";
+import { GENERATED_COMPONENTS, ALLOW_LIST_EXTRA } from "@tg/grammar";
 
 export interface AppConfigRendererOptions {
   slotMappingOverride?: SlotMappingOverride;
@@ -48,10 +49,11 @@ export interface RoleMapping {
   readonly error: string;
 }
 
+// Derived from the codegen'd Nuxt UI component set (all INCLUDE_LIST components)
+// plus any curated extras. A new Figma component that is a Nuxt UI component is
+// therefore emitted automatically once its tokens appear — no edit here.
 export const COMPONENT_ALLOW_LIST = [
-  "button", "badge", "input", "textarea", "card", "modal", "kbd", "chip",
-  "checkbox", "radio", "switch", "nav", "dropdown", "table", "progress",
-  "accordion",
+  ...new Set([...GENERATED_COMPONENTS, ...ALLOW_LIST_EXTRA]),
 ] as const;
 
 const DEFAULT_ROLES: RoleMapping = {

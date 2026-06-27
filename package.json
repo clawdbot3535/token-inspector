@@ -1,6 +1,6 @@
 {
   "name": "figma-tokens-nuxt-ui-adapter",
-  "version": "0.61.1",
+  "version": "0.62.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -11,6 +11,7 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "build:tokens": "tsx scripts/build-cli.ts",
+    "gen:vocab": "tsx scripts/gen-nuxt-vocab.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
