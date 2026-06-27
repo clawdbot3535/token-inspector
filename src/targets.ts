@@ -4,6 +4,7 @@ import { tokensCssRenderer } from "./renderers/tokens-css.js";
 import { appConfigRenderer, customComponentsRenderer } from "./renderers/index.js";
 import { buildKitFiles } from "./renderers/kit/kit-emitter.js";
 import { buildShadcnTheme } from "./renderers/shadcn/shadcn-theme.js";
+import { buildGenericCss, buildGenericJson } from "./renderers/generic/generic-tokens.js";
 import { customPartsByComponent } from "./scanner.js";
 
 // An output TARGET — a component system the design tokens are emitted FOR. Each
@@ -78,4 +79,16 @@ const shadcnTarget: Target = {
   },
 };
 
-export const TARGETS: readonly Target[] = [nuxtTarget, shadcnTarget];
+/** Framework-agnostic — the design tokens under their own names, as plain CSS
+ *  custom properties + a flat JSON, for any non-Tailwind consumer. */
+const genericTarget: Target = {
+  id: "generic",
+  emit({ graph }) {
+    return [
+      { path: "tokens/variables.css", content: buildGenericCss(graph) },
+      { path: "tokens/tokens.json", content: buildGenericJson(graph) },
+    ];
+  },
+};
+
+export const TARGETS: readonly Target[] = [nuxtTarget, shadcnTarget, genericTarget];

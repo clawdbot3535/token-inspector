@@ -122,6 +122,16 @@ describe("App export reflects resolves", () => {
     expect(css).toContain("@theme inline {");
   });
 
+  it("the bundle includes the framework-agnostic tokens/ files", async () => {
+    const css = await exportEntry([sizeSourceFile()], "tokens/variables.css");
+    expect(css).toBeDefined();
+    expect(css).toContain(":root {");
+    expect(css).not.toContain("@theme");
+    const json = await exportEntry([sizeSourceFile()], "tokens/tokens.json");
+    expect(json).toBeDefined();
+    expect(() => JSON.parse(json!)).not.toThrow();
+  });
+
   it("the exported app.config.ts reflects an imported defaultSizeByComponent", async () => {
     // Importing a slot-mapping.json with components.{defaultSize} captures it in
     // App state, and downloadAll's app.config render redirects the non-suffix

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.65.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.0) — 2026-06-27
+
+### Added
+
+- **A third output target: a framework-agnostic design-token export (`tokens/variables.css` + `tokens/tokens.json`).**
+  `css/tokens.css` is Tailwind v4 `@theme`-shaped (useless without Tailwind) and `shadcn/globals.css` uses shadcn's
+  var names — this new target emits the resolved design tokens under their OWN names, so any non-Tailwind consumer
+  (plain CSS, React/CSS-modules, Svelte, Style Dictionary pipelines, mobile) can use them directly:
+  - `tokens/variables.css` — plain `:root` + `.dark` CSS custom properties, no `@theme`.
+  - `tokens/tokens.json` — a flat JSON keyed by token id, each `{ "value": …, "dark"?: … }`.
+  Scope is the design-token layer — every non-component token (the 145 primitive + 51 semantic tokens, resolved);
+  component-layer tokens are excluded (they become recipe classes, not vars). Validated on the real export: 196
+  tokens, 44 with dark-mode overrides. Emitted by both the CLI (`output/tokens/`) and the `Download .zip` bundle.
+- Backed by a new pure module `src/renderers/generic/generic-tokens.ts` (`buildGenericCss` / `buildGenericJson`),
+  registered as the `generic` target — a single entry in the `TARGETS` registry introduced in v0.64.1, so neither
+  the CLI nor the web download needed touching. No scanner/recipe-engine change. 1046 tests.
+
 ## [0.64.1](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.64.1) — 2026-06-27
 
 ### Changed
