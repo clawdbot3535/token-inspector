@@ -13,6 +13,7 @@ import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-co
 import { customComponentsRenderer } from "../src/renderers/custom-components.ts";
 import { buildKitFiles } from "../src/renderers/kit/kit-emitter.ts";
 import { buildHealthReport } from "../src/app/report/health-report.ts";
+import { buildShadcnTheme } from "../src/renderers/shadcn/shadcn-theme.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph, customPartsByComponent } from "../src/scanner.ts";
 import type {
@@ -101,6 +102,10 @@ for (const file of buildKitFiles(graph, slotMapping.overrides, slotMapping.defau
 
 // Shareable, stakeholder-readable health digest of the scan.
 writeOut("REPORT.md", buildHealthReport(graph, scanReport));
+
+// shadcn/ui theme (globals.css) from the same Figma semantic tokens — a second
+// output target (see src/renderers/shadcn/).
+writeOut("shadcn/globals.css", buildShadcnTheme(graph));
 
 // ─── Scan report summary ──────────────────────────────────────────────────
 // Group by severity for a stable CI-friendly digest. Errors block the
