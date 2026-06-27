@@ -12,6 +12,7 @@ import { tokensCssRenderer } from "../src/renderers/tokens-css.ts";
 import { appConfigRenderer, COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { customComponentsRenderer } from "../src/renderers/custom-components.ts";
 import { buildKitFiles } from "../src/renderers/kit/kit-emitter.ts";
+import { buildHealthReport } from "../src/app/report/health-report.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph, customPartsByComponent } from "../src/scanner.ts";
 import type {
@@ -97,6 +98,9 @@ if (customRendered.text.trim().length > 0) {
 for (const file of buildKitFiles(graph, slotMapping.overrides, slotMapping.defaultSizeByComponent)) {
   writeOut(file.path, file.content);
 }
+
+// Shareable, stakeholder-readable health digest of the scan.
+writeOut("REPORT.md", buildHealthReport(graph, scanReport));
 
 // ─── Scan report summary ──────────────────────────────────────────────────
 // Group by severity for a stable CI-friendly digest. Errors block the

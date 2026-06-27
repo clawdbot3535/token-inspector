@@ -48,6 +48,7 @@ import ResolvePanel from "./components/ResolvePanel.vue";
 import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
 import { buildSlotMappingFile, slotMappingBundleEntry } from "./resolve/export-slot-mapping.js";
+import { buildHealthReport } from "./report/health-report.js";
 import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
@@ -544,6 +545,8 @@ function downloadAll() {
     // Carry the session resolves with the bundle so the CLI/build (and a later
     // reimport) can apply the same slot-mapping overrides. Empty → no entry.
     ...slotMappingBundleEntry(resolveOverride.value),
+    // Shareable, stakeholder-readable health digest of the scan.
+    { name: "REPORT.md", data: buildHealthReport(g, scanReport.value) },
   ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }
