@@ -28,9 +28,8 @@ import { useClassifications } from "./classifications.js";
 import { resolveTokenToValue } from "@core/resolve-token.js";
 import { getSlotMapping } from "@tg/grammar";
 import { utilityForMapping } from "@core/recipe-engine.js";
-import { defaultRenderers, appConfigRenderer, customComponentsRenderer } from "@core/renderers/index.js";
-import { buildKitFiles } from "@core/renderers/kit/kit-emitter.js";
-import { buildShadcnTheme } from "@core/renderers/shadcn/shadcn-theme.js";
+import { customComponentsRenderer } from "@core/renderers/index.js";
+import { TARGETS } from "@core/targets.js";
 import { customPartsByComponent, declaredCustomComponents } from "@core/scanner.js";
 import type { GraphLayer } from "@core/token-graph.js";
 import { buildZip, downloadBlob } from "./zip.js";
@@ -518,38 +517,22 @@ function onPick(e: Event) {
 function downloadAll() {
   const g = state.graph.value;
   if (!g) return;
+  // Emit every output target (Nuxt UI recipes + kit, shadcn theme, …) at the same
+  // nested paths the CLI writes — the bundle is now a faithful mirror of output/.
+  // Adding a target is a single registry entry in src/targets.ts.
+  const targetCtx = {
+    graph: g,
+    scanReport: scanReport.value,
+    slotMappingOverride: resolveOverride.value,
+    defaultSizeByComponent: defaultSizeByComponent.value,
+  };
   const entries = [
-    ...defaultRenderers.map((r) => ({
-      name: r.id,
-      // app.config.ts must carry the same completeness comments the CLI emits,
-      // and route flagged components out of its ui: block; the generic registry
-      // render(g) drops both. tokens.css ignores options.
-      data:
-        r.id === appConfigRenderer.id
-          ? appConfigRenderer.render(g, {
-              completeness: scanReport.value.completeness,
-              customComponents: new Set(customParts.value.keys()),
-              slotMappingOverride: resolveOverride.value,
-              defaultSizeByComponent: defaultSizeByComponent.value,
-            }).text
-          : r.render(g).text,
-    })),
-    // custom-components.ts is only emitted when the rendered text is non-empty.
-    ...(customOutputText.value.trim().length > 0
-      ? [{
-          name: customComponentsRenderer.id,
-          // defaultSizeByComponent is unavailable in the browser (no slot-mapping.json); download matches CLI output unless a defaultSizeByComponent override is active. Matches appConfigRenderer's web behaviour.
-          data: customOutputText.value,
-        }]
-      : []),
-    ...buildKitFiles(g, resolveOverride.value, defaultSizeByComponent.value).map((f) => ({ name: f.path, data: f.content })),
+    ...TARGETS.flatMap((t) => t.emit(targetCtx)).map((f) => ({ name: f.path, data: f.content })),
     // Carry the session resolves with the bundle so the CLI/build (and a later
     // reimport) can apply the same slot-mapping overrides. Empty → no entry.
     ...slotMappingBundleEntry(resolveOverride.value),
-    // Shareable, stakeholder-readable health digest of the scan.
+    // Cross-cutting (not a target): a shareable health digest of the scan.
     { name: "REPORT.md", data: buildHealthReport(g, scanReport.value) },
-    // A shadcn/ui theme (globals.css) from the same Figma tokens — a second target.
-    { name: "shadcn/globals.css", data: buildShadcnTheme(g) },
   ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }

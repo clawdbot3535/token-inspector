@@ -89,8 +89,8 @@ afterEach(() => { vi.unstubAllGlobals(); captured.entries = []; });
 
 describe("App export reflects resolves", () => {
   it("the exported custom-components.ts reflects the applied resolve override", async () => {
-    const withOverride = await exportEntry([sourceFile(), overrideFile()], "custom-components.ts");
-    const without = await exportEntry([sourceFile()], "custom-components.ts");
+    const withOverride = await exportEntry([sourceFile(), overrideFile()], "nuxt/custom-components.ts");
+    const without = await exportEntry([sourceFile()], "nuxt/custom-components.ts");
     expect(withOverride).toBeDefined();
     expect(without).toBeDefined();
     // The override threads through downloadAll → customOutputText → the renderer,
@@ -126,8 +126,8 @@ describe("App export reflects resolves", () => {
     // Importing a slot-mapping.json with components.{defaultSize} captures it in
     // App state, and downloadAll's app.config render redirects the non-suffix
     // token to that size — so the exported config differs from the un-sized one.
-    const withSize = await exportEntry([sizeSourceFile(), defaultSizeFile()], "app.config.ts");
-    const without = await exportEntry([sizeSourceFile()], "app.config.ts");
+    const withSize = await exportEntry([sizeSourceFile(), defaultSizeFile()], "nuxt/app.config.ts");
+    const without = await exportEntry([sizeSourceFile()], "nuxt/app.config.ts");
     expect(withSize).toBeDefined();
     expect(without).toBeDefined();
     expect(withSize).not.toBe(without);
