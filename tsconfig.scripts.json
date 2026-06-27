@@ -10,7 +10,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/app/*"],
+      "@core/*": ["./src/*"]
+    }
   },
   "include": ["scripts/**/*.ts"]
 }

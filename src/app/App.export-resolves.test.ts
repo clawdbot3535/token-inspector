@@ -108,6 +108,13 @@ describe("App export reflects resolves", () => {
     expect(withOverride).not.toBe(without);
   });
 
+  it("the bundle includes a generated REPORT.md health digest", async () => {
+    const report = await exportEntry([sizeSourceFile()], "REPORT.md");
+    expect(report).toBeDefined();
+    expect(report).toContain("# Design System Health Report");
+    expect(report).toContain("Deviations by owner");
+  });
+
   it("the exported app.config.ts reflects an imported defaultSizeByComponent", async () => {
     // Importing a slot-mapping.json with components.{defaultSize} captures it in
     // App state, and downloadAll's app.config render redirects the non-suffix

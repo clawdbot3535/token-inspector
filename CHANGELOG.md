@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.63.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.63.0) — 2026-06-27
+
+### Added
+
+- **A shareable Design System Health Report (`REPORT.md`) is now generated with every export.** The inspector
+  already computed everything — the scan, the owner taxonomy, per-component completeness, the output forecast —
+  but only inside the app. The new `REPORT.md` aggregates it into a stakeholder-readable Markdown digest, emitted
+  by both the `build:tokens` CLI (`output/REPORT.md`) and the web app's `Download .zip` bundle. It has four
+  sections: a one-line summary (components · tokens · scan counts), a **Deviations by owner** table that frames
+  every deviation by *who fixes it* (🎨 Figma-Fix = designer, 🛠 Data-Quality = source, 🔧 Manual-Dev = dev,
+  🔁 Heuristic = reroutable, ⊘ by-design = nothing to do), a **Component completeness** table flagging incomplete
+  size/color variants, a **Designer action items** checklist (the Figma-Fix + Data-Quality issues, the things a
+  designer can act on), and an **Output forecast** line. The owner framing is what makes the diagnosis
+  communicable to non-developers.
+- Backed by a new pure module `src/app/report/health-report.ts` (`buildHealthReport(graph, scanReport): string`)
+  — deterministic (no timestamp, so the output is stable + git-diff-friendly). Validated end-to-end on the real
+  Figma export. No scanner/recipe-engine change. 1030 tests.
+
 ## [0.62.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.62.0) — 2026-06-27
 
 ### Added
