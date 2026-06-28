@@ -51,6 +51,15 @@ describe("buildShadcnTheme", () => {
     expect(css).toContain("--radius-lg: var(--radius);");
   });
 
+  it("emits sidebar vars as var() references to the main vars (complete + DRY)", () => {
+    expect(css).toContain("--sidebar: var(--background);");
+    expect(css).toContain("--sidebar-primary: var(--primary);");
+    expect(css).toContain("--color-sidebar: var(--sidebar);"); // @theme inline → Tailwind utility
+    // color-action-bg-subtle (→ accent) is absent in this graph, so its sidebar
+    // alias is skipped — no dangling var() reference.
+    expect(css).not.toContain("--sidebar-accent:");
+  });
+
   it("skips shadcn vars whose source token is absent (never broken CSS), and notes them", () => {
     // color-bg-elevated absent → no `--card:` declaration, but it's listed as not-mapped.
     expect(css).not.toContain("--card:");
