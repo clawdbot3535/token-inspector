@@ -132,6 +132,13 @@ describe("App export reflects resolves", () => {
     expect(() => JSON.parse(json!)).not.toThrow();
   });
 
+  it("the bundle includes a USAGE.md start-here guide", async () => {
+    const usage = await exportEntry([sizeSourceFile()], "USAGE.md");
+    expect(usage).toBeDefined();
+    expect(usage).toContain("# Using this export");
+    expect(usage).toContain("shadcn/ui");
+  });
+
   it("the exported app.config.ts reflects an imported defaultSizeByComponent", async () => {
     // Importing a slot-mapping.json with components.{defaultSize} captures it in
     // App state, and downloadAll's app.config render redirects the non-suffix

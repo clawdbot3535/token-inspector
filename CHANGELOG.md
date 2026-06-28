@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.65.7](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.7) — 2026-06-28
+
+### Added
+
+- **A generated `USAGE.md` "start here" guide ships with every export.** The export drops `css/ nuxt/ kit/ shadcn/
+  tokens/` plus `REPORT.md`, but nothing told a recipient *what each file is and where it goes*. `USAGE.md` is the
+  instructional counterpart to `REPORT.md`'s diagnostic: a short per-target guide — `nuxt/app.config.ts` → copy into
+  your Nuxt app; `kit/` → `npm install && npm run dev` to preview; `shadcn/globals.css` → paste into your globals.css;
+  `tokens/tokens.ts` → `import { tokens }`, etc. Emitted by both the CLI (`output/USAGE.md`) and the `Download .zip`
+  bundle. Backed by a pure `buildUsageGuide()` in `src/renderers/usage.ts`.
+- **The output golden-master gate now also covers the cross-cutting docs.** Adding `USAGE.md` revealed that the
+  v0.65.5 gate snapshotted the targets + `REPORT.md` but not `USAGE.md`; the gate now assembles every emitted file,
+  so all cross-cutting output is guarded. 1080 tests.
+
 ## [0.65.6](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.6) — 2026-06-28
 
 ### Added
