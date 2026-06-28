@@ -1,26 +1,29 @@
 # Token Inspector
 
-> Figma → Nuxt UI v4 design-token adapter and inspector.
+> Figma → multi-target design-token adapter and inspector — **Nuxt UI v4**, **shadcn/ui**, and a **framework-agnostic** export.
 
-Drop your Figma W3C DTCG token export into the browser. The tool builds a
-single in-memory token graph, surfaces it through a searchable inspector
-(alias chains, used-by lookups, issues), and renders out:
+Drop your Figma W3C DTCG token export into the browser (or run the CLI). The tool
+builds a single in-memory token graph, surfaces it through a searchable inspector
+(alias chains, used-by lookups, an owner-routed deviation scan), and renders the
+design system out for **three targets**:
 
-- A lean `tokens.css` with a Tailwind v4 `@theme` block plus `.dark` overrides
-  for mode-variant semantic tokens, the typography type-scale as composite
-  `--text-<role>` utilities (font-size + paired `--line-height` / `--letter-spacing`
-  / `--font-weight`), and the layout primitives (`--container-*` / `--spacing-*`
-  / `--radius-*`, plus a `--grid-columns` var).
-- A minimal Nuxt UI v4 `app.config.ts` with color-role mapping plus component
-  recipes for the standard set (`button`, `badge`, `input`, `card`, … — 16
-  components): slots, size / color-role / visual variants (`solid` / `outline`
-  / `ghost` / `link`) with pseudo-class state prefixes, derived from your Figma
-  component tokens. Color utilities resolve to `var(--<semantic-id>)` references
-  so dark-mode overrides cascade automatically.
-- A `custom-components.ts` with `<name>Recipe` exports for components that have
-  no Nuxt UI v4 pendant (e.g. `chip`, `sidebar`), kept out of `ui.*`.
+- **Nuxt UI v4** (`nuxt/` + `css/` + a runnable `kit/`) — a lean `tokens.css`
+  (Tailwind v4 `@theme` + `.dark`, the typography type-scale as `--text-<role>`
+  utilities, the layout primitives), a minimal `app.config.ts` with color roles +
+  component recipes for the standard set (slots, size / color-role / visual variants),
+  and `custom-components.ts` for components with no Nuxt pendant (`chip`, `sidebar`).
+- **shadcn/ui** (`shadcn/globals.css`) — the Figma semantic tokens mapped to
+  shadcn's CSS-variable convention (OKLCH colors, `:root` + `.dark` + `@theme inline`,
+  incl. the `--sidebar-*` vars as references to the main theme).
+- **Framework-agnostic** (`tokens/`) — the resolved design tokens under their own
+  names, in three consumption forms: `variables.css` (plain CSS custom properties),
+  `tokens.json` (a flat `{ value, dark? }` map), and a typed `tokens.ts`.
 
-100% client-side. No backend, no upload, nothing leaves the browser tab.
+Plus a shareable **`REPORT.md`** health digest (coverage + deviations grouped by
+*who fixes them*) and a **`USAGE.md`** start-here guide. The output targets are a
+first-class registry (`src/targets.ts`), so adding one is a single entry.
+
+100% client-side in the browser; the CLI writes the same output to disk.
 
 ## Philosophy: Tailwind-utility-first
 
@@ -76,20 +79,41 @@ variants }` — kept out of `ui.*` so they don't masquerade as Nuxt UI recipes.
 ```
 output/
 ├── css/
-│   └── tokens.css            # @theme (+ typography & layout primitives) + .dark overrides
-└── nuxt/
-    ├── app.config.ts         # Nuxt UI v4 color roles + component recipes
-    └── custom-components.ts  # <name>Recipe for components with no Nuxt UI pendant
+│   └── tokens.css            # Nuxt: @theme (+ typography & layout primitives) + .dark overrides
+├── nuxt/
+│   ├── app.config.ts         # Nuxt UI v4 color roles + component recipes
+│   └── custom-components.ts  # <name>Recipe for components with no Nuxt UI pendant
+├── kit/                      # Nuxt: a runnable Vite + @nuxt/ui preview (npm i && npm run dev)
+├── shadcn/
+│   └── globals.css           # shadcn/ui theme — OKLCH :root + .dark + @theme inline
+├── tokens/
+│   ├── variables.css         # framework-agnostic: plain :root + .dark CSS custom properties
+│   ├── tokens.json           # framework-agnostic: flat { value, dark? } map
+│   └── tokens.ts             # framework-agnostic: typed `as const` tokens + TokenName
+├── REPORT.md                 # health digest — coverage + deviations by owner
+└── USAGE.md                  # start-here guide — what each file is and where it goes
 ```
+
+Every file above is covered by an output golden-master regression test, so an
+unintended change to the generated output fails CI.
 
 ## Build
 
 ```bash
 npm install
-npm run build:tokens
+npm run build:tokens                                  # emit all targets → output/
+npm run build:tokens -- --targets=shadcn              # emit only the shadcn theme
+npm run build:tokens -- --targets=shadcn,generic --out=./my-app/design
+npm run build:tokens -- --help                        # usage
 ```
 
-Inputs are read from `components/*.tokens.json` (Figma W3C DTCG export).
+Inputs are read from `components/*.tokens.json` (Figma W3C DTCG export); a missing
+or malformed file fails fast with a clear, file-named error. An optional repo-root
+`slot-mapping.json` (downloadable from the inspector) carries resolve overrides +
+per-component default sizes.
+
+CLI flags: `--targets=<csv>` selects which targets to emit (default: all),
+`--out=<dir>` writes elsewhere (default: `output/`), `--help` / `-h` prints usage.
 
 ## Integration in a Nuxt project
 
@@ -206,6 +230,12 @@ The UI shows:
   - **Output forecast** — a summary of how many tokens will emit
     `@theme` CSS vars vs match a Tailwind default (no output) vs
     land in the `app.config.ts` recipe layer
+  - **Owner routing + resolve** — every deviation is tagged with its owner
+    (🎨 Figma-Fix / 🛠 Data-Quality / ⊘ by-design / 🔧 Manual-Dev / 🔁 Heuristic)
+    and filterable by it. Heuristic-extendable findings have a **Resolve →** editor
+    that re-renders the recipe live and exports a `slot-mapping.json`; by-design
+    findings can be **accepted** (subtracted from the count); typos offer a copy-able
+    rename hint. The same owner grouping drives the exported `REPORT.md`
   The recipe output covers the full standard component set:
   `button`, `badge`, `input`, `textarea`, `card`, `modal`, `kbd`,
   `chip`, `checkbox`, `radio`, `switch`, `nav`, `dropdown`, `table`,
@@ -275,7 +305,8 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 ├── packages/
 │   └── grammar/            # @tg/grammar: slot-mapping, component-vocab, component-anatomy, scaffold, typo-detect
 ├── scripts/
-│   ├── build-cli.ts        # Typed CLI: graph → renderers → output/
+│   ├── build-cli.ts        # Typed CLI: graph → targets → output/ (--targets / --out / --help)
+│   ├── gen-nuxt-vocab.ts   # Codegen: Nuxt UI themes → packages/grammar/src/nuxt-slots.generated.ts
 │   └── extract-tailwind-defaults.mjs  # Re-run after Tailwind upgrades
 ├── src/
 │   ├── classify-token.ts   # Pure classification engine
@@ -285,14 +316,18 @@ Beyond drag-and-drop, the inspector reads and writes Git directly:
 │   ├── token-graph.ts      # Type contract: TokenNode, TokenGraph, …
 │   ├── build-graph.ts      # Source files → TokenGraph (pure builder)
 │   ├── coverage.ts         # Coverage engine: per-component slot coverage vs the anatomy spec
-│   ├── renderers/          # tokens-css.ts, typography-composites.ts, layout-primitives.ts, app-config.ts, custom-components.ts
-│   └── app/                # Vue 3 SPA (Vite, Nuxt UI v4, Tailwind v4)
+│   ├── targets.ts          # The output Target registry (nuxt / shadcn / generic)
+│   ├── load-sources.ts     # Boundary validation: parse + validate a token file
+│   ├── select-targets.ts / parse-out-dir.ts / cli-help.ts  # Pure CLI-flag parsers
+│   ├── renderers/          # tokens-css, app-config, custom-components, usage, kit/, shadcn/, generic/
+│   └── app/                # Vue 3 SPA — incl. report/ (health report) + resolve/ (owner taxonomy)
 └── docs/superpowers/       # Spec + plan documents driving the design
 ```
 
 ## Tests
 
-981 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app). Run:
+1093 tests across the typed pipeline (`src/` + the `@tg/grammar` package + the Vue app),
+including an output golden-master that snapshots every generated file. Run:
 
 ```bash
 npm test         # full suite
@@ -320,13 +355,28 @@ as a badge in the header so the running build is always visible.
 
 ## Status
 
-Current release: **v0.30.2**. The adapter is feature-complete against the live
-914-token Figma export — every token either maps, emits as a theme var, or is a
-documented by-design skip — and the Inspector has evolved from a translator into
-a **Design-System Coverage Guide** that tells a designer which slots are still
-un-designed per component.
+Current release: **v0.65.11**. The adapter is feature-complete against the live
+Figma export and has grown from a Nuxt-only translator into a **multi-target
+design-system generator with an owner-routed diagnostic layer**.
 
-What works today:
+**Major arcs since v0.30** (per-version detail in `CHANGELOG.md`):
+
+- **Deviation owner-routing (v0.54–v0.57)** — every scan finding is routed to one
+  of five owners (🎨 Figma-Fix · 🛠 Data-Quality · ⊘ by-design · 🔧 Manual-Dev ·
+  🔁 Heuristic), with an owner filter, resolve loop (live re-render + downloadable
+  `slot-mapping.json`), and accept/dismiss. The taxonomy routes all scan kinds.
+- **Component-vocabulary codegen (v0.62)** — `NUXT_SLOTS` + the allow-list are
+  generated from Nuxt UI's own theme definitions (`npm run gen:vocab`), so a new
+  Figma component that is a Nuxt UI component is auto-supported (`toast` was first).
+- **Health report (v0.63, v0.65.1/.4)** — `REPORT.md`: a shareable digest with
+  deviations grouped by owner, per-component completeness, prioritized designer
+  action items, per-target coverage, and an output forecast.
+- **Multi-target (v0.64–v0.65)** — a first-class `Target` registry plus the shadcn
+  (OKLCH theme + sidebar) and framework-agnostic (`tokens/` trio) targets; a
+  generated `USAGE.md`; an output golden-master regression gate; CLI `--targets` /
+  `--out` / `--help` flags; boundary-validated inputs.
+
+The Nuxt foundation it was built on:
 
 - **Recipes** for all 16 standard components, routed to their real Nuxt UI v4
   slots (`card → root`, `dropdown`/`modal → content` + `item`/`overlay`,
@@ -389,7 +439,13 @@ Reka-based components.
 | **v0.28.0** | ✅ released | **Live previews for `chip` / `sidebar`** (Tier-3, custom recipes). A new `useCustomPreviewRecipe` composable builds via `buildCustomRecipes` (the `custom-components.ts` path) instead of `buildComponentRecipes`. `LiveChip` renders a pill per colour (`default` + `error`/`success` `variants.color.*`, each with `base`/`label`/`close`); `LiveSidebar` renders a `base` panel + `item` rows (resting/hover/active). **Every component now has a live preview.** |
 | **v0.29.0** | ✅ released | **Design-System Coverage Guide (first user-facing slice).** A curated component-anatomy spec (`@tg/grammar` `component-anatomy.ts` — every Nuxt UI v4 slot classified `structural`/`optional` under a "Must-Design" principle; five composites: `nav`/`accordion`/`modal`/`table`/`dropdown`) + a pure `coverageFor(graph, component)` engine (`src/coverage.ts`: per-slot `touched` + structural-first `toDesign` list) + a per-component **`Preview | Coverage`** tab (`CoverageView.vue`) listing structural (✓/✗ "to design") and optional (✓/○) slots with a `touched/total` count and an un-designed badge. Bundled grammar fix: `nav-link-*` routes to the `link` slot (not `base`+`link` variant) via a `variantShadowsSlot` guard, so nav's flagship "design the `link` slot" insight is reachable. Built engine-first (v0.28.12–v0.28.14 shipped the anatomy spec + engine). |
 | **v0.30.0** | ✅ released | **Click-a-slot to highlight its tokens.** Covered Coverage-view slot rows are clickable (`<button>` emitting `select-tokens`, backed by a new `SlotCoverage.tokenIds`); clicking one highlights + reveals the slot's tokens in the left tree (expanding their ancestor groups) while staying on the Coverage tab. **v0.30.1 / v0.30.2** then made both highlight entry points (the Coverage view and the Scan view) clear an active kind-filter first, so the highlighted tokens are always visible. |
-| **Next** | 🔭 planned | Only data-blocked items remain: `tooltip`/`popover` recipes, the `compoundVariants` emit path, and the `data-[state=checked]:` prefix form for Reka components — all waiting on tokens the export doesn't have yet || **Backlog** | 🧊 | Coverage Guide extensions (anatomy for more components, the deferred `inherited` bucket, coverage in the node-detail pane, "highlight across all filters" incl. `search`); hue-proximity color-role derivation (currently a fixed mapping); Playwright E2E in CI (unit CI already shipped in v0.4.3); dependency-major upgrades (vitest 3 — removes the dual-vite cast — vite, TypeScript); `@tailwindcss/browser` runtime compiler for richer previews; more library-suggestion detectors (companion-token gaps, naming drift); grouping of un-prefixed component-collection tokens (e.g. `components/sidebar`) |
+| **v0.54–v0.57** | ✅ released | **Deviation owner-routing** — a 5-owner taxonomy (Figma-Fix / Data-Quality / by-design / Manual-Dev / Heuristic), owner filter, resolve loop (live re-render + `slot-mapping.json`), accept/dismiss; all scan kinds routed |
+| **v0.62** | ✅ released | **Component-vocabulary codegen** — `NUXT_SLOTS` + allow-list generated from Nuxt UI's theme definitions (`npm run gen:vocab`); new Nuxt UI components auto-supported (`toast` first) |
+| **v0.63, v0.65.1/.4** | ✅ released | **Health report** — `REPORT.md`: deviations by owner, per-component completeness, prioritized designer action items, per-target coverage, output forecast |
+| **v0.64** | ✅ released | **Multi-target foundation** — first-class `Target` registry; shadcn/ui theme (OKLCH); the download bundle mirrors the CLI layout |
+| **v0.65** | ✅ released | **Multi-target polish** — shadcn sidebar vars; framework-agnostic `tokens/` trio (CSS / JSON / typed TS); `USAGE.md`; output golden-master regression gate; CLI `--targets` / `--out` / `--help`; boundary-validated inputs |
+| **Next** | 🔭 planned | **Figma Code Connect** (map the generated Nuxt usage back into Figma Dev Mode); full per-component recipes for a second target; data-blocked items (`tooltip`/`popover` recipes, `compoundVariants`, the `data-[state=…]:` prefix form) |
+| **Backlog** | 🧊 | shadcn `--chart-*` default palette; web-UI visibility of the multi-target outputs; Coverage Guide extensions; hue-proximity color-role derivation; Playwright E2E in CI; dependency-major upgrades |
 
 Design contract and detailed plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 A snapshot project analysis (architecture, verified findings, prioritised recommendations)
