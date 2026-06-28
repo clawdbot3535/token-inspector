@@ -17,6 +17,7 @@ import { scanGraph } from "./scanner.js";
 import { TARGETS } from "./targets.js";
 import { COMPONENT_ALLOW_LIST } from "./renderers/app-config.js";
 import { buildHealthReport } from "./app/report/health-report.js";
+import { buildUsageGuide } from "./renderers/usage.js";
 import type { SourceLayer } from "./token-graph.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -34,6 +35,7 @@ function canonicalOutput(): Record<string, string> {
     for (const file of target.emit({ graph, scanReport })) out[file.path] = file.content;
   }
   out["REPORT.md"] = buildHealthReport(graph, scanReport);
+  out["USAGE.md"] = buildUsageGuide();
   return out;
 }
 

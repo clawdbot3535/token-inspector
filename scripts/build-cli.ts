@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { buildGraph } from "../src/build-graph.ts";
 import { COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { buildHealthReport } from "../src/app/report/health-report.ts";
+import { buildUsageGuide } from "../src/renderers/usage.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -78,8 +79,10 @@ for (const target of TARGETS) {
   for (const file of target.emit(targetCtx)) writeOut(file.path, file.content);
 }
 
-// Cross-cutting (not a target): a shareable, stakeholder-readable health digest.
+// Cross-cutting (not a target): a shareable, stakeholder-readable health digest +
+// a "start here" usage guide.
 writeOut("REPORT.md", buildHealthReport(graph, scanReport));
+writeOut("USAGE.md", buildUsageGuide());
 
 // ─── Scan report summary ──────────────────────────────────────────────────
 // Group by severity for a stable CI-friendly digest. Errors block the

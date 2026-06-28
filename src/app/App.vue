@@ -49,6 +49,7 @@ import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heurist
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
 import { buildSlotMappingFile, slotMappingBundleEntry } from "./resolve/export-slot-mapping.js";
 import { buildHealthReport } from "./report/health-report.js";
+import { buildUsageGuide } from "@core/renderers/usage.js";
 import { loadAcceptedIds, saveAcceptedIds } from "./accepted-storage.js";
 import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
@@ -531,8 +532,9 @@ function downloadAll() {
     // Carry the session resolves with the bundle so the CLI/build (and a later
     // reimport) can apply the same slot-mapping overrides. Empty → no entry.
     ...slotMappingBundleEntry(resolveOverride.value),
-    // Cross-cutting (not a target): a shareable health digest of the scan.
+    // Cross-cutting (not a target): a health digest of the scan + a usage guide.
     { name: "REPORT.md", data: buildHealthReport(g, scanReport.value) },
+    { name: "USAGE.md", data: buildUsageGuide() },
   ];
   downloadBlob(buildZip(entries), "tokens-bundle.zip");
 }
