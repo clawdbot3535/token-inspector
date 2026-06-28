@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.65.6](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.6) — 2026-06-28
+
+### Added
+
+- **The shadcn theme now completes its sidebar variables.** shadcn's sidebar surface mirrors the main theme, so the
+  eight `--sidebar-*` vars are emitted as `var()` references to their main counterparts (`--sidebar: var(--background)`,
+  `--sidebar-primary: var(--primary)`, …) — complete and DRY, and they track light/dark for free (no extra `.dark`
+  entries). shadcn's Sidebar component now renders in *our* palette out of the box instead of falling back to shadcn's
+  defaults. (`--chart-*` is left for manual addition — a categorical chart palette is a genuine design choice, not
+  derivable from the theme.) The report's shadcn coverage note updates accordingly. A sidebar var is only emitted when
+  its main counterpart exists, so there are never dangling references. 1077 tests.
+
 ## [0.65.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.5) — 2026-06-28
 
 ### Added
