@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.65.11](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.11) — 2026-06-28
+
+### Added
+
+- **`npm run build:tokens -- --help` now prints usage.** It rounds out the CLI flag set (`--targets`, `--out`):
+  a short description, the options with the available target ids, and copy-paste examples. `--help` / `-h`
+  short-circuits before any file IO, so it works in any directory. Default behavior is byte-identical.
+- Backed by a pure, testable `wantsHelp(argv)` + `buildHelpText(targetIds)` in `src/cli-help.ts`. 1093 tests.
+
 ## [0.65.10](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.10) — 2026-06-28
 
 ### Added
