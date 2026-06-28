@@ -1,0 +1,2548 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`output golden master (canonical components/ tokens) > emits the expected set of files (none added/removed silently) 1`] = `
+[
+  "REPORT.md",
+  "css/tokens.css",
+  "kit/README.md",
+  "kit/index.html",
+  "kit/package.json",
+  "kit/src/App.vue",
+  "kit/src/main.css",
+  "kit/src/main.ts",
+  "kit/theme.ts",
+  "kit/tokens.css",
+  "kit/vite.config.ts",
+  "nuxt/app.config.ts",
+  "nuxt/custom-components.ts",
+  "shadcn/globals.css",
+  "tokens/tokens.json",
+  "tokens/tokens.ts",
+  "tokens/variables.css",
+]
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: REPORT.md 1`] = `
+"# Design System Health Report
+
+16 components · 514 tokens · scan: 0 errors · 43 warnings · 19 hints
+
+## Deviations by owner — who fixes what
+
+| Owner | Count | Action |
+| --- | --- | --- |
+| 🎨 Figma-Fix | 36 | Add or align tokens in Figma |
+| 🛠 Data-Quality | 2 | Fix the source value or name |
+| 🔧 Manual-Dev | 18 | Hand-code in the Nuxt app |
+| 🔁 Heuristic | 3 | Reroutable in the inspector |
+| ⊘ by-design | 3 | Inherent Nuxt UI constraint — nothing to do |
+| Other | 0 | Un-owned |
+
+## Component completeness
+
+| Component | Status |
+| --- | --- |
+| badge | ⚠ size md 4/5 (missing padding-y) |
+| button | ⚠ size xs 2/4 (missing padding-x, icon-size); ⚠ size md 3/4 (missing gap); ⚠ size lg 2/4 (missing gap, icon-size) |
+| card | ✓ complete |
+| checkbox | ⚠ size sm 1/2 (missing icon-size) |
+| chip | ✓ complete |
+| dropdown | ✓ complete |
+| input | ✓ complete |
+| kbd | ✓ complete |
+| modal | ✓ complete |
+| nav | ✓ complete |
+| progress | ✓ complete |
+| radio | ✓ complete |
+| switch | ⚠ size sm 2/3 (missing size) |
+| table | ✓ complete |
+| textarea | ✓ complete |
+| typography | ✓ complete |
+
+## Designer action items (🎨 Figma-Fix + 🛠 Data-Quality)
+
+### Typos & naming (2)
+
+- [ ] \`spaching\` looks like a typo of \`spacing\` — did you mean \`badge-letter-spacing\`? (1 token)
+- [ ] \`heigth\` looks like a typo of \`height\` — did you mean \`typography-heading-2-line-height\`? (1 token)
+
+### Variant coverage gaps (7)
+
+- [ ] button.bg-active is defined on [ghost, outline, solid] but missing on [link]. Add \`button-link-bg-active\` in Figma if the gap is unintentional.
+- [ ] button.bg-disabled is defined on [ghost, outline, solid] but missing on [link]. Add \`button-link-bg-disabled\` in Figma if the gap is unintentional.
+- [ ] button.ring-focus is defined on [ghost, outline, solid] but missing on [link]. Add \`button-link-ring-focus\` in Figma if the gap is unintentional.
+- [ ] button.border-hover is defined on [outline] but missing on [ghost, link, solid]. Only one variant defines this — likely intentional (e.g. outline is the only variant with a border), but worth confirming. Add \`button-ghost-border-hover\`, \`button-link-border-hover\`, \`button-solid-border-hover\` in Figma if the gap is unintentional.
+- [ ] button.border-disabled is defined on [outline] but missing on [ghost, link, solid]. Only one variant defines this — likely intentional (e.g. outline is the only variant with a border), but worth confirming. Add \`button-ghost-border-disabled\`, \`button-link-border-disabled\`, \`button-solid-border-disabled\` in Figma if the gap is unintentional.
+- [ ] button.text-active is defined on [ghost] but missing on [link, outline, solid]. Only one variant defines this — likely intentional (e.g. outline is the only variant with a border), but worth confirming. Add \`button-link-text-active\`, \`button-outline-text-active\`, \`button-solid-text-active\` in Figma if the gap is unintentional.
+- [ ] button.text-hover is defined on [ghost, link] but missing on [outline, solid]. Add \`button-outline-text-hover\`, \`button-solid-text-hover\` in Figma if the gap is unintentional.
+
+### Size scale gaps (20)
+
+- [ ] button.padding-x (6px) conflicts with button.padding-x-md (8px). Size-specific value wins.
+- [ ] button.gap (4px) conflicts with button.gap-xs (2px). Size-specific value wins.
+- [ ] button.xs is missing: padding-x, icon-size
+- [ ] button.md is missing: gap
+- [ ] button.lg is missing: gap, icon-size
+- [ ] button.gap has sizes [xs, sm] but other utilities also cover [md, lg].
+- [ ] button.padding-x has sizes [sm, md, lg] but other utilities also cover [xs].
+- [ ] button.icon-size has sizes [sm, md] but other utilities also cover [xs, lg].
+- [ ] button: size 'xs' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+- [ ] button: size 'md' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+- [ ] button: size 'lg' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+- [ ] badge.md is missing: padding-y
+- [ ] badge.padding-y has sizes [sm] but other utilities also cover [md].
+- [ ] badge: size 'md' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+- [ ] checkbox.sm is missing: icon-size
+- [ ] checkbox.icon-size has sizes [md] but other utilities also cover [sm].
+- [ ] checkbox: size 'sm' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+- [ ] switch.sm is missing: size
+- [ ] switch.size has sizes [md] but other utilities also cover [sm].
+- [ ] switch: size 'sm' appears on fewer utilities than its siblings — possibly typo or unfinished pass.
+
+### Mode-invariant colors (7)
+
+- [ ] color-text-on-accent has identical light + dark values — consider moving to a primitive file.
+- [ ] color-action-bg has identical light + dark values — consider moving to a primitive file.
+- [ ] color-action-text has identical light + dark values — consider moving to a primitive file.
+- [ ] color-status-error-bg-inverted has identical light + dark values — consider moving to a primitive file.
+- [ ] color-status-error-text-on-inverted has identical light + dark values — consider moving to a primitive file.
+- [ ] color-status-ok-bg-inverted has identical light + dark values — consider moving to a primitive file.
+- [ ] color-status-ok-text-on-inverted has identical light + dark values — consider moving to a primitive file.
+
+### Snap to the Tailwind scale (2)
+
+- [ ] font-size-text-xs = 10px is close to text-xs (12px) — consider snapping.
+- [ ] font-size-text-3xl = 32px is close to text-3xl (30px) — consider snapping.
+
+## Output targets
+
+| Target | Output | Coverage |
+| --- | --- | --- |
+| Nuxt UI | \`nuxt/app.config.ts\` + runnable \`kit/\` | 16 components |
+| shadcn/ui | \`shadcn/globals.css\` | 19 theme vars (\`--chart-*\`/\`--sidebar-*\` have no Figma equivalent — add manually) |
+| Generic | \`tokens/\` (\`variables.css\`, \`tokens.json\`, \`tokens.ts\`) | 196 design tokens (44 with dark-mode) |
+
+## Output forecast
+
+~7.2 KB tokens.css · 52 Tailwind matches · 100 theme extensions · 44 mode-variant entries
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: css/tokens.css 1`] = `
+"/* Generated by build-cli — do not edit by hand */
+/* Source: components/*.tokens.json */
+
+@theme {
+  /* — Primitive Colors — */
+  --border-width-default: 1px;
+  --border-width-none: 0px;
+  --border-width-thick: 2px;
+  --color-accent-100: #E0E9FF;
+  --color-accent-200: #C7D7FE;
+  --color-accent-300: #A5B4FC;
+  --color-accent-400: #818CF8;
+  --color-accent-50: #F0F4FF;
+  --color-accent-500: #4F63D2;
+  --color-accent-600: #3D50BE;
+  --color-accent-700: #2E3EA8;
+  --color-accent-800: #243092;
+  --color-accent-900: #1A245E;
+  --color-amber-100: #FEF3C7;
+  --color-amber-300: #FCD34D;
+  --color-amber-50: #FFFBEB;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-900: #78350F;
+  --color-amber-alpha-500-10: rgba(245, 158, 11, 0.1);
+  --color-black: #000000;
+  --color-green-100: #DCFCE7;
+  --color-green-300: #86EFAC;
+  --color-green-50: #F0FDF4;
+  --color-green-500: #22C55E;
+  --color-green-600: #16A34A;
+  --color-green-700: #15803D;
+  --color-green-900: #14532D;
+  --color-green-alpha-500-10: rgba(34, 197, 94, 0.1);
+  --color-neutral-100: #F4F4F5;
+  --color-neutral-200: #E4E4E7;
+  --color-neutral-300: #D4D4D8;
+  --color-neutral-400: #A1A1AA;
+  --color-neutral-50: #FAFAFA;
+  --color-neutral-500: #71717A;
+  --color-neutral-600: #52525B;
+  --color-neutral-700: #3F3F46;
+  --color-neutral-800: #27272A;
+  --color-neutral-900: #18181B;
+  --color-neutral-950: #09090B;
+  --color-red-100: #FEE2E2;
+  --color-red-300: #FCA5A5;
+  --color-red-50: #FEF2F2;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
+  --color-red-700: #B91C1C;
+  --color-red-900: #7F1D1D;
+  --color-red-alpha-500-10: rgba(239, 68, 68, 0.1);
+  --color-transparent: rgba(0, 0, 0, 0);
+  --color-white: #FFFFFF;
+  --shadow-focus: 0 0 0 3px rgba(79,99,210,0.35);
+  --shadow-lg: 0 12px 20px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 32px -6px rgba(0,0,0,0.12), 0 8px 12px -4px rgba(0,0,0,0.08);
+
+  /* — Mode-invariant Brand Colors — */
+  /* mode-invariant: same in light + dark */
+  --color-action-bg: #4F63D2;
+  /* mode-invariant: same in light + dark */
+  --color-action-text: #FFFFFF;
+  /* mode-invariant: same in light + dark */
+  --color-status-error-bg-inverted: #EF4444;
+  /* mode-invariant: same in light + dark */
+  --color-status-error-text-on-inverted: #FEF2F2;
+  /* mode-invariant: same in light + dark */
+  --color-status-ok-bg-inverted: #22C55E;
+  /* mode-invariant: same in light + dark */
+  --color-status-ok-text-on-inverted: #F0FDF4;
+  /* mode-invariant: same in light + dark */
+  --color-text-on-accent: #FFFFFF;
+
+  /* — Non-default Radius — */
+  --rounded-full: 999px;
+
+  /* — Non-default Typography — */
+  --font-family-body: Geist;
+  --font-family-code: "Fira Sans";
+  --font-family-display: "Google Sans Flex";
+  --font-family-kbd: "SF Pro";
+  --font-size-text-2xs: 8px;
+  --font-size-text-3xl: 32px;
+  --font-size-text-5xl: 64px;
+  --font-size-text-8xl: 120px;
+  --font-size-text-9xl: 150px;
+  --font-size-text-xs: 10px;
+  --font-weight-black: 900;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-extralight: 200;
+  --font-weight-italic: 600;
+  --font-weight-light: 300;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-thin: 100;
+  --letter-spacing-tight: -0.4000000059604645px;
+  --letter-spacing-wide: 0.4000000059604645px;
+  --letter-spacing-wider: 0.800000011920929px;
+  --letter-spacing-widest: 1.600000023841858px;
+  --line-height-2xl: 24px;
+  --line-height-2xs: 8px;
+  --line-height-3xl: 32px;
+  --line-height-4xl: 40px;
+  --line-height-5xl: 48px;
+  --line-height-6xl: 64px;
+  --line-height-7xl: 72px;
+  --line-height-base: 14px;
+  --line-height-lg: 16px;
+  --line-height-sm: 12px;
+  --line-height-xl: 20px;
+  --line-height-xs: 10px;
+  --text-heading-1: 72px;
+  --text-heading-1--font-weight: 500;
+  --text-heading-1--letter-spacing: -0.4000000059604645px;
+  --text-heading-1--line-height: 64px;
+  --text-heading-2: 48px;
+  --text-heading-2--font-weight: 500;
+  --text-heading-2--letter-spacing: -0.4000000059604645px;
+  --text-heading-2--line-height: 40px;
+
+  /* — Mode-variant Semantics (light defaults) — */
+  --color-action-bg-active: #2E3EA8;
+  --color-action-bg-hover: #3D50BE;
+  --color-action-bg-subtle: #F0F4FF;
+  --color-action-bg-subtle-hover: #E0E9FF;
+  --color-action-text-subtle: #3D50BE;
+  --color-bg-base: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-emphasis: #E4E4E7;
+  --color-bg-muted: #F4F4F5;
+  --color-bg-subtle: #FAFAFA;
+  --color-border-accent: #4F63D2;
+  --color-border-default: #E4E4E7;
+  --color-border-error: #EF4444;
+  --color-border-strong: #A1A1AA;
+  --color-border-subtle: #F4F4F5;
+  --color-border-success: #22C55E;
+  --color-border-warning: #F59E0B;
+  --color-state-active-overlay: #18181B;
+  --color-state-disabled-bg: #F4F4F5;
+  --color-state-disabled-border: #E4E4E7;
+  --color-state-disabled-fg: #D4D4D8;
+  --color-state-disabled-text: #A1A1AA;
+  --color-state-focus-ring: #818CF8;
+  --color-state-hover-overlay: #18181B;
+  --color-state-loading-bg: #F4F4F5;
+  --color-state-selected-bg: #F0F4FF;
+  --color-state-selected-border: #A5B4FC;
+  --color-state-selected-text: #2E3EA8;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-error-border: #FCA5A5;
+  --color-status-error-text: #EF4444;
+  --color-status-ok-bg: #F0FDF4;
+  --color-status-ok-border: #86EFAC;
+  --color-status-ok-text: #22C55E;
+  --color-status-warn-bg: #FFFBEB;
+  --color-status-warn-border: #FCD34D;
+  --color-status-warn-text: #F59E0B;
+  --color-text-accent: #3D50BE;
+  --color-text-disabled: #D4D4D8;
+  --color-text-inverted: #FAFAFA;
+  --color-text-muted: #A1A1AA;
+  --color-text-primary: #18181B;
+  --color-text-secondary: #52525B;
+  --color-text-toned: #D4D4D8;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-action-bg-active: #A5B4FC;
+  --color-action-bg-hover: #818CF8;
+  --color-action-bg-subtle: #1A245E;
+  --color-action-bg-subtle-hover: #243092;
+  --color-action-text-subtle: #818CF8;
+  --color-bg-base: #09090B;
+  --color-bg-elevated: #18181B;
+  --color-bg-emphasis: #52525B;
+  --color-bg-muted: #3F3F46;
+  --color-bg-subtle: #27272A;
+  --color-border-accent: #3D50BE;
+  --color-border-default: #3F3F46;
+  --color-border-error: #DC2626;
+  --color-border-strong: #71717A;
+  --color-border-subtle: #27272A;
+  --color-border-success: #16A34A;
+  --color-border-warning: #D97706;
+  --color-state-active-overlay: #FFFFFF;
+  --color-state-disabled-bg: #27272A;
+  --color-state-disabled-border: #3F3F46;
+  --color-state-disabled-fg: #52525B;
+  --color-state-disabled-text: #52525B;
+  --color-state-focus-ring: #A5B4FC;
+  --color-state-hover-overlay: #FFFFFF;
+  --color-state-loading-bg: #27272A;
+  --color-state-selected-bg: #1A245E;
+  --color-state-selected-border: #2E3EA8;
+  --color-state-selected-text: #A5B4FC;
+  --color-status-error-bg: #EF4444;
+  --color-status-error-border: #B91C1C;
+  --color-status-error-text: #FEF2F2;
+  --color-status-ok-bg: #22C55E;
+  --color-status-ok-border: #15803D;
+  --color-status-ok-text: #F0FDF4;
+  --color-status-warn-bg: #F59E0B;
+  --color-status-warn-border: #B45309;
+  --color-status-warn-text: #FFFBEB;
+  --color-text-accent: #818CF8;
+  --color-text-disabled: #3F3F46;
+  --color-text-inverted: #18181B;
+  --color-text-muted: #52525B;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A1A1AA;
+  --color-text-toned: #71717A;
+}
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/README.md 1`] = `
+"# Design Kit
+
+A runnable Vite + Vue 3 + @nuxt/ui project generated from your token export. The components
+are themed by your tokens via the real build-time Tailwind compiler — this is the literal product.
+
+## Run
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+
+\`theme.ts\` holds your generated \`ui\` theme (colours + component overrides), applied globally via the
+\`@nuxt/ui\` Vite plugin in \`vite.config.ts\`. \`tokens.css\` holds your design tokens (compiled at build time).
+
+Not yet shown in the gallery: \`chip\`, \`sidebar\` (custom \`tv()\` components — deferred from this kit).
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/index.html 1`] = `
+"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design Kit</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/package.json 1`] = `
+"{
+  "name": "design-kit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.0",
+    "vue-router": "4.6.4",
+    "@nuxt/ui": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "vite": "^6.0.0"
+  }
+}
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/src/App.vue 1`] = `
+"<script setup lang="ts"></script>
+
+<template>
+  <UApp>
+    <main class="p-8 space-y-8 max-w-3xl mx-auto">
+      <h1 class="text-lg font-bold">Design Kit</h1>
+      <section data-component="button" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">button</h2>
+        <div class="flex flex-wrap items-center gap-3"><UButton>Button</UButton> <UButton variant="outline">Outline</UButton> <UButton variant="soft">Soft</UButton></div>
+      </section>
+      <section data-component="badge" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">badge</h2>
+        <div class="flex flex-wrap items-center gap-3"><UBadge>Badge</UBadge> <UBadge color="error">Error</UBadge> <UBadge color="success">Success</UBadge></div>
+      </section>
+      <section data-component="input" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">input</h2>
+        <div class="flex flex-wrap items-center gap-3"><UInput placeholder="Text" /></div>
+      </section>
+      <section data-component="textarea" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">textarea</h2>
+        <div class="flex flex-wrap items-center gap-3"><UTextarea placeholder="Text" /></div>
+      </section>
+      <section data-component="card" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">card</h2>
+        <div class="flex flex-wrap items-center gap-3"><UCard>Card body</UCard></div>
+      </section>
+      <section data-component="modal" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">modal</h2>
+        <div class="flex flex-wrap items-center gap-3"><UModal title="Modal"><UButton>Open modal</UButton></UModal></div>
+      </section>
+      <section data-component="kbd" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">kbd</h2>
+        <div class="flex flex-wrap items-center gap-3"><UKbd value="K" /></div>
+      </section>
+      <section data-component="checkbox" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">checkbox</h2>
+        <div class="flex flex-wrap items-center gap-3"><UCheckbox :model-value="true" label="Checkbox" /></div>
+      </section>
+      <section data-component="radio" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">radio</h2>
+        <div class="flex flex-wrap items-center gap-3"><URadioGroup :model-value="'a'" :items="[{ label: 'Option A', value: 'a' }, { label: 'Option B', value: 'b' }]" /></div>
+      </section>
+      <section data-component="switch" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">switch</h2>
+        <div class="flex flex-wrap items-center gap-3"><USwitch :model-value="true" /> <USwitch :model-value="false" /></div>
+      </section>
+      <section data-component="nav" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">nav</h2>
+        <div class="flex flex-wrap items-center gap-3"><UNavigationMenu :items="[{ label: 'Home' }, { label: 'Docs' }]" /></div>
+      </section>
+      <section data-component="dropdown" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">dropdown</h2>
+        <div class="flex flex-wrap items-center gap-3"><UDropdownMenu :items="[[{ label: 'Item' }]]"><UButton>Open menu</UButton></UDropdownMenu></div>
+      </section>
+      <section data-component="table" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">table</h2>
+        <div class="flex flex-wrap items-center gap-3"><UTable :data="[{ id: 1, name: 'Row 1' }, { id: 2, name: 'Row 2' }]" /></div>
+      </section>
+      <section data-component="progress" class="space-y-2">
+        <h2 class="text-sm font-semibold capitalize">progress</h2>
+        <div class="flex flex-wrap items-center gap-3"><UProgress :model-value="50" /></div>
+      </section>
+    </main>
+  </UApp>
+</template>
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/src/main.css 1`] = `
+"@import "tailwindcss";
+@import "../tokens.css";
+@import "@nuxt/ui";
+
+@source "./**/*.{vue,ts}";
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/src/main.ts 1`] = `
+"import { createApp } from "vue";
+import { createRouter, createMemoryHistory } from "vue-router";
+import ui from "@nuxt/ui/vue-plugin";
+import App from "./App.vue";
+import "./main.css";
+
+const app = createApp(App);
+app.use(createRouter({ history: createMemoryHistory(), routes: [] }));
+app.use(ui);
+app.mount("#app");
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/theme.ts 1`] = `
+"export const theme = {
+  "colors": {
+    "primary": "blue",
+    "neutral": "neutral",
+    "secondary": "sky",
+    "success": "emerald",
+    "info": "sky",
+    "warning": "amber",
+    "error": "rose"
+  },
+  "button": {
+    "slots": {
+      "base": "focus:rounded-md font-[400] leading-[16px] py-2 ring-offset-[4px] rounded-sm text-base tracking-[0.4000000059604645px]"
+    },
+    "variants": {
+      "size": {
+        "md": {
+          "base": "gap-1 h-[36px] px-2",
+          "leadingIcon": "size-4",
+          "trailingIcon": "size-4"
+        },
+        "xs": {
+          "base": "gap-0.5 h-[26px]"
+        },
+        "sm": {
+          "base": "gap-1 h-[30px] px-1.5",
+          "leadingIcon": "size-3",
+          "trailingIcon": "size-3"
+        },
+        "lg": {
+          "base": "h-[44px] px-2.5"
+        }
+      },
+      "variant": {
+        "solid": {
+          "base": "active:bg-[var(--color-action-bg-active)] bg-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] text-[var(--color-action-text)]"
+        },
+        "outline": {
+          "base": "active:bg-[var(--color-action-bg-subtle-hover)] disabled:ring-[var(--color-state-disabled-border)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-subtle)] hover:ring-[var(--color-action-bg-hover)] ring-[var(--color-action-bg)] text-[var(--color-action-text-subtle)]"
+        },
+        "ghost": {
+          "base": "active:bg-[var(--color-bg-emphasis)] active:text-[var(--color-text-primary)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] text-[var(--color-text-secondary)]"
+        },
+        "link": {
+          "base": "disabled:text-[var(--color-state-disabled-text)] hover:text-[var(--color-action-bg-hover)] text-[var(--color-text-accent)]"
+        }
+      }
+    }
+  },
+  "badge": {
+    "slots": {
+      "base": "font-[400] rounded-sm"
+    },
+    "variants": {
+      "size": {
+        "sm": {
+          "base": "leading-[8px] px-1 py-1 text-[8px]",
+          "leadingIcon": "size-2",
+          "trailingIcon": "size-2"
+        },
+        "md": {
+          "base": "leading-[10px] px-1.5 text-[10px]",
+          "leadingIcon": "size-2.5",
+          "trailingIcon": "size-2.5"
+        }
+      },
+      "color": {
+        "default": {
+          "base": "bg-[var(--color-bg-muted)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
+        },
+        "accent": {
+          "base": "bg-[var(--color-action-bg-subtle)] border-[var(--color-border-accent)] text-[var(--color-action-text-subtle)]"
+        },
+        "error": {
+          "base": "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)] text-[var(--color-status-error-text)]"
+        },
+        "warning": {
+          "base": "bg-[var(--color-status-warn-bg)] border-[var(--color-status-warn-border)] text-[var(--color-status-warn-text)]"
+        },
+        "success": {
+          "base": "bg-[var(--color-status-ok-bg)] border-[var(--color-status-ok-border)] text-[var(--color-status-ok-text)]"
+        }
+      }
+    }
+  },
+  "input": {
+    "slots": {
+      "base": "disabled:bg-[var(--color-state-disabled-bg)] disabled:placeholder:text-[var(--color-text-disabled)] disabled:ring-[var(--color-state-disabled-border)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] focus:rounded-lg font-[400] h-[36px] hover:ring-[var(--color-border-strong)] placeholder:text-[var(--color-text-muted)] px-1.5 py-2 ring-[var(--color-border-default)] ring-offset-[4px] rounded-md text-[var(--color-text-primary)] text-sm"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "base": "ring-[var(--color-border-error)]"
+        },
+        "success": {
+          "base": "ring-[var(--color-border-success)]"
+        }
+      },
+      "size": {
+        "md": {
+          "leadingIcon": "size-4",
+          "trailingIcon": "size-4"
+        }
+      },
+      "variant": {
+        "outline": {
+          "base": "bg-[var(--color-bg-base)]"
+        },
+        "solid": {
+          "base": "bg-[var(--color-bg-subtle)]"
+        }
+      }
+    }
+  },
+  "textarea": {
+    "slots": {
+      "base": "disabled:bg-[var(--color-state-disabled-bg)] disabled:placeholder:text-[var(--color-text-disabled)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] focus:rounded-lg font-[400] hover:ring-[var(--color-border-strong)] placeholder:text-[var(--color-text-muted)] px-1.5 py-2 ring-[var(--color-border-default)] ring-offset-[4px] rounded-md text-[var(--color-text-primary)] text-sm"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "base": "ring-[var(--color-border-error)]"
+        },
+        "success": {
+          "base": "ring-[var(--color-border-success)]"
+        }
+      },
+      "variant": {
+        "solid": {
+          "base": "bg-[var(--color-bg-subtle)]"
+        },
+        "outline": {
+          "base": "bg-[var(--color-bg-base)]"
+        }
+      }
+    }
+  },
+  "card": {
+    "slots": {
+      "root": "bg-[var(--color-bg-elevated)] p-[12px] ring-[var(--color-border-default)] rounded-lg"
+    },
+    "variants": {}
+  },
+  "modal": {
+    "slots": {
+      "content": "bg-[var(--color-bg-elevated)] p-[12px] ring-[var(--color-border-default)] rounded-xl",
+      "overlay": "bg-[rgba(0,_0,_0,_0.5)]"
+    },
+    "variants": {}
+  },
+  "kbd": {
+    "slots": {
+      "base": "bg-[var(--color-bg-muted)] font-[\\"SF_Pro\\"] px-0.5 py-0.5 ring-[var(--color-border-default)] rounded-xs text-[10px] text-[var(--color-text-secondary)]"
+    },
+    "variants": {}
+  },
+  "chip": {
+    "slots": {
+      "base": "active:bg-[var(--color-action-bg-subtle)] active:ring-[var(--color-action-bg)] bg-[var(--color-bg-muted)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] font-[500] gap-1.5 hover:bg-[var(--color-bg-emphasis)] leading-[8px] px-0.5 py-0.5 ring-[var(--color-border-default)] ring-offset-[2px] rounded-[999px] text-[8px] tracking-[0.4000000059604645px]"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "base": "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]"
+        },
+        "success": {
+          "base": "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]"
+        }
+      }
+    }
+  },
+  "checkbox": {
+    "slots": {
+      "base": "bg-[var(--color-bg-subtle)] data-[state=checked]:ring-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] hover:ring-[var(--color-border-strong)] p-[2px] ring-[var(--color-border-default)] ring-offset-[4px] rounded-sm",
+      "indicator": "bg-[var(--color-action-bg)]",
+      "icon": "disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-action-text)]",
+      "label": "disabled:text-[var(--color-state-disabled-text)] text-[var(--color-text-primary)]"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "indicator": "bg-[var(--color-status-error-bg-inverted)]",
+          "base": "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]",
+          "icon": "text-[var(--color-status-error-text-on-inverted)]"
+        },
+        "success": {
+          "indicator": "bg-[var(--color-status-ok-bg-inverted)]",
+          "base": "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]",
+          "icon": "text-[var(--color-status-ok-text-on-inverted)]"
+        }
+      },
+      "size": {
+        "md": {
+          "leadingIcon": "size-4",
+          "base": "size-[16px]",
+          "trailingIcon": "size-4"
+        },
+        "sm": {
+          "base": "size-[20px]"
+        }
+      }
+    }
+  },
+  "radio": {
+    "slots": {
+      "base": "bg-[var(--color-bg-muted)] data-[state=checked]:ring-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] hover:ring-[var(--color-border-strong)] p-[2px] ring-[var(--color-border-default)] ring-offset-[4px] rounded-[999px]",
+      "indicator": "bg-[var(--color-action-bg)] disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-action-text)]",
+      "label": "text-[var(--color-text-primary)]"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "indicator": "bg-[var(--color-status-error-bg-inverted)] text-[var(--color-status-error-text-on-inverted)]",
+          "base": "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]"
+        },
+        "success": {
+          "indicator": "bg-[var(--color-status-ok-bg-inverted)] text-[var(--color-status-ok-text-on-inverted)]",
+          "base": "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]"
+        }
+      },
+      "size": {
+        "md": {
+          "base": "size-[16px]",
+          "indicator": "size-[6px]"
+        },
+        "sm": {
+          "base": "size-[16px]"
+        }
+      }
+    }
+  },
+  "switch": {
+    "slots": {
+      "base": "bg-[var(--color-bg-subtle)] border-[var(--color-border-default)] data-[state=checked]:bg-[var(--color-action-bg)] data-[state=checked]:border-[var(--color-border-accent)] disabled:bg-[var(--color-state-disabled-bg)] disabled:border-[var(--color-state-disabled-border)] hover:bg-[var(--color-action-bg-hover)] hover:border-[var(--color-border-strong)] p-[2px] ring-offset-[2px] rounded-[999px]",
+      "thumb": "border-[var(--color-neutral-300)] data-[state=checked]:text-[var(--color-white)] disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-neutral-50)]"
+    },
+    "variants": {
+      "color": {
+        "error": {
+          "base": "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)] data-[state=checked]:bg-[var(--color-status-error-bg-inverted)]",
+          "thumb": "text-[var(--color-status-error-text-on-inverted)]"
+        },
+        "success": {
+          "base": "bg-[var(--color-status-ok-bg)] border-[var(--color-status-ok-border)] data-[state=checked]:bg-[var(--color-status-ok-bg-inverted)]",
+          "thumb": "text-[var(--color-status-ok-text-on-inverted)]"
+        }
+      },
+      "size": {
+        "md": {
+          "base": "h-[16px] w-[32px]",
+          "thumb": "size-[12px]"
+        },
+        "sm": {
+          "base": "h-[16px] w-[28px]"
+        }
+      }
+    }
+  },
+  "nav": {
+    "slots": {
+      "root": "bg-[var(--color-bg-elevated)] border-[var(--color-border-default)] font-[400] h-[60px] leading-[14px] px-1.5 py-1.5 text-sm tracking-[0.4000000059604645px]",
+      "linkLeadingIcon": "size-5",
+      "item": "disabled:bg-[var(--color-state-disabled-bg)] disabled:text-[var(--color-state-disabled-text)] gap-1 hover:bg-[var(--color-bg-muted)] rounded-md text-[var(--color-text-primary)]"
+    },
+    "variants": {}
+  },
+  "dropdown": {
+    "slots": {
+      "content": "bg-[var(--color-bg-elevated)] ring-[var(--color-border-default)] rounded-lg",
+      "item": "active:bg-[var(--color-bg-emphasis)] hover:bg-[var(--color-bg-muted)] p-[8px] rounded-md text-[var(--color-text-primary)]"
+    },
+    "variants": {}
+  },
+  "table": {
+    "slots": {
+      "base": "bg-[var(--color-bg-elevated)] border-[var(--color-border-default)] rounded-lg",
+      "th": "bg-[var(--color-bg-subtle)] text-[10px] text-[var(--color-text-secondary)]",
+      "td": "text-[var(--color-text-primary)] text-xs",
+      "tr": "hover:bg-[var(--color-bg-muted)]"
+    },
+    "variants": {}
+  },
+  "progress": {
+    "slots": {
+      "base": "bg-[var(--color-bg-emphasis)] rounded-[999px]",
+      "indicator": "bg-[var(--color-action-bg)]"
+    },
+    "variants": {
+      "size": {
+        "sm": {
+          "base": "h-[4px]"
+        },
+        "md": {
+          "base": "h-[8px]"
+        },
+        "lg": {
+          "base": "h-[12px]"
+        }
+      }
+    }
+  }
+} as const;
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/tokens.css 1`] = `
+"/* Generated by build-cli — do not edit by hand */
+/* Source: components/*.tokens.json */
+
+@theme {
+  /* — Primitive Colors — */
+  --border-width-default: 1px;
+  --border-width-none: 0px;
+  --border-width-thick: 2px;
+  --color-accent-100: #E0E9FF;
+  --color-accent-200: #C7D7FE;
+  --color-accent-300: #A5B4FC;
+  --color-accent-400: #818CF8;
+  --color-accent-50: #F0F4FF;
+  --color-accent-500: #4F63D2;
+  --color-accent-600: #3D50BE;
+  --color-accent-700: #2E3EA8;
+  --color-accent-800: #243092;
+  --color-accent-900: #1A245E;
+  --color-amber-100: #FEF3C7;
+  --color-amber-300: #FCD34D;
+  --color-amber-50: #FFFBEB;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-900: #78350F;
+  --color-amber-alpha-500-10: rgba(245, 158, 11, 0.1);
+  --color-black: #000000;
+  --color-green-100: #DCFCE7;
+  --color-green-300: #86EFAC;
+  --color-green-50: #F0FDF4;
+  --color-green-500: #22C55E;
+  --color-green-600: #16A34A;
+  --color-green-700: #15803D;
+  --color-green-900: #14532D;
+  --color-green-alpha-500-10: rgba(34, 197, 94, 0.1);
+  --color-neutral-100: #F4F4F5;
+  --color-neutral-200: #E4E4E7;
+  --color-neutral-300: #D4D4D8;
+  --color-neutral-400: #A1A1AA;
+  --color-neutral-50: #FAFAFA;
+  --color-neutral-500: #71717A;
+  --color-neutral-600: #52525B;
+  --color-neutral-700: #3F3F46;
+  --color-neutral-800: #27272A;
+  --color-neutral-900: #18181B;
+  --color-neutral-950: #09090B;
+  --color-red-100: #FEE2E2;
+  --color-red-300: #FCA5A5;
+  --color-red-50: #FEF2F2;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
+  --color-red-700: #B91C1C;
+  --color-red-900: #7F1D1D;
+  --color-red-alpha-500-10: rgba(239, 68, 68, 0.1);
+  --color-transparent: rgba(0, 0, 0, 0);
+  --color-white: #FFFFFF;
+  --shadow-focus: 0 0 0 3px rgba(79,99,210,0.35);
+  --shadow-lg: 0 12px 20px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 32px -6px rgba(0,0,0,0.12), 0 8px 12px -4px rgba(0,0,0,0.08);
+
+  /* — Mode-invariant Brand Colors — */
+  /* mode-invariant: same in light + dark */
+  --color-action-bg: #4F63D2;
+  /* mode-invariant: same in light + dark */
+  --color-action-text: #FFFFFF;
+  /* mode-invariant: same in light + dark */
+  --color-status-error-bg-inverted: #EF4444;
+  /* mode-invariant: same in light + dark */
+  --color-status-error-text-on-inverted: #FEF2F2;
+  /* mode-invariant: same in light + dark */
+  --color-status-ok-bg-inverted: #22C55E;
+  /* mode-invariant: same in light + dark */
+  --color-status-ok-text-on-inverted: #F0FDF4;
+  /* mode-invariant: same in light + dark */
+  --color-text-on-accent: #FFFFFF;
+
+  /* — Non-default Radius — */
+  --rounded-full: 999px;
+
+  /* — Non-default Typography — */
+  --font-family-body: Geist;
+  --font-family-code: "Fira Sans";
+  --font-family-display: "Google Sans Flex";
+  --font-family-kbd: "SF Pro";
+  --font-size-text-2xs: 8px;
+  --font-size-text-3xl: 32px;
+  --font-size-text-5xl: 64px;
+  --font-size-text-8xl: 120px;
+  --font-size-text-9xl: 150px;
+  --font-size-text-xs: 10px;
+  --font-weight-black: 900;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-extralight: 200;
+  --font-weight-italic: 600;
+  --font-weight-light: 300;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-thin: 100;
+  --letter-spacing-tight: -0.4000000059604645px;
+  --letter-spacing-wide: 0.4000000059604645px;
+  --letter-spacing-wider: 0.800000011920929px;
+  --letter-spacing-widest: 1.600000023841858px;
+  --line-height-2xl: 24px;
+  --line-height-2xs: 8px;
+  --line-height-3xl: 32px;
+  --line-height-4xl: 40px;
+  --line-height-5xl: 48px;
+  --line-height-6xl: 64px;
+  --line-height-7xl: 72px;
+  --line-height-base: 14px;
+  --line-height-lg: 16px;
+  --line-height-sm: 12px;
+  --line-height-xl: 20px;
+  --line-height-xs: 10px;
+  --text-heading-1: 72px;
+  --text-heading-1--font-weight: 500;
+  --text-heading-1--letter-spacing: -0.4000000059604645px;
+  --text-heading-1--line-height: 64px;
+  --text-heading-2: 48px;
+  --text-heading-2--font-weight: 500;
+  --text-heading-2--letter-spacing: -0.4000000059604645px;
+  --text-heading-2--line-height: 40px;
+
+  /* — Mode-variant Semantics (light defaults) — */
+  --color-action-bg-active: #2E3EA8;
+  --color-action-bg-hover: #3D50BE;
+  --color-action-bg-subtle: #F0F4FF;
+  --color-action-bg-subtle-hover: #E0E9FF;
+  --color-action-text-subtle: #3D50BE;
+  --color-bg-base: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-emphasis: #E4E4E7;
+  --color-bg-muted: #F4F4F5;
+  --color-bg-subtle: #FAFAFA;
+  --color-border-accent: #4F63D2;
+  --color-border-default: #E4E4E7;
+  --color-border-error: #EF4444;
+  --color-border-strong: #A1A1AA;
+  --color-border-subtle: #F4F4F5;
+  --color-border-success: #22C55E;
+  --color-border-warning: #F59E0B;
+  --color-state-active-overlay: #18181B;
+  --color-state-disabled-bg: #F4F4F5;
+  --color-state-disabled-border: #E4E4E7;
+  --color-state-disabled-fg: #D4D4D8;
+  --color-state-disabled-text: #A1A1AA;
+  --color-state-focus-ring: #818CF8;
+  --color-state-hover-overlay: #18181B;
+  --color-state-loading-bg: #F4F4F5;
+  --color-state-selected-bg: #F0F4FF;
+  --color-state-selected-border: #A5B4FC;
+  --color-state-selected-text: #2E3EA8;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-error-border: #FCA5A5;
+  --color-status-error-text: #EF4444;
+  --color-status-ok-bg: #F0FDF4;
+  --color-status-ok-border: #86EFAC;
+  --color-status-ok-text: #22C55E;
+  --color-status-warn-bg: #FFFBEB;
+  --color-status-warn-border: #FCD34D;
+  --color-status-warn-text: #F59E0B;
+  --color-text-accent: #3D50BE;
+  --color-text-disabled: #D4D4D8;
+  --color-text-inverted: #FAFAFA;
+  --color-text-muted: #A1A1AA;
+  --color-text-primary: #18181B;
+  --color-text-secondary: #52525B;
+  --color-text-toned: #D4D4D8;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-action-bg-active: #A5B4FC;
+  --color-action-bg-hover: #818CF8;
+  --color-action-bg-subtle: #1A245E;
+  --color-action-bg-subtle-hover: #243092;
+  --color-action-text-subtle: #818CF8;
+  --color-bg-base: #09090B;
+  --color-bg-elevated: #18181B;
+  --color-bg-emphasis: #52525B;
+  --color-bg-muted: #3F3F46;
+  --color-bg-subtle: #27272A;
+  --color-border-accent: #3D50BE;
+  --color-border-default: #3F3F46;
+  --color-border-error: #DC2626;
+  --color-border-strong: #71717A;
+  --color-border-subtle: #27272A;
+  --color-border-success: #16A34A;
+  --color-border-warning: #D97706;
+  --color-state-active-overlay: #FFFFFF;
+  --color-state-disabled-bg: #27272A;
+  --color-state-disabled-border: #3F3F46;
+  --color-state-disabled-fg: #52525B;
+  --color-state-disabled-text: #52525B;
+  --color-state-focus-ring: #A5B4FC;
+  --color-state-hover-overlay: #FFFFFF;
+  --color-state-loading-bg: #27272A;
+  --color-state-selected-bg: #1A245E;
+  --color-state-selected-border: #2E3EA8;
+  --color-state-selected-text: #A5B4FC;
+  --color-status-error-bg: #EF4444;
+  --color-status-error-border: #B91C1C;
+  --color-status-error-text: #FEF2F2;
+  --color-status-ok-bg: #22C55E;
+  --color-status-ok-border: #15803D;
+  --color-status-ok-text: #F0FDF4;
+  --color-status-warn-bg: #F59E0B;
+  --color-status-warn-border: #B45309;
+  --color-status-warn-text: #FFFBEB;
+  --color-text-accent: #818CF8;
+  --color-text-disabled: #3F3F46;
+  --color-text-inverted: #18181B;
+  --color-text-muted: #52525B;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A1A1AA;
+  --color-text-toned: #71717A;
+}
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: kit/vite.config.ts 1`] = `
+"import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import tailwindcss from "@tailwindcss/vite";
+import ui from "@nuxt/ui/vite";
+import { theme } from "./theme";
+
+export default defineConfig({
+  plugins: [vue(), tailwindcss(), ui({ ui: theme })],
+});
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: nuxt/app.config.ts 1`] = `
+"// Generated by build-cli — Nuxt UI v4 component recipes + color role mapping
+// Generated from Figma component-layer tokens. Re-run the build to regenerate.
+
+export default defineAppConfig({
+  ui: {
+    colors: {
+      primary: "blue",
+      neutral: "neutral",
+      secondary: "sky",
+      success: "emerald",
+      info: "sky",
+      warning: "amber",
+      error: "rose",
+    },
+    button: {
+      slots: {
+        base: "focus:rounded-md font-[400] leading-[16px] py-2 ring-offset-[4px] rounded-sm text-base tracking-[0.4000000059604645px]",
+      },
+      variants: {
+        size: {
+          lg: {
+            // Incomplete in Figma: missing gap, icon-size
+            base: "h-[44px] px-2.5",
+          },
+          md: {
+            // Incomplete in Figma: missing gap
+            base: "gap-1 h-[36px] px-2",
+            leadingIcon: "size-4",
+            trailingIcon: "size-4",
+          },
+          sm: {
+            base: "gap-1 h-[30px] px-1.5",
+            leadingIcon: "size-3",
+            trailingIcon: "size-3",
+          },
+          xs: {
+            // Incomplete in Figma: missing padding-x, icon-size
+            base: "gap-0.5 h-[26px]",
+          },
+        },
+        variant: {
+          ghost: {
+            base: "active:bg-[var(--color-bg-emphasis)] active:text-[var(--color-text-primary)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] text-[var(--color-text-secondary)]",
+          },
+          link: {
+            base: "disabled:text-[var(--color-state-disabled-text)] hover:text-[var(--color-action-bg-hover)] text-[var(--color-text-accent)]",
+          },
+          outline: {
+            base: "active:bg-[var(--color-action-bg-subtle-hover)] disabled:ring-[var(--color-state-disabled-border)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-subtle)] hover:ring-[var(--color-action-bg-hover)] ring-[var(--color-action-bg)] text-[var(--color-action-text-subtle)]",
+          },
+          solid: {
+            base: "active:bg-[var(--color-action-bg-active)] bg-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] text-[var(--color-action-text)]",
+          },
+        },
+      },
+    },
+    badge: {
+      slots: {
+        base: "font-[400] rounded-sm",
+      },
+      variants: {
+        size: {
+          md: {
+            // Incomplete in Figma: missing padding-y
+            base: "leading-[10px] px-1.5 text-[10px]",
+            leadingIcon: "size-2.5",
+            trailingIcon: "size-2.5",
+          },
+          sm: {
+            base: "leading-[8px] px-1 py-1 text-[8px]",
+            leadingIcon: "size-2",
+            trailingIcon: "size-2",
+          },
+        },
+        color: {
+          accent: {
+            base: "bg-[var(--color-action-bg-subtle)] border-[var(--color-border-accent)] text-[var(--color-action-text-subtle)]",
+          },
+          default: {
+            base: "bg-[var(--color-bg-muted)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]",
+          },
+          error: {
+            base: "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)] text-[var(--color-status-error-text)]",
+          },
+          success: {
+            base: "bg-[var(--color-status-ok-bg)] border-[var(--color-status-ok-border)] text-[var(--color-status-ok-text)]",
+          },
+          warning: {
+            base: "bg-[var(--color-status-warn-bg)] border-[var(--color-status-warn-border)] text-[var(--color-status-warn-text)]",
+          },
+        },
+      },
+    },
+    input: {
+      slots: {
+        base: "disabled:bg-[var(--color-state-disabled-bg)] disabled:placeholder:text-[var(--color-text-disabled)] disabled:ring-[var(--color-state-disabled-border)] disabled:text-[var(--color-state-disabled-text)] focus:ring-[var(--color-state-focus-ring)] focus:rounded-lg font-[400] h-[36px] hover:ring-[var(--color-border-strong)] placeholder:text-[var(--color-text-muted)] px-1.5 py-2 ring-[var(--color-border-default)] ring-offset-[4px] rounded-md text-[var(--color-text-primary)] text-sm",
+      },
+      variants: {
+        size: {
+          md: {
+            leadingIcon: "size-4",
+            trailingIcon: "size-4",
+          },
+        },
+        color: {
+          error: {
+            base: "ring-[var(--color-border-error)]",
+          },
+          success: {
+            base: "ring-[var(--color-border-success)]",
+          },
+        },
+        variant: {
+          outline: {
+            base: "bg-[var(--color-bg-base)]",
+          },
+          solid: {
+            base: "bg-[var(--color-bg-subtle)]",
+          },
+        },
+      },
+    },
+    textarea: {
+      slots: {
+        base: "disabled:bg-[var(--color-state-disabled-bg)] disabled:placeholder:text-[var(--color-text-disabled)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] focus:rounded-lg font-[400] hover:ring-[var(--color-border-strong)] placeholder:text-[var(--color-text-muted)] px-1.5 py-2 ring-[var(--color-border-default)] ring-offset-[4px] rounded-md text-[var(--color-text-primary)] text-sm",
+      },
+      variants: {
+        color: {
+          error: {
+            base: "ring-[var(--color-border-error)]",
+          },
+          success: {
+            base: "ring-[var(--color-border-success)]",
+          },
+        },
+        variant: {
+          outline: {
+            base: "bg-[var(--color-bg-base)]",
+          },
+          solid: {
+            base: "bg-[var(--color-bg-subtle)]",
+          },
+        },
+      },
+    },
+    card: {
+      slots: {
+        root: "bg-[var(--color-bg-elevated)] p-[12px] ring-[var(--color-border-default)] rounded-lg",
+      },
+    },
+    modal: {
+      slots: {
+        content: "bg-[var(--color-bg-elevated)] p-[12px] ring-[var(--color-border-default)] rounded-xl",
+        overlay: "bg-[rgba(0,_0,_0,_0.5)]",
+      },
+    },
+    kbd: {
+      slots: {
+        base: "bg-[var(--color-bg-muted)] font-[\\"SF_Pro\\"] px-0.5 py-0.5 ring-[var(--color-border-default)] rounded-xs text-[10px] text-[var(--color-text-secondary)]",
+      },
+    },
+    // chip: looks custom → see custom-components.ts
+    checkbox: {
+      slots: {
+        base: "bg-[var(--color-bg-subtle)] data-[state=checked]:ring-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] hover:ring-[var(--color-border-strong)] p-[2px] ring-[var(--color-border-default)] ring-offset-[4px] rounded-sm",
+        indicator: "bg-[var(--color-action-bg)]",
+        icon: "disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-action-text)]",
+        label: "disabled:text-[var(--color-state-disabled-text)] text-[var(--color-text-primary)]",
+      },
+      variants: {
+        size: {
+          md: {
+            leadingIcon: "size-4",
+            base: "size-[16px]",
+            trailingIcon: "size-4",
+          },
+          sm: {
+            // Incomplete in Figma: missing icon-size
+            base: "size-[20px]",
+          },
+        },
+        color: {
+          error: {
+            indicator: "bg-[var(--color-status-error-bg-inverted)]",
+            base: "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]",
+            icon: "text-[var(--color-status-error-text-on-inverted)]",
+          },
+          success: {
+            indicator: "bg-[var(--color-status-ok-bg-inverted)]",
+            base: "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]",
+            icon: "text-[var(--color-status-ok-text-on-inverted)]",
+          },
+        },
+      },
+    },
+    radio: {
+      slots: {
+        base: "bg-[var(--color-bg-muted)] data-[state=checked]:ring-[var(--color-action-bg)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] focus:ring-[var(--color-state-focus-ring)] hover:bg-[var(--color-action-bg-hover)] hover:ring-[var(--color-border-strong)] p-[2px] ring-[var(--color-border-default)] ring-offset-[4px] rounded-[999px]",
+        indicator: "bg-[var(--color-action-bg)] disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-action-text)]",
+        label: "text-[var(--color-text-primary)]",
+      },
+      variants: {
+        size: {
+          md: {
+            base: "size-[16px]",
+            indicator: "size-[6px]",
+          },
+          sm: {
+            base: "size-[16px]",
+          },
+        },
+        color: {
+          error: {
+            indicator: "bg-[var(--color-status-error-bg-inverted)] text-[var(--color-status-error-text-on-inverted)]",
+            base: "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]",
+          },
+          success: {
+            indicator: "bg-[var(--color-status-ok-bg-inverted)] text-[var(--color-status-ok-text-on-inverted)]",
+            base: "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]",
+          },
+        },
+      },
+    },
+    switch: {
+      slots: {
+        base: "bg-[var(--color-bg-subtle)] border-[var(--color-border-default)] data-[state=checked]:bg-[var(--color-action-bg)] data-[state=checked]:border-[var(--color-border-accent)] disabled:bg-[var(--color-state-disabled-bg)] disabled:border-[var(--color-state-disabled-border)] hover:bg-[var(--color-action-bg-hover)] hover:border-[var(--color-border-strong)] p-[2px] ring-offset-[2px] rounded-[999px]",
+        thumb: "border-[var(--color-neutral-300)] data-[state=checked]:text-[var(--color-white)] disabled:text-[var(--color-state-disabled-fg)] text-[var(--color-neutral-50)]",
+      },
+      variants: {
+        size: {
+          md: {
+            base: "h-[16px] w-[32px]",
+            thumb: "size-[12px]",
+          },
+          sm: {
+            // Incomplete in Figma: missing size
+            base: "h-[16px] w-[28px]",
+          },
+        },
+        color: {
+          error: {
+            base: "bg-[var(--color-status-error-bg)] border-[var(--color-status-error-border)] data-[state=checked]:bg-[var(--color-status-error-bg-inverted)]",
+            thumb: "text-[var(--color-status-error-text-on-inverted)]",
+          },
+          success: {
+            base: "bg-[var(--color-status-ok-bg)] border-[var(--color-status-ok-border)] data-[state=checked]:bg-[var(--color-status-ok-bg-inverted)]",
+            thumb: "text-[var(--color-status-ok-text-on-inverted)]",
+          },
+        },
+      },
+    },
+    nav: {
+      slots: {
+        root: "bg-[var(--color-bg-elevated)] border-[var(--color-border-default)] font-[400] h-[60px] leading-[14px] px-1.5 py-1.5 text-sm tracking-[0.4000000059604645px]",
+        linkLeadingIcon: "size-5",
+        item: "disabled:bg-[var(--color-state-disabled-bg)] disabled:text-[var(--color-state-disabled-text)] gap-1 hover:bg-[var(--color-bg-muted)] rounded-md text-[var(--color-text-primary)]",
+      },
+    },
+    dropdown: {
+      slots: {
+        content: "bg-[var(--color-bg-elevated)] ring-[var(--color-border-default)] rounded-lg",
+        item: "active:bg-[var(--color-bg-emphasis)] hover:bg-[var(--color-bg-muted)] p-[8px] rounded-md text-[var(--color-text-primary)]",
+      },
+    },
+    table: {
+      slots: {
+        base: "bg-[var(--color-bg-elevated)] border-[var(--color-border-default)] rounded-lg",
+        th: "bg-[var(--color-bg-subtle)] text-[10px] text-[var(--color-text-secondary)]",
+        td: "text-[var(--color-text-primary)] text-xs",
+        tr: "hover:bg-[var(--color-bg-muted)]",
+      },
+    },
+    progress: {
+      slots: {
+        base: "bg-[var(--color-bg-emphasis)] rounded-[999px]",
+        indicator: "bg-[var(--color-action-bg)]",
+      },
+      variants: {
+        size: {
+          lg: {
+            base: "h-[12px]",
+          },
+          md: {
+            base: "h-[8px]",
+          },
+          sm: {
+            base: "h-[4px]",
+          },
+        },
+      },
+    },
+  },
+});
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: nuxt/custom-components.ts 1`] = `
+"// Generated by build-cli — recipes Nuxt UI cannot express natively:
+// custom components (foreign parts Nuxt has no slot for) AND overlay-surface
+// overrides (component appearance on a dark/light overlay — no Nuxt prop exists).
+// Hand-apply via tailwind-variants: const ui = tv(chipRecipe) / tv(base, buttonOverlayDarkRecipe).
+
+export const chipRecipe = {
+  slots: {
+    base: "active:bg-[var(--color-action-bg-subtle)] active:ring-[var(--color-action-bg)] bg-[var(--color-bg-muted)] disabled:bg-[var(--color-state-disabled-bg)] disabled:ring-[var(--color-state-disabled-border)] font-[500] gap-1.5 hover:bg-[var(--color-bg-emphasis)] leading-[8px] px-0.5 py-0.5 ring-[var(--color-border-default)] ring-offset-[2px] rounded-[999px] text-[8px] tracking-[0.4000000059604645px]",
+    close: "size-3",
+    label: "active:text-[var(--color-action-text-subtle)] disabled:text-[var(--color-state-disabled-text)] text-[var(--color-text-secondary)]",
+  },
+  variants: {
+    color: {
+      error: {
+        base: "bg-[var(--color-status-error-bg)] ring-[var(--color-status-error-border)]",
+        label: "text-[var(--color-status-error-text)]",
+      },
+      success: {
+        base: "bg-[var(--color-status-ok-bg)] ring-[var(--color-status-ok-border)]",
+        label: "text-[var(--color-status-ok-text)]",
+      },
+    },
+  },
+} as const;
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: shadcn/globals.css 1`] = `
+"/* shadcn/ui theme — generated from Figma tokens by token-inspector. */
+
+:root {
+  --radius: 6px;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2103 0.0059 285.885);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2103 0.0059 285.885);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2103 0.0059 285.885);
+  --primary: oklch(0.5444 0.1715 271.825);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9673 0.0153 269.986);
+  --secondary-foreground: oklch(0.4822 0.1731 270.987);
+  --muted: oklch(0.9674 0.0013 286.375);
+  --muted-foreground: oklch(0.7118 0.0129 286.067);
+  --accent: oklch(0.9673 0.0153 269.986);
+  --accent-foreground: oklch(0.4822 0.1731 270.987);
+  --destructive: oklch(0.6368 0.2078 25.331);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9197 0.004 286.32);
+  --input: oklch(0.9197 0.004 286.32);
+  --ring: oklch(0.6801 0.1583 276.935);
+}
+
+.dark {
+  --background: oklch(0.1408 0.0044 285.823);
+  --foreground: oklch(0.9851 0 0);
+  --card: oklch(0.2103 0.0059 285.885);
+  --card-foreground: oklch(0.9851 0 0);
+  --popover: oklch(0.2103 0.0059 285.885);
+  --popover-foreground: oklch(0.9851 0 0);
+  --primary: oklch(0.5444 0.1715 271.825);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.2907 0.1036 271.059);
+  --secondary-foreground: oklch(0.6801 0.1583 276.935);
+  --muted: oklch(0.3703 0.0119 285.805);
+  --muted-foreground: oklch(0.4419 0.0146 285.786);
+  --accent: oklch(0.2907 0.1036 271.059);
+  --accent-foreground: oklch(0.6801 0.1583 276.935);
+  --destructive: oklch(0.5771 0.2152 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.3703 0.0119 285.805);
+  --input: oklch(0.3703 0.0119 285.805);
+  --ring: oklch(0.7853 0.1041 274.713);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+/* No clean Figma equivalent — add manually if needed: --chart-1..5, --sidebar-*. */
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: tokens/tokens.json 1`] = `
+"{
+  "border-width-default": {
+    "value": "1px"
+  },
+  "border-width-none": {
+    "value": "0px"
+  },
+  "border-width-thick": {
+    "value": "2px"
+  },
+  "color-accent-100": {
+    "value": "#E0E9FF"
+  },
+  "color-accent-200": {
+    "value": "#C7D7FE"
+  },
+  "color-accent-300": {
+    "value": "#A5B4FC"
+  },
+  "color-accent-400": {
+    "value": "#818CF8"
+  },
+  "color-accent-50": {
+    "value": "#F0F4FF"
+  },
+  "color-accent-500": {
+    "value": "#4F63D2"
+  },
+  "color-accent-600": {
+    "value": "#3D50BE"
+  },
+  "color-accent-700": {
+    "value": "#2E3EA8"
+  },
+  "color-accent-800": {
+    "value": "#243092"
+  },
+  "color-accent-900": {
+    "value": "#1A245E"
+  },
+  "color-action-bg": {
+    "value": "#4F63D2"
+  },
+  "color-action-bg-active": {
+    "value": "#2E3EA8",
+    "dark": "#A5B4FC"
+  },
+  "color-action-bg-hover": {
+    "value": "#3D50BE",
+    "dark": "#818CF8"
+  },
+  "color-action-bg-subtle": {
+    "value": "#F0F4FF",
+    "dark": "#1A245E"
+  },
+  "color-action-bg-subtle-hover": {
+    "value": "#E0E9FF",
+    "dark": "#243092"
+  },
+  "color-action-text": {
+    "value": "#FFFFFF"
+  },
+  "color-action-text-subtle": {
+    "value": "#3D50BE",
+    "dark": "#818CF8"
+  },
+  "color-amber-100": {
+    "value": "#FEF3C7"
+  },
+  "color-amber-300": {
+    "value": "#FCD34D"
+  },
+  "color-amber-50": {
+    "value": "#FFFBEB"
+  },
+  "color-amber-500": {
+    "value": "#F59E0B"
+  },
+  "color-amber-600": {
+    "value": "#D97706"
+  },
+  "color-amber-700": {
+    "value": "#B45309"
+  },
+  "color-amber-900": {
+    "value": "#78350F"
+  },
+  "color-amber-alpha-500-10": {
+    "value": "rgba(245, 158, 11, 0.1)"
+  },
+  "color-bg-base": {
+    "value": "#FFFFFF",
+    "dark": "#09090B"
+  },
+  "color-bg-elevated": {
+    "value": "#FFFFFF",
+    "dark": "#18181B"
+  },
+  "color-bg-emphasis": {
+    "value": "#E4E4E7",
+    "dark": "#52525B"
+  },
+  "color-bg-muted": {
+    "value": "#F4F4F5",
+    "dark": "#3F3F46"
+  },
+  "color-bg-subtle": {
+    "value": "#FAFAFA",
+    "dark": "#27272A"
+  },
+  "color-black": {
+    "value": "#000000"
+  },
+  "color-border-accent": {
+    "value": "#4F63D2",
+    "dark": "#3D50BE"
+  },
+  "color-border-default": {
+    "value": "#E4E4E7",
+    "dark": "#3F3F46"
+  },
+  "color-border-error": {
+    "value": "#EF4444",
+    "dark": "#DC2626"
+  },
+  "color-border-strong": {
+    "value": "#A1A1AA",
+    "dark": "#71717A"
+  },
+  "color-border-subtle": {
+    "value": "#F4F4F5",
+    "dark": "#27272A"
+  },
+  "color-border-success": {
+    "value": "#22C55E",
+    "dark": "#16A34A"
+  },
+  "color-border-warning": {
+    "value": "#F59E0B",
+    "dark": "#D97706"
+  },
+  "color-green-100": {
+    "value": "#DCFCE7"
+  },
+  "color-green-300": {
+    "value": "#86EFAC"
+  },
+  "color-green-50": {
+    "value": "#F0FDF4"
+  },
+  "color-green-500": {
+    "value": "#22C55E"
+  },
+  "color-green-600": {
+    "value": "#16A34A"
+  },
+  "color-green-700": {
+    "value": "#15803D"
+  },
+  "color-green-900": {
+    "value": "#14532D"
+  },
+  "color-green-alpha-500-10": {
+    "value": "rgba(34, 197, 94, 0.1)"
+  },
+  "color-neutral-100": {
+    "value": "#F4F4F5"
+  },
+  "color-neutral-200": {
+    "value": "#E4E4E7"
+  },
+  "color-neutral-300": {
+    "value": "#D4D4D8"
+  },
+  "color-neutral-400": {
+    "value": "#A1A1AA"
+  },
+  "color-neutral-50": {
+    "value": "#FAFAFA"
+  },
+  "color-neutral-500": {
+    "value": "#71717A"
+  },
+  "color-neutral-600": {
+    "value": "#52525B"
+  },
+  "color-neutral-700": {
+    "value": "#3F3F46"
+  },
+  "color-neutral-800": {
+    "value": "#27272A"
+  },
+  "color-neutral-900": {
+    "value": "#18181B"
+  },
+  "color-neutral-950": {
+    "value": "#09090B"
+  },
+  "color-red-100": {
+    "value": "#FEE2E2"
+  },
+  "color-red-300": {
+    "value": "#FCA5A5"
+  },
+  "color-red-50": {
+    "value": "#FEF2F2"
+  },
+  "color-red-500": {
+    "value": "#EF4444"
+  },
+  "color-red-600": {
+    "value": "#DC2626"
+  },
+  "color-red-700": {
+    "value": "#B91C1C"
+  },
+  "color-red-900": {
+    "value": "#7F1D1D"
+  },
+  "color-red-alpha-500-10": {
+    "value": "rgba(239, 68, 68, 0.1)"
+  },
+  "color-state-active-overlay": {
+    "value": "#18181B",
+    "dark": "#FFFFFF"
+  },
+  "color-state-disabled-bg": {
+    "value": "#F4F4F5",
+    "dark": "#27272A"
+  },
+  "color-state-disabled-border": {
+    "value": "#E4E4E7",
+    "dark": "#3F3F46"
+  },
+  "color-state-disabled-fg": {
+    "value": "#D4D4D8",
+    "dark": "#52525B"
+  },
+  "color-state-disabled-text": {
+    "value": "#A1A1AA",
+    "dark": "#52525B"
+  },
+  "color-state-focus-ring": {
+    "value": "#818CF8",
+    "dark": "#A5B4FC"
+  },
+  "color-state-hover-overlay": {
+    "value": "#18181B",
+    "dark": "#FFFFFF"
+  },
+  "color-state-loading-bg": {
+    "value": "#F4F4F5",
+    "dark": "#27272A"
+  },
+  "color-state-selected-bg": {
+    "value": "#F0F4FF",
+    "dark": "#1A245E"
+  },
+  "color-state-selected-border": {
+    "value": "#A5B4FC",
+    "dark": "#2E3EA8"
+  },
+  "color-state-selected-text": {
+    "value": "#2E3EA8",
+    "dark": "#A5B4FC"
+  },
+  "color-status-error-bg": {
+    "value": "#FEF2F2",
+    "dark": "#EF4444"
+  },
+  "color-status-error-bg-inverted": {
+    "value": "#EF4444"
+  },
+  "color-status-error-border": {
+    "value": "#FCA5A5",
+    "dark": "#B91C1C"
+  },
+  "color-status-error-text": {
+    "value": "#EF4444",
+    "dark": "#FEF2F2"
+  },
+  "color-status-error-text-on-inverted": {
+    "value": "#FEF2F2"
+  },
+  "color-status-ok-bg": {
+    "value": "#F0FDF4",
+    "dark": "#22C55E"
+  },
+  "color-status-ok-bg-inverted": {
+    "value": "#22C55E"
+  },
+  "color-status-ok-border": {
+    "value": "#86EFAC",
+    "dark": "#15803D"
+  },
+  "color-status-ok-text": {
+    "value": "#22C55E",
+    "dark": "#F0FDF4"
+  },
+  "color-status-ok-text-on-inverted": {
+    "value": "#F0FDF4"
+  },
+  "color-status-warn-bg": {
+    "value": "#FFFBEB",
+    "dark": "#F59E0B"
+  },
+  "color-status-warn-border": {
+    "value": "#FCD34D",
+    "dark": "#B45309"
+  },
+  "color-status-warn-text": {
+    "value": "#F59E0B",
+    "dark": "#FFFBEB"
+  },
+  "color-text-accent": {
+    "value": "#3D50BE",
+    "dark": "#818CF8"
+  },
+  "color-text-disabled": {
+    "value": "#D4D4D8",
+    "dark": "#3F3F46"
+  },
+  "color-text-inverted": {
+    "value": "#FAFAFA",
+    "dark": "#18181B"
+  },
+  "color-text-muted": {
+    "value": "#A1A1AA",
+    "dark": "#52525B"
+  },
+  "color-text-on-accent": {
+    "value": "#FFFFFF"
+  },
+  "color-text-primary": {
+    "value": "#18181B",
+    "dark": "#FAFAFA"
+  },
+  "color-text-secondary": {
+    "value": "#52525B",
+    "dark": "#A1A1AA"
+  },
+  "color-text-toned": {
+    "value": "#D4D4D8",
+    "dark": "#71717A"
+  },
+  "color-transparent": {
+    "value": "rgba(0, 0, 0, 0)"
+  },
+  "color-white": {
+    "value": "#FFFFFF"
+  },
+  "font-family-body": {
+    "value": "Geist"
+  },
+  "font-family-code": {
+    "value": "\\"Fira Sans\\""
+  },
+  "font-family-display": {
+    "value": "\\"Google Sans Flex\\""
+  },
+  "font-family-kbd": {
+    "value": "\\"SF Pro\\""
+  },
+  "font-size-text-2xl": {
+    "value": "24px"
+  },
+  "font-size-text-2xs": {
+    "value": "8px"
+  },
+  "font-size-text-3xl": {
+    "value": "32px"
+  },
+  "font-size-text-4xl": {
+    "value": "48px"
+  },
+  "font-size-text-5xl": {
+    "value": "64px"
+  },
+  "font-size-text-6xl": {
+    "value": "72px"
+  },
+  "font-size-text-7xl": {
+    "value": "96px"
+  },
+  "font-size-text-8xl": {
+    "value": "120px"
+  },
+  "font-size-text-9xl": {
+    "value": "150px"
+  },
+  "font-size-text-base": {
+    "value": "14px"
+  },
+  "font-size-text-lg": {
+    "value": "16px"
+  },
+  "font-size-text-sm": {
+    "value": "12px"
+  },
+  "font-size-text-xl": {
+    "value": "18px"
+  },
+  "font-size-text-xs": {
+    "value": "10px"
+  },
+  "font-weight-black": {
+    "value": "900"
+  },
+  "font-weight-bold": {
+    "value": "700"
+  },
+  "font-weight-extrabold": {
+    "value": "800"
+  },
+  "font-weight-extralight": {
+    "value": "200"
+  },
+  "font-weight-italic": {
+    "value": "600"
+  },
+  "font-weight-light": {
+    "value": "300"
+  },
+  "font-weight-medium": {
+    "value": "500"
+  },
+  "font-weight-normal": {
+    "value": "400"
+  },
+  "font-weight-semibold": {
+    "value": "600"
+  },
+  "font-weight-thin": {
+    "value": "100"
+  },
+  "letter-spacing-normal": {
+    "value": "0px"
+  },
+  "letter-spacing-tight": {
+    "value": "-0.4000000059604645px"
+  },
+  "letter-spacing-wide": {
+    "value": "0.4000000059604645px"
+  },
+  "letter-spacing-wider": {
+    "value": "0.800000011920929px"
+  },
+  "letter-spacing-widest": {
+    "value": "1.600000023841858px"
+  },
+  "line-height-2xl": {
+    "value": "24px"
+  },
+  "line-height-2xs": {
+    "value": "8px"
+  },
+  "line-height-3xl": {
+    "value": "32px"
+  },
+  "line-height-4xl": {
+    "value": "40px"
+  },
+  "line-height-5xl": {
+    "value": "48px"
+  },
+  "line-height-6xl": {
+    "value": "64px"
+  },
+  "line-height-7xl": {
+    "value": "72px"
+  },
+  "line-height-base": {
+    "value": "14px"
+  },
+  "line-height-lg": {
+    "value": "16px"
+  },
+  "line-height-sm": {
+    "value": "12px"
+  },
+  "line-height-xl": {
+    "value": "20px"
+  },
+  "line-height-xs": {
+    "value": "10px"
+  },
+  "rounded-2xl": {
+    "value": "16px"
+  },
+  "rounded-3xl": {
+    "value": "24px"
+  },
+  "rounded-4xl": {
+    "value": "32px"
+  },
+  "rounded-full": {
+    "value": "999px"
+  },
+  "rounded-lg": {
+    "value": "8px"
+  },
+  "rounded-md": {
+    "value": "6px"
+  },
+  "rounded-none": {
+    "value": "0px"
+  },
+  "rounded-sm": {
+    "value": "4px"
+  },
+  "rounded-xl": {
+    "value": "12px"
+  },
+  "rounded-xs": {
+    "value": "2px"
+  },
+  "shadow-focus": {
+    "value": "0 0 0 3px rgba(79,99,210,0.35)"
+  },
+  "shadow-lg": {
+    "value": "0 12px 20px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06)"
+  },
+  "shadow-md": {
+    "value": "0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06)"
+  },
+  "shadow-sm": {
+    "value": "0 1px 3px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.04)"
+  },
+  "shadow-xl": {
+    "value": "0 20px 32px -6px rgba(0,0,0,0.12), 0 8px 12px -4px rgba(0,0,0,0.08)"
+  },
+  "spacing-0": {
+    "value": "0px"
+  },
+  "spacing-0-5": {
+    "value": "2px"
+  },
+  "spacing-1": {
+    "value": "4px"
+  },
+  "spacing-1-5": {
+    "value": "6px"
+  },
+  "spacing-10": {
+    "value": "40px"
+  },
+  "spacing-11": {
+    "value": "44px"
+  },
+  "spacing-12": {
+    "value": "48px"
+  },
+  "spacing-14": {
+    "value": "56px"
+  },
+  "spacing-16": {
+    "value": "64px"
+  },
+  "spacing-2": {
+    "value": "8px"
+  },
+  "spacing-2-5": {
+    "value": "10px"
+  },
+  "spacing-20": {
+    "value": "80px"
+  },
+  "spacing-24": {
+    "value": "96px"
+  },
+  "spacing-28": {
+    "value": "112px"
+  },
+  "spacing-3": {
+    "value": "12px"
+  },
+  "spacing-3-5": {
+    "value": "14px"
+  },
+  "spacing-32": {
+    "value": "128px"
+  },
+  "spacing-36": {
+    "value": "144px"
+  },
+  "spacing-4": {
+    "value": "16px"
+  },
+  "spacing-40": {
+    "value": "160px"
+  },
+  "spacing-44": {
+    "value": "176px"
+  },
+  "spacing-48": {
+    "value": "192px"
+  },
+  "spacing-5": {
+    "value": "20px"
+  },
+  "spacing-52": {
+    "value": "208px"
+  },
+  "spacing-56": {
+    "value": "224px"
+  },
+  "spacing-6": {
+    "value": "24px"
+  },
+  "spacing-60": {
+    "value": "240px"
+  },
+  "spacing-64": {
+    "value": "256px"
+  },
+  "spacing-7": {
+    "value": "28px"
+  },
+  "spacing-72": {
+    "value": "288px"
+  },
+  "spacing-8": {
+    "value": "32px"
+  },
+  "spacing-80": {
+    "value": "320px"
+  },
+  "spacing-9": {
+    "value": "36px"
+  },
+  "spacing-96": {
+    "value": "384px"
+  }
+}
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: tokens/tokens.ts 1`] = `
+"// Framework-agnostic design tokens — generated by token-inspector.
+
+export const tokens = {
+  "border-width-default": { value: "1px" },
+  "border-width-none": { value: "0px" },
+  "border-width-thick": { value: "2px" },
+  "color-accent-100": { value: "#E0E9FF" },
+  "color-accent-200": { value: "#C7D7FE" },
+  "color-accent-300": { value: "#A5B4FC" },
+  "color-accent-400": { value: "#818CF8" },
+  "color-accent-50": { value: "#F0F4FF" },
+  "color-accent-500": { value: "#4F63D2" },
+  "color-accent-600": { value: "#3D50BE" },
+  "color-accent-700": { value: "#2E3EA8" },
+  "color-accent-800": { value: "#243092" },
+  "color-accent-900": { value: "#1A245E" },
+  "color-action-bg": { value: "#4F63D2" },
+  "color-action-bg-active": { value: "#2E3EA8", dark: "#A5B4FC" },
+  "color-action-bg-hover": { value: "#3D50BE", dark: "#818CF8" },
+  "color-action-bg-subtle": { value: "#F0F4FF", dark: "#1A245E" },
+  "color-action-bg-subtle-hover": { value: "#E0E9FF", dark: "#243092" },
+  "color-action-text": { value: "#FFFFFF" },
+  "color-action-text-subtle": { value: "#3D50BE", dark: "#818CF8" },
+  "color-amber-100": { value: "#FEF3C7" },
+  "color-amber-300": { value: "#FCD34D" },
+  "color-amber-50": { value: "#FFFBEB" },
+  "color-amber-500": { value: "#F59E0B" },
+  "color-amber-600": { value: "#D97706" },
+  "color-amber-700": { value: "#B45309" },
+  "color-amber-900": { value: "#78350F" },
+  "color-amber-alpha-500-10": { value: "rgba(245, 158, 11, 0.1)" },
+  "color-bg-base": { value: "#FFFFFF", dark: "#09090B" },
+  "color-bg-elevated": { value: "#FFFFFF", dark: "#18181B" },
+  "color-bg-emphasis": { value: "#E4E4E7", dark: "#52525B" },
+  "color-bg-muted": { value: "#F4F4F5", dark: "#3F3F46" },
+  "color-bg-subtle": { value: "#FAFAFA", dark: "#27272A" },
+  "color-black": { value: "#000000" },
+  "color-border-accent": { value: "#4F63D2", dark: "#3D50BE" },
+  "color-border-default": { value: "#E4E4E7", dark: "#3F3F46" },
+  "color-border-error": { value: "#EF4444", dark: "#DC2626" },
+  "color-border-strong": { value: "#A1A1AA", dark: "#71717A" },
+  "color-border-subtle": { value: "#F4F4F5", dark: "#27272A" },
+  "color-border-success": { value: "#22C55E", dark: "#16A34A" },
+  "color-border-warning": { value: "#F59E0B", dark: "#D97706" },
+  "color-green-100": { value: "#DCFCE7" },
+  "color-green-300": { value: "#86EFAC" },
+  "color-green-50": { value: "#F0FDF4" },
+  "color-green-500": { value: "#22C55E" },
+  "color-green-600": { value: "#16A34A" },
+  "color-green-700": { value: "#15803D" },
+  "color-green-900": { value: "#14532D" },
+  "color-green-alpha-500-10": { value: "rgba(34, 197, 94, 0.1)" },
+  "color-neutral-100": { value: "#F4F4F5" },
+  "color-neutral-200": { value: "#E4E4E7" },
+  "color-neutral-300": { value: "#D4D4D8" },
+  "color-neutral-400": { value: "#A1A1AA" },
+  "color-neutral-50": { value: "#FAFAFA" },
+  "color-neutral-500": { value: "#71717A" },
+  "color-neutral-600": { value: "#52525B" },
+  "color-neutral-700": { value: "#3F3F46" },
+  "color-neutral-800": { value: "#27272A" },
+  "color-neutral-900": { value: "#18181B" },
+  "color-neutral-950": { value: "#09090B" },
+  "color-red-100": { value: "#FEE2E2" },
+  "color-red-300": { value: "#FCA5A5" },
+  "color-red-50": { value: "#FEF2F2" },
+  "color-red-500": { value: "#EF4444" },
+  "color-red-600": { value: "#DC2626" },
+  "color-red-700": { value: "#B91C1C" },
+  "color-red-900": { value: "#7F1D1D" },
+  "color-red-alpha-500-10": { value: "rgba(239, 68, 68, 0.1)" },
+  "color-state-active-overlay": { value: "#18181B", dark: "#FFFFFF" },
+  "color-state-disabled-bg": { value: "#F4F4F5", dark: "#27272A" },
+  "color-state-disabled-border": { value: "#E4E4E7", dark: "#3F3F46" },
+  "color-state-disabled-fg": { value: "#D4D4D8", dark: "#52525B" },
+  "color-state-disabled-text": { value: "#A1A1AA", dark: "#52525B" },
+  "color-state-focus-ring": { value: "#818CF8", dark: "#A5B4FC" },
+  "color-state-hover-overlay": { value: "#18181B", dark: "#FFFFFF" },
+  "color-state-loading-bg": { value: "#F4F4F5", dark: "#27272A" },
+  "color-state-selected-bg": { value: "#F0F4FF", dark: "#1A245E" },
+  "color-state-selected-border": { value: "#A5B4FC", dark: "#2E3EA8" },
+  "color-state-selected-text": { value: "#2E3EA8", dark: "#A5B4FC" },
+  "color-status-error-bg": { value: "#FEF2F2", dark: "#EF4444" },
+  "color-status-error-bg-inverted": { value: "#EF4444" },
+  "color-status-error-border": { value: "#FCA5A5", dark: "#B91C1C" },
+  "color-status-error-text": { value: "#EF4444", dark: "#FEF2F2" },
+  "color-status-error-text-on-inverted": { value: "#FEF2F2" },
+  "color-status-ok-bg": { value: "#F0FDF4", dark: "#22C55E" },
+  "color-status-ok-bg-inverted": { value: "#22C55E" },
+  "color-status-ok-border": { value: "#86EFAC", dark: "#15803D" },
+  "color-status-ok-text": { value: "#22C55E", dark: "#F0FDF4" },
+  "color-status-ok-text-on-inverted": { value: "#F0FDF4" },
+  "color-status-warn-bg": { value: "#FFFBEB", dark: "#F59E0B" },
+  "color-status-warn-border": { value: "#FCD34D", dark: "#B45309" },
+  "color-status-warn-text": { value: "#F59E0B", dark: "#FFFBEB" },
+  "color-text-accent": { value: "#3D50BE", dark: "#818CF8" },
+  "color-text-disabled": { value: "#D4D4D8", dark: "#3F3F46" },
+  "color-text-inverted": { value: "#FAFAFA", dark: "#18181B" },
+  "color-text-muted": { value: "#A1A1AA", dark: "#52525B" },
+  "color-text-on-accent": { value: "#FFFFFF" },
+  "color-text-primary": { value: "#18181B", dark: "#FAFAFA" },
+  "color-text-secondary": { value: "#52525B", dark: "#A1A1AA" },
+  "color-text-toned": { value: "#D4D4D8", dark: "#71717A" },
+  "color-transparent": { value: "rgba(0, 0, 0, 0)" },
+  "color-white": { value: "#FFFFFF" },
+  "font-family-body": { value: "Geist" },
+  "font-family-code": { value: "\\"Fira Sans\\"" },
+  "font-family-display": { value: "\\"Google Sans Flex\\"" },
+  "font-family-kbd": { value: "\\"SF Pro\\"" },
+  "font-size-text-2xl": { value: "24px" },
+  "font-size-text-2xs": { value: "8px" },
+  "font-size-text-3xl": { value: "32px" },
+  "font-size-text-4xl": { value: "48px" },
+  "font-size-text-5xl": { value: "64px" },
+  "font-size-text-6xl": { value: "72px" },
+  "font-size-text-7xl": { value: "96px" },
+  "font-size-text-8xl": { value: "120px" },
+  "font-size-text-9xl": { value: "150px" },
+  "font-size-text-base": { value: "14px" },
+  "font-size-text-lg": { value: "16px" },
+  "font-size-text-sm": { value: "12px" },
+  "font-size-text-xl": { value: "18px" },
+  "font-size-text-xs": { value: "10px" },
+  "font-weight-black": { value: "900" },
+  "font-weight-bold": { value: "700" },
+  "font-weight-extrabold": { value: "800" },
+  "font-weight-extralight": { value: "200" },
+  "font-weight-italic": { value: "600" },
+  "font-weight-light": { value: "300" },
+  "font-weight-medium": { value: "500" },
+  "font-weight-normal": { value: "400" },
+  "font-weight-semibold": { value: "600" },
+  "font-weight-thin": { value: "100" },
+  "letter-spacing-normal": { value: "0px" },
+  "letter-spacing-tight": { value: "-0.4000000059604645px" },
+  "letter-spacing-wide": { value: "0.4000000059604645px" },
+  "letter-spacing-wider": { value: "0.800000011920929px" },
+  "letter-spacing-widest": { value: "1.600000023841858px" },
+  "line-height-2xl": { value: "24px" },
+  "line-height-2xs": { value: "8px" },
+  "line-height-3xl": { value: "32px" },
+  "line-height-4xl": { value: "40px" },
+  "line-height-5xl": { value: "48px" },
+  "line-height-6xl": { value: "64px" },
+  "line-height-7xl": { value: "72px" },
+  "line-height-base": { value: "14px" },
+  "line-height-lg": { value: "16px" },
+  "line-height-sm": { value: "12px" },
+  "line-height-xl": { value: "20px" },
+  "line-height-xs": { value: "10px" },
+  "rounded-2xl": { value: "16px" },
+  "rounded-3xl": { value: "24px" },
+  "rounded-4xl": { value: "32px" },
+  "rounded-full": { value: "999px" },
+  "rounded-lg": { value: "8px" },
+  "rounded-md": { value: "6px" },
+  "rounded-none": { value: "0px" },
+  "rounded-sm": { value: "4px" },
+  "rounded-xl": { value: "12px" },
+  "rounded-xs": { value: "2px" },
+  "shadow-focus": { value: "0 0 0 3px rgba(79,99,210,0.35)" },
+  "shadow-lg": { value: "0 12px 20px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06)" },
+  "shadow-md": { value: "0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06)" },
+  "shadow-sm": { value: "0 1px 3px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.04)" },
+  "shadow-xl": { value: "0 20px 32px -6px rgba(0,0,0,0.12), 0 8px 12px -4px rgba(0,0,0,0.08)" },
+  "spacing-0": { value: "0px" },
+  "spacing-0-5": { value: "2px" },
+  "spacing-1": { value: "4px" },
+  "spacing-1-5": { value: "6px" },
+  "spacing-10": { value: "40px" },
+  "spacing-11": { value: "44px" },
+  "spacing-12": { value: "48px" },
+  "spacing-14": { value: "56px" },
+  "spacing-16": { value: "64px" },
+  "spacing-2": { value: "8px" },
+  "spacing-2-5": { value: "10px" },
+  "spacing-20": { value: "80px" },
+  "spacing-24": { value: "96px" },
+  "spacing-28": { value: "112px" },
+  "spacing-3": { value: "12px" },
+  "spacing-3-5": { value: "14px" },
+  "spacing-32": { value: "128px" },
+  "spacing-36": { value: "144px" },
+  "spacing-4": { value: "16px" },
+  "spacing-40": { value: "160px" },
+  "spacing-44": { value: "176px" },
+  "spacing-48": { value: "192px" },
+  "spacing-5": { value: "20px" },
+  "spacing-52": { value: "208px" },
+  "spacing-56": { value: "224px" },
+  "spacing-6": { value: "24px" },
+  "spacing-60": { value: "240px" },
+  "spacing-64": { value: "256px" },
+  "spacing-7": { value: "28px" },
+  "spacing-72": { value: "288px" },
+  "spacing-8": { value: "32px" },
+  "spacing-80": { value: "320px" },
+  "spacing-9": { value: "36px" },
+  "spacing-96": { value: "384px" },
+} as const;
+
+export type TokenName = keyof typeof tokens;
+"
+`;
+
+exports[`output golden master (canonical components/ tokens) > stable: tokens/variables.css 1`] = `
+"/* Framework-agnostic design tokens — generated by token-inspector. */
+
+:root {
+  --border-width-default: 1px;
+  --border-width-none: 0px;
+  --border-width-thick: 2px;
+  --color-accent-100: #E0E9FF;
+  --color-accent-200: #C7D7FE;
+  --color-accent-300: #A5B4FC;
+  --color-accent-400: #818CF8;
+  --color-accent-50: #F0F4FF;
+  --color-accent-500: #4F63D2;
+  --color-accent-600: #3D50BE;
+  --color-accent-700: #2E3EA8;
+  --color-accent-800: #243092;
+  --color-accent-900: #1A245E;
+  --color-action-bg: #4F63D2;
+  --color-action-bg-active: #2E3EA8;
+  --color-action-bg-hover: #3D50BE;
+  --color-action-bg-subtle: #F0F4FF;
+  --color-action-bg-subtle-hover: #E0E9FF;
+  --color-action-text: #FFFFFF;
+  --color-action-text-subtle: #3D50BE;
+  --color-amber-100: #FEF3C7;
+  --color-amber-300: #FCD34D;
+  --color-amber-50: #FFFBEB;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-900: #78350F;
+  --color-amber-alpha-500-10: rgba(245, 158, 11, 0.1);
+  --color-bg-base: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-emphasis: #E4E4E7;
+  --color-bg-muted: #F4F4F5;
+  --color-bg-subtle: #FAFAFA;
+  --color-black: #000000;
+  --color-border-accent: #4F63D2;
+  --color-border-default: #E4E4E7;
+  --color-border-error: #EF4444;
+  --color-border-strong: #A1A1AA;
+  --color-border-subtle: #F4F4F5;
+  --color-border-success: #22C55E;
+  --color-border-warning: #F59E0B;
+  --color-green-100: #DCFCE7;
+  --color-green-300: #86EFAC;
+  --color-green-50: #F0FDF4;
+  --color-green-500: #22C55E;
+  --color-green-600: #16A34A;
+  --color-green-700: #15803D;
+  --color-green-900: #14532D;
+  --color-green-alpha-500-10: rgba(34, 197, 94, 0.1);
+  --color-neutral-100: #F4F4F5;
+  --color-neutral-200: #E4E4E7;
+  --color-neutral-300: #D4D4D8;
+  --color-neutral-400: #A1A1AA;
+  --color-neutral-50: #FAFAFA;
+  --color-neutral-500: #71717A;
+  --color-neutral-600: #52525B;
+  --color-neutral-700: #3F3F46;
+  --color-neutral-800: #27272A;
+  --color-neutral-900: #18181B;
+  --color-neutral-950: #09090B;
+  --color-red-100: #FEE2E2;
+  --color-red-300: #FCA5A5;
+  --color-red-50: #FEF2F2;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
+  --color-red-700: #B91C1C;
+  --color-red-900: #7F1D1D;
+  --color-red-alpha-500-10: rgba(239, 68, 68, 0.1);
+  --color-state-active-overlay: #18181B;
+  --color-state-disabled-bg: #F4F4F5;
+  --color-state-disabled-border: #E4E4E7;
+  --color-state-disabled-fg: #D4D4D8;
+  --color-state-disabled-text: #A1A1AA;
+  --color-state-focus-ring: #818CF8;
+  --color-state-hover-overlay: #18181B;
+  --color-state-loading-bg: #F4F4F5;
+  --color-state-selected-bg: #F0F4FF;
+  --color-state-selected-border: #A5B4FC;
+  --color-state-selected-text: #2E3EA8;
+  --color-status-error-bg: #FEF2F2;
+  --color-status-error-bg-inverted: #EF4444;
+  --color-status-error-border: #FCA5A5;
+  --color-status-error-text: #EF4444;
+  --color-status-error-text-on-inverted: #FEF2F2;
+  --color-status-ok-bg: #F0FDF4;
+  --color-status-ok-bg-inverted: #22C55E;
+  --color-status-ok-border: #86EFAC;
+  --color-status-ok-text: #22C55E;
+  --color-status-ok-text-on-inverted: #F0FDF4;
+  --color-status-warn-bg: #FFFBEB;
+  --color-status-warn-border: #FCD34D;
+  --color-status-warn-text: #F59E0B;
+  --color-text-accent: #3D50BE;
+  --color-text-disabled: #D4D4D8;
+  --color-text-inverted: #FAFAFA;
+  --color-text-muted: #A1A1AA;
+  --color-text-on-accent: #FFFFFF;
+  --color-text-primary: #18181B;
+  --color-text-secondary: #52525B;
+  --color-text-toned: #D4D4D8;
+  --color-transparent: rgba(0, 0, 0, 0);
+  --color-white: #FFFFFF;
+  --font-family-body: Geist;
+  --font-family-code: "Fira Sans";
+  --font-family-display: "Google Sans Flex";
+  --font-family-kbd: "SF Pro";
+  --font-size-text-2xl: 24px;
+  --font-size-text-2xs: 8px;
+  --font-size-text-3xl: 32px;
+  --font-size-text-4xl: 48px;
+  --font-size-text-5xl: 64px;
+  --font-size-text-6xl: 72px;
+  --font-size-text-7xl: 96px;
+  --font-size-text-8xl: 120px;
+  --font-size-text-9xl: 150px;
+  --font-size-text-base: 14px;
+  --font-size-text-lg: 16px;
+  --font-size-text-sm: 12px;
+  --font-size-text-xl: 18px;
+  --font-size-text-xs: 10px;
+  --font-weight-black: 900;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-extralight: 200;
+  --font-weight-italic: 600;
+  --font-weight-light: 300;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-thin: 100;
+  --letter-spacing-normal: 0px;
+  --letter-spacing-tight: -0.4000000059604645px;
+  --letter-spacing-wide: 0.4000000059604645px;
+  --letter-spacing-wider: 0.800000011920929px;
+  --letter-spacing-widest: 1.600000023841858px;
+  --line-height-2xl: 24px;
+  --line-height-2xs: 8px;
+  --line-height-3xl: 32px;
+  --line-height-4xl: 40px;
+  --line-height-5xl: 48px;
+  --line-height-6xl: 64px;
+  --line-height-7xl: 72px;
+  --line-height-base: 14px;
+  --line-height-lg: 16px;
+  --line-height-sm: 12px;
+  --line-height-xl: 20px;
+  --line-height-xs: 10px;
+  --rounded-2xl: 16px;
+  --rounded-3xl: 24px;
+  --rounded-4xl: 32px;
+  --rounded-full: 999px;
+  --rounded-lg: 8px;
+  --rounded-md: 6px;
+  --rounded-none: 0px;
+  --rounded-sm: 4px;
+  --rounded-xl: 12px;
+  --rounded-xs: 2px;
+  --shadow-focus: 0 0 0 3px rgba(79,99,210,0.35);
+  --shadow-lg: 0 12px 20px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 32px -6px rgba(0,0,0,0.12), 0 8px 12px -4px rgba(0,0,0,0.08);
+  --spacing-0: 0px;
+  --spacing-0-5: 2px;
+  --spacing-1: 4px;
+  --spacing-1-5: 6px;
+  --spacing-10: 40px;
+  --spacing-11: 44px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-2: 8px;
+  --spacing-2-5: 10px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-28: 112px;
+  --spacing-3: 12px;
+  --spacing-3-5: 14px;
+  --spacing-32: 128px;
+  --spacing-36: 144px;
+  --spacing-4: 16px;
+  --spacing-40: 160px;
+  --spacing-44: 176px;
+  --spacing-48: 192px;
+  --spacing-5: 20px;
+  --spacing-52: 208px;
+  --spacing-56: 224px;
+  --spacing-6: 24px;
+  --spacing-60: 240px;
+  --spacing-64: 256px;
+  --spacing-7: 28px;
+  --spacing-72: 288px;
+  --spacing-8: 32px;
+  --spacing-80: 320px;
+  --spacing-9: 36px;
+  --spacing-96: 384px;
+}
+
+.dark {
+  --color-action-bg-active: #A5B4FC;
+  --color-action-bg-hover: #818CF8;
+  --color-action-bg-subtle: #1A245E;
+  --color-action-bg-subtle-hover: #243092;
+  --color-action-text-subtle: #818CF8;
+  --color-bg-base: #09090B;
+  --color-bg-elevated: #18181B;
+  --color-bg-emphasis: #52525B;
+  --color-bg-muted: #3F3F46;
+  --color-bg-subtle: #27272A;
+  --color-border-accent: #3D50BE;
+  --color-border-default: #3F3F46;
+  --color-border-error: #DC2626;
+  --color-border-strong: #71717A;
+  --color-border-subtle: #27272A;
+  --color-border-success: #16A34A;
+  --color-border-warning: #D97706;
+  --color-state-active-overlay: #FFFFFF;
+  --color-state-disabled-bg: #27272A;
+  --color-state-disabled-border: #3F3F46;
+  --color-state-disabled-fg: #52525B;
+  --color-state-disabled-text: #52525B;
+  --color-state-focus-ring: #A5B4FC;
+  --color-state-hover-overlay: #FFFFFF;
+  --color-state-loading-bg: #27272A;
+  --color-state-selected-bg: #1A245E;
+  --color-state-selected-border: #2E3EA8;
+  --color-state-selected-text: #A5B4FC;
+  --color-status-error-bg: #EF4444;
+  --color-status-error-border: #B91C1C;
+  --color-status-error-text: #FEF2F2;
+  --color-status-ok-bg: #22C55E;
+  --color-status-ok-border: #15803D;
+  --color-status-ok-text: #F0FDF4;
+  --color-status-warn-bg: #F59E0B;
+  --color-status-warn-border: #B45309;
+  --color-status-warn-text: #FFFBEB;
+  --color-text-accent: #818CF8;
+  --color-text-disabled: #3F3F46;
+  --color-text-inverted: #18181B;
+  --color-text-muted: #52525B;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A1A1AA;
+  --color-text-toned: #71717A;
+}
+"
+`;

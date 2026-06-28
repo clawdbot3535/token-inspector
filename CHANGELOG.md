@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.65.5](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.5) — 2026-06-28
+
+### Added
+
+- **An output golden-master regression gate.** A new test assembles the full generated output from the canonical
+  `components/*.tokens.json` — exactly what the CLI writes (every target's files + `REPORT.md`) — and snapshots each
+  one. Because the output files deterministically determine the kit render, this file-level golden master is the
+  flake-free proxy for a "live app diff": any code change that silently alters the generated output (a renderer
+  tweak, a recipe regression, a report change) fails the snapshot and pinpoints the exact file. It runs in the normal
+  suite, so **pre-commit and CI are the gate** — no new wiring. An intentional output change is acknowledged with
+  `vitest -u`, and the PR diff then shows precisely which generated file changed. Verified to catch drift (perturbing
+  a renderer fails exactly its file) and to be deterministic (stable across runs). 1076 tests.
+
 ## [0.65.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.4) — 2026-06-28
 
 ### Changed
