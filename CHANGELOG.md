@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.65.8](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.8) — 2026-06-28
+
+### Changed
+
+- **The CLI now validates its token-file inputs at the boundary and fails fast with a clear message.** It used to
+  `JSON.parse(readFileSync(...))` blindly, so a missing `components/*.tokens.json` surfaced as a cryptic `ENOENT`
+  and a malformed one as a bare `SyntaxError` with no filename. Now a missing file, invalid JSON, or a non-object
+  payload each produce a clear, file-named error (e.g. `✗ Cannot read token file "color.tokens.json": not found.
+  Run the Figma token-export plugin and place the *.tokens.json files in components/.`) and a non-zero exit — no
+  stack trace.
+- Backed by a new pure, testable `parseSourceFile(name, file, content)` in `src/load-sources.ts` (the IO stays in
+  the CLI; only validation/parsing is extracted, so it stays browser-safe and unit-testable with plain strings).
+  Output is byte-identical for valid inputs. 1084 tests.
+
 ## [0.65.7](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.7) — 2026-06-28
 
 ### Added
