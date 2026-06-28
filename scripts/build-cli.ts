@@ -11,6 +11,7 @@ import { buildGraph } from "../src/build-graph.ts";
 import { COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { buildHealthReport } from "../src/app/report/health-report.ts";
 import { buildUsageGuide } from "../src/renderers/usage.ts";
+import { parseSourceFile } from "../src/load-sources.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -46,8 +47,8 @@ const SOURCE_FILES: ReadonlyArray<{ name: SourceLayer; file: string }> = [
 
 function load(name: SourceLayer, file: string): SourceFile {
   const path = resolve(inDir, file);
-  const data = JSON.parse(readFileSync(path, "utf8"));
-  return { name, data };
+  const content = existsSync(path) ? readFileSync(path, "utf8") : null;
+  return parseSourceFile(name, file, content);
 }
 
 function writeOut(relativePath: string, content: string): void {
@@ -57,7 +58,16 @@ function writeOut(relativePath: string, content: string): void {
   console.log("wrote", relativePath, content.length, "bytes");
 }
 
-const sources = SOURCE_FILES.map((s) => load(s.name, s.file));
+let sources: SourceFile[];
+try {
+  sources = SOURCE_FILES.map((s) => load(s.name, s.file));
+} catch (e) {
+  // A boundary error (missing / malformed token file) — print the clear message,
+  // not a stack trace, and exit non-zero so CI fails cleanly.
+  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(1);
+}
 const graph = buildGraph(sources);
 
 // Scan every component the app.config renderer emits, not just button —
