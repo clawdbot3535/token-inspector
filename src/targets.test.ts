@@ -25,6 +25,7 @@ describe("targets registry", () => {
     expect(targetById("generic").emit(ctx()).map((f) => f.path)).toEqual([
       "tokens/variables.css",
       "tokens/tokens.json",
+      "tokens/tokens.ts",
     ]);
   });
 

@@ -4,7 +4,7 @@ import { tokensCssRenderer } from "./renderers/tokens-css.js";
 import { appConfigRenderer, customComponentsRenderer } from "./renderers/index.js";
 import { buildKitFiles } from "./renderers/kit/kit-emitter.js";
 import { buildShadcnTheme } from "./renderers/shadcn/shadcn-theme.js";
-import { buildGenericCss, buildGenericJson } from "./renderers/generic/generic-tokens.js";
+import { buildGenericCss, buildGenericJson, buildGenericTs } from "./renderers/generic/generic-tokens.js";
 import { customPartsByComponent } from "./scanner.js";
 
 // An output TARGET — a component system the design tokens are emitted FOR. Each
@@ -87,6 +87,7 @@ const genericTarget: Target = {
     return [
       { path: "tokens/variables.css", content: buildGenericCss(graph) },
       { path: "tokens/tokens.json", content: buildGenericJson(graph) },
+      { path: "tokens/tokens.ts", content: buildGenericTs(graph) },
     ];
   },
 };
