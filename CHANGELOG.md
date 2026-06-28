@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.65.4](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.4) — 2026-06-28
+
+### Changed
+
+- **The health report's "Designer action items" are now grouped and prioritized instead of a flat list.** On a real
+  export this section was a 38-line wall mixing typos, coverage gaps, mode-invariant colors, and snap suggestions in
+  no order — which undercut the report's whole purpose (being communicable). It now buckets the items by kind, counts
+  each bucket, and orders them most-actionable-first: **Typos & naming** → **Variant coverage gaps** → **Size scale
+  gaps** → **Mode-invariant colors** → **Snap to the Tailwind scale** → **Collection anatomy**. A designer sees the
+  shape at a glance (e.g. "Typos (2), Variant gaps (7), Size scale gaps (20), …") and works through it group by group.
+- Pure change in `buildHealthReport` (a `kind → { label, order }` bucket map); no scanner/owner change. 1058 tests.
+
 ## [0.65.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.3) — 2026-06-28
 
 ### Added
