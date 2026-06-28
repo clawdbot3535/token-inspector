@@ -108,7 +108,7 @@ export function buildHealthReport(graph: TokenGraph, report: ScanReport): string
   const shadcnCoverage =
     shadcn.missing.length > 0
       ? `${shadcn.mapped} theme vars (${shadcn.missing.length} skipped — no source token)`
-      : `${shadcn.mapped} theme vars (\`--chart-*\`/\`--sidebar-*\` have no Figma equivalent — add manually)`;
+      : `${shadcn.mapped} theme vars + sidebar (mirrors the main palette); a \`--chart-*\` palette is a manual choice`;
   lines.push("## Output targets", "");
   lines.push("| Target | Output | Coverage |", "| --- | --- | --- |");
   lines.push(`| Nuxt UI | \`nuxt/app.config.ts\` + runnable \`kit/\` | ${componentCount} components |`);

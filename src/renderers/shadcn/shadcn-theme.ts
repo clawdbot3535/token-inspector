@@ -39,6 +39,21 @@ const COLOR_MAP: ReadonlyArray<readonly [string, string]> = [
 const RADIUS_TOKEN_CANDIDATES = ["rounded-md", "rounded-lg", "rounded-sm"] as const;
 const RADIUS_FALLBACK = "0.5rem";
 
+// shadcn's sidebar surface mirrors the main theme (sidebar-bg ≈ app-bg, etc.), so
+// rather than invent sidebar-specific values we emit each sidebar var as a `var()`
+// reference to its main counterpart: complete, DRY, and it tracks light/dark for
+// free (no `.dark` entries needed). [sidebarVar, mainVar].
+const SIDEBAR_ALIASES: ReadonlyArray<readonly [string, string]> = [
+  ["sidebar", "background"],
+  ["sidebar-foreground", "foreground"],
+  ["sidebar-primary", "primary"],
+  ["sidebar-primary-foreground", "primary-foreground"],
+  ["sidebar-accent", "accent"],
+  ["sidebar-accent-foreground", "accent-foreground"],
+  ["sidebar-border", "border"],
+  ["sidebar-ring", "ring"],
+];
+
 interface Row {
   readonly cssVar: string;
   readonly light?: string;
@@ -82,9 +97,15 @@ export function buildShadcnTheme(graph: TokenGraph): string {
   const lines: string[] = [];
   lines.push("/* shadcn/ui theme — generated from Figma tokens by token-inspector. */", "");
 
+  // Only alias sidebar vars whose main counterpart was actually emitted (no
+  // dangling references when a source token is absent).
+  const present = new Set(rows.filter((r) => r.light !== undefined).map((r) => r.cssVar));
+  const sidebar = SIDEBAR_ALIASES.filter(([, main]) => present.has(main));
+
   lines.push(":root {");
   lines.push(`  --radius: ${radius};`);
   for (const r of rows) if (r.light) lines.push(`  --${r.cssVar}: ${hexToOklch(r.light)};`);
+  for (const [name, main] of sidebar) lines.push(`  --${name}: var(--${main});`);
   lines.push("}", "");
 
   lines.push(".dark {");
@@ -93,6 +114,7 @@ export function buildShadcnTheme(graph: TokenGraph): string {
 
   lines.push("@theme inline {");
   for (const r of rows) lines.push(`  --color-${r.cssVar}: var(--${r.cssVar});`);
+  for (const [name] of sidebar) lines.push(`  --color-${name}: var(--${name});`);
   lines.push("  --radius-sm: calc(var(--radius) - 4px);");
   lines.push("  --radius-md: calc(var(--radius) - 2px);");
   lines.push("  --radius-lg: var(--radius);");
@@ -102,7 +124,7 @@ export function buildShadcnTheme(graph: TokenGraph): string {
   if (missing.length > 0) {
     lines.push("", `/* Not mapped — no matching Figma token, add manually: ${missing.join(", ")}. */`);
   }
-  lines.push("/* No clean Figma equivalent — add manually if needed: --chart-1..5, --sidebar-*. */");
+  lines.push("/* No clean Figma equivalent — a chart palette is a design choice: add --chart-1..5 manually. */");
 
   return lines.join("\n") + "\n";
 }

@@ -119,7 +119,7 @@ exports[`output golden master (canonical components/ tokens) > stable: REPORT.md
 | Target | Output | Coverage |
 | --- | --- | --- |
 | Nuxt UI | \`nuxt/app.config.ts\` + runnable \`kit/\` | 16 components |
-| shadcn/ui | \`shadcn/globals.css\` | 19 theme vars (\`--chart-*\`/\`--sidebar-*\` have no Figma equivalent — add manually) |
+| shadcn/ui | \`shadcn/globals.css\` | 19 theme vars + sidebar (mirrors the main palette); a \`--chart-*\` palette is a manual choice |
 | Generic | \`tokens/\` (\`variables.css\`, \`tokens.json\`, \`tokens.ts\`) | 196 design tokens (44 with dark-mode) |
 
 ## Output forecast
@@ -1399,6 +1399,14 @@ exports[`output golden master (canonical components/ tokens) > stable: shadcn/gl
   --border: oklch(0.9197 0.004 286.32);
   --input: oklch(0.9197 0.004 286.32);
   --ring: oklch(0.6801 0.1583 276.935);
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 .dark {
@@ -1443,12 +1451,20 @@ exports[`output golden master (canonical components/ tokens) > stable: shadcn/gl
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
-/* No clean Figma equivalent — add manually if needed: --chart-1..5, --sidebar-*. */
+/* No clean Figma equivalent — a chart palette is a design choice: add --chart-1..5 manually. */
 "
 `;
 
