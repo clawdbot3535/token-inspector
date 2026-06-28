@@ -13,6 +13,7 @@ import { buildHealthReport } from "../src/app/report/health-report.ts";
 import { buildUsageGuide } from "../src/renderers/usage.ts";
 import { parseSourceFile } from "../src/load-sources.ts";
 import { parseTargetSelection } from "../src/select-targets.ts";
+import { parseOutDir } from "../src/parse-out-dir.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -26,7 +27,17 @@ import type {
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..");
 const inDir = resolve(repoRoot, "components");
-const outRoot = resolve(repoRoot, "output");
+
+// Optional `--out=<dir>` (relative to cwd); absent → the default output/ dir.
+let outArg: string | null;
+try {
+  outArg = parseOutDir(process.argv.slice(2));
+} catch (e) {
+  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(1);
+}
+const outRoot = outArg ? resolve(outArg) : resolve(repoRoot, "output");
 
 const slotMappingPath = resolve(repoRoot, "slot-mapping.json");
 const slotMappingJson = existsSync(slotMappingPath)
