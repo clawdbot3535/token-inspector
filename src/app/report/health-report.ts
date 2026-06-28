@@ -9,6 +9,21 @@ import { genericTokenStats } from "../../renderers/generic/generic-tokens.js";
 // to designers / design-system leads, not just devs. Deterministic (no timestamp)
 // so the output is stable + git-diff-friendly.
 
+// Designer action items grouped into buckets, ordered most-actionable first, so
+// the section reads as a prioritized checklist instead of a flat wall of items.
+const ACTION_BUCKETS: ReadonlyMap<string, { label: string; order: number }> = new Map([
+  ["possible-typo", { label: "Typos & naming", order: 1 }],
+  ["malformed-value", { label: "Typos & naming", order: 1 }],
+  ["asymmetric-variant-coverage", { label: "Variant coverage gaps", order: 2 }],
+  ["asymmetric-size-coverage", { label: "Size scale gaps", order: 3 }],
+  ["incomplete-size-variant", { label: "Size scale gaps", order: 3 }],
+  ["non-suffix-vs-size-conflict", { label: "Size scale gaps", order: 3 }],
+  ["orphaned-size-key", { label: "Size scale gaps", order: 3 }],
+  ["mode-invariant-semantic", { label: "Mode-invariant colors", order: 4 }],
+  ["snap-to-tailwind", { label: "Snap to the Tailwind scale", order: 5 }],
+  ["collection-anatomy-mismatch", { label: "Collection anatomy", order: 6 }],
+]);
+
 const OWNER_ROWS: ReadonlyArray<{ owner: Owner | "other"; label: string; action: string }> = [
   { owner: "figma-fix", label: "🎨 Figma-Fix", action: "Add or align tokens in Figma" },
   { owner: "data-quality", label: "🛠 Data-Quality", action: "Fix the source value or name" },
@@ -70,8 +85,19 @@ export function buildHealthReport(graph: TokenGraph, report: ScanReport): string
   if (designerItems.length === 0) {
     lines.push("_None — the design maps cleanly._", "");
   } else {
-    for (const i of designerItems) lines.push(`- [ ] ${i.message}`);
-    lines.push("");
+    const byBucket = new Map<string, { order: number; messages: string[] }>();
+    for (const i of designerItems) {
+      const bucket = ACTION_BUCKETS.get(i.kind) ?? { label: "Other", order: 99 };
+      const entry = byBucket.get(bucket.label) ?? { order: bucket.order, messages: [] };
+      entry.messages.push(i.message);
+      byBucket.set(bucket.label, entry);
+    }
+    const groups = [...byBucket.entries()].sort((a, b) => a[1].order - b[1].order);
+    for (const [label, { messages }] of groups) {
+      lines.push(`### ${label} (${messages.length})`, "");
+      for (const m of messages) lines.push(`- [ ] ${m}`);
+      lines.push("");
+    }
   }
 
   // ── Output targets ───────────────────────────────────────────────────────

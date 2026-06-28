@@ -62,6 +62,13 @@ describe("buildHealthReport", () => {
     expect(md).not.toContain("msg for custom-without-parts"); // manual-dev message is NOT a designer action item
   });
 
+  it("groups the action items by bucket with counts, most-actionable first", () => {
+    expect(md).toContain("### Typos & naming (1)"); // possible-typo
+    expect(md).toContain("### Variant coverage gaps (1)"); // asymmetric-variant-coverage
+    // Typos (order 1) come before variant coverage (order 2).
+    expect(md.indexOf("Typos & naming")).toBeLessThan(md.indexOf("Variant coverage gaps"));
+  });
+
   it("has a component completeness section flagging the incomplete one", () => {
     expect(md).toContain("Component completeness");
     expect(md).toContain("button");
