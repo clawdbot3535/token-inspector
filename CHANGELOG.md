@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.65.9](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.9) — 2026-06-28
+
+### Added
+
+- **The CLI takes an optional `--targets=<csv>` flag to emit only the targets you want.** `npm run build:tokens`
+  still emits everything; `npm run build:tokens -- --targets=shadcn` emits only the shadcn theme, and
+  `--targets=shadcn,generic` emits those two — handy for a build pipeline that only consumes one system. The
+  cross-cutting `REPORT.md` and `USAGE.md` are always emitted. An unknown target name fails fast with a clear
+  boundary error (`✗ Unknown target(s): foo. Available: nuxt, shadcn, generic.`). With no flag the output is
+  byte-identical to before.
+- Backed by a pure, testable `parseTargetSelection(argv, available)` in `src/select-targets.ts` (the CLI passes
+  argv in, so it stays browser-safe — same split as `parseSourceFile`). 1088 tests.
+
 ## [0.65.8](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.8) — 2026-06-28
 
 ### Changed
