@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.65.12](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.12) — 2026-06-28
+
+### Added
+
+- **`npm run build:tokens -- --version` prints the version**, rounding out the CLI flag set
+  (`--targets`, `--out`, `--help`, `--version`). Like `--help`, it short-circuits before any file IO and is listed
+  in the help text. Useful for provenance — checking which version of the tool generated an output. Pure, testable
+  `wantsVersion(argv)` in `src/cli-help.ts`; the CLI reads the version from its own `package.json`. 1094 tests.
+
 ## [0.65.11](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.11) — 2026-06-28
 
 ### Added
