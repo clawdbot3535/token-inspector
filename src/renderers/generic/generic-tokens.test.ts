@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { buildGenericCss, buildGenericJson, genericTokenStats } from "./generic-tokens.js";
+import { buildGenericCss, buildGenericJson, buildGenericTs, genericTokenStats } from "./generic-tokens.js";
 import type { TokenGraph, TokenNode } from "../../token-graph.js";
 
 const node = (
@@ -62,6 +62,22 @@ describe("buildGenericJson", () => {
 
   it("excludes component-layer tokens", () => {
     expect(json["button-bg"]).toBeUndefined();
+  });
+});
+
+describe("buildGenericTs", () => {
+  const ts = buildGenericTs(g);
+
+  it("emits a typed `as const` tokens module with a TokenName type", () => {
+    expect(ts).toContain("export const tokens = {");
+    expect(ts).toContain("} as const;");
+    expect(ts).toContain('"color-bg-base": { value: "#FFFFFF", dark: "#09090B" },');
+    expect(ts).toContain('"color-accent-500": { value: "#4F63D2" },');
+    expect(ts).toContain("export type TokenName = keyof typeof tokens;");
+  });
+
+  it("excludes component-layer tokens", () => {
+    expect(ts).not.toContain("button-bg");
   });
 });
 

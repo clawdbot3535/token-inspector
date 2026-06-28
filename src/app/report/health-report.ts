@@ -88,7 +88,7 @@ export function buildHealthReport(graph: TokenGraph, report: ScanReport): string
   lines.push(`| Nuxt UI | \`nuxt/app.config.ts\` + runnable \`kit/\` | ${componentCount} components |`);
   lines.push(`| shadcn/ui | \`shadcn/globals.css\` | ${shadcnCoverage} |`);
   lines.push(
-    `| Generic | \`tokens/variables.css\` + \`tokens/tokens.json\` | ${generic.total} design tokens (${generic.dark} with dark-mode) |`,
+    `| Generic | \`tokens/\` (\`variables.css\`, \`tokens.json\`, \`tokens.ts\`) | ${generic.total} design tokens (${generic.dark} with dark-mode) |`,
   );
   lines.push("");
 
