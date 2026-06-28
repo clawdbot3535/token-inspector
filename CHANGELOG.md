@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.65.3](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.3) — 2026-06-28
+
+### Added
+
+- **The framework-agnostic target now also emits a typed `tokens/tokens.ts`.** It completes the generic target's
+  consumption trio — `variables.css` (styling), `tokens.json` (tooling), and now `tokens.ts` (type-safe code
+  import). The module is an `as const` object plus an exported `TokenName` union, so TS/JS consumers get literal
+  types + autocomplete with no JSON-import flags or loaders:
+  ```ts
+  export const tokens = { "color-bg-base": { value: "#FFFFFF", dark: "#09090B" }, … } as const;
+  export type TokenName = keyof typeof tokens;
+  ```
+- Backed by `buildGenericTs(graph)` in `src/renderers/generic/generic-tokens.ts` (reuses the same `collect` pass
+  as the CSS/JSON outputs — DRY). Validated by typechecking the generated file with `tsc --noEmit --strict`. No
+  scanner/recipe-engine change. 1057 tests.
+
 ## [0.65.2](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.2) — 2026-06-27
 
 ### Changed
