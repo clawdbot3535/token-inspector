@@ -12,6 +12,7 @@ import { COMPONENT_ALLOW_LIST } from "../src/renderers/app-config.ts";
 import { buildHealthReport } from "../src/app/report/health-report.ts";
 import { buildUsageGuide } from "../src/renderers/usage.ts";
 import { parseSourceFile } from "../src/load-sources.ts";
+import { parseTargetSelection } from "../src/select-targets.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -79,14 +80,30 @@ const scanReport = scanGraph(graph, { components: COMPONENT_ALLOW_LIST });
 // Emit every output target (Nuxt UI recipes + runnable kit, shadcn theme, …).
 // Each target bundles its own files; adding one is a single registry entry in
 // src/targets.ts — this loop never changes.
+// Optional `--targets=<csv>` selection; absent → emit every target.
+let selectedTargets: ReadonlySet<string> | null;
+try {
+  selectedTargets = parseTargetSelection(process.argv.slice(2), TARGETS.map((t) => t.id));
+} catch (e) {
+  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(1);
+}
+
 const targetCtx: TargetContext = {
   graph,
   scanReport,
   slotMappingOverride: slotMapping.overrides,
   defaultSizeByComponent: slotMapping.defaultSizeByComponent,
 };
+const emittedTargets: string[] = [];
 for (const target of TARGETS) {
+  if (selectedTargets !== null && !selectedTargets.has(target.id)) continue;
   for (const file of target.emit(targetCtx)) writeOut(file.path, file.content);
+  emittedTargets.push(target.id);
+}
+if (selectedTargets !== null) {
+  console.log(`emitting targets: ${emittedTargets.join(", ")}`);
 }
 
 // Cross-cutting (not a target): a shareable, stakeholder-readable health digest +
