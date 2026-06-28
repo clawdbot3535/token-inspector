@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.65.10](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.10) — 2026-06-28
+
+### Added
+
+- **The CLI takes an optional `--out=<dir>` flag to write the output anywhere.** `npm run build:tokens` still
+  writes to `output/`; `npm run build:tokens -- --out=./my-app/design` writes everything straight into your
+  project (no copy step), and it composes with `--targets` —
+  `npm run build:tokens -- --targets=shadcn --out=./app` drops only the shadcn theme where you want it. An empty
+  `--out=` fails fast with a clear message. With no flag the default `output/` behavior is byte-identical.
+- Backed by a pure, testable `parseOutDir(argv)` in `src/parse-out-dir.ts` (the CLI passes argv in and resolves the
+  path, so the parser stays browser-safe — same split as `parseSourceFile` / `parseTargetSelection`). 1091 tests.
+
 ## [0.65.9](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.9) — 2026-06-28
 
 ### Added
