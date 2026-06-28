@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { wantsHelp, buildHelpText } from "./cli-help.js";
+import { wantsHelp, wantsVersion, buildHelpText } from "./cli-help.js";
 
 describe("wantsHelp", () => {
   it("detects --help and -h, ignores other args", () => {
@@ -8,6 +8,14 @@ describe("wantsHelp", () => {
     expect(wantsHelp(["-h"])).toBe(true);
     expect(wantsHelp(["--targets=shadcn"])).toBe(false);
     expect(wantsHelp([])).toBe(false);
+  });
+});
+
+describe("wantsVersion", () => {
+  it("detects --version, ignores other args", () => {
+    expect(wantsVersion(["--version"])).toBe(true);
+    expect(wantsVersion(["--help"])).toBe(false);
+    expect(wantsVersion([])).toBe(false);
   });
 });
 

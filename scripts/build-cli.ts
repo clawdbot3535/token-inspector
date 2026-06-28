@@ -14,7 +14,7 @@ import { buildUsageGuide } from "../src/renderers/usage.ts";
 import { parseSourceFile } from "../src/load-sources.ts";
 import { parseTargetSelection } from "../src/select-targets.ts";
 import { parseOutDir } from "../src/parse-out-dir.ts";
-import { wantsHelp, buildHelpText } from "../src/cli-help.ts";
+import { wantsHelp, wantsVersion, buildHelpText } from "../src/cli-help.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -25,15 +25,22 @@ import type {
   SourceLayer,
 } from "../src/token-graph.ts";
 
-// `--help` short-circuits before any file IO, so it works in any directory.
-if (wantsHelp(process.argv.slice(2))) {
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(here, "..");
+
+// `--help` / `--version` short-circuit before any file IO, so they work anywhere.
+const cliArgs = process.argv.slice(2);
+if (wantsHelp(cliArgs)) {
   console.log(buildHelpText(TARGETS.map((t) => t.id)));
   // eslint-disable-next-line n/no-process-exit
   process.exit(0);
 }
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "..");
+if (wantsVersion(cliArgs)) {
+  const { version } = JSON.parse(readFileSync(resolve(repoRoot, "package.json"), "utf8"));
+  console.log(version);
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(0);
+}
 const inDir = resolve(repoRoot, "components");
 
 // Optional `--out=<dir>` (relative to cwd); absent → the default output/ dir.

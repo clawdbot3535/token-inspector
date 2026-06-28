@@ -5,6 +5,10 @@ export function wantsHelp(argv: readonly string[]): boolean {
   return argv.includes("--help") || argv.includes("-h");
 }
 
+export function wantsVersion(argv: readonly string[]): boolean {
+  return argv.includes("--version");
+}
+
 export function buildHelpText(targetIds: readonly string[]): string {
   return `build:tokens — generate design-system output from your Figma tokens.
 
@@ -19,6 +23,7 @@ Options:
                     Available: ${targetIds.join(", ")}.
   --out=<dir>       Write output to <dir> (default: output/).
   --help, -h        Show this help.
+  --version         Print the version.
 
 Examples:
   npm run build:tokens
