@@ -14,6 +14,7 @@ import { buildUsageGuide } from "../src/renderers/usage.ts";
 import { parseSourceFile } from "../src/load-sources.ts";
 import { parseTargetSelection } from "../src/select-targets.ts";
 import { parseOutDir } from "../src/parse-out-dir.ts";
+import { wantsHelp, buildHelpText } from "../src/cli-help.ts";
 import { TARGETS, type TargetContext } from "../src/targets.ts";
 import { parseSlotMappingFile } from "../src/slot-mapping-loader.ts";
 import { scanGraph } from "../src/scanner.ts";
@@ -23,6 +24,13 @@ import type {
   SourceFile,
   SourceLayer,
 } from "../src/token-graph.ts";
+
+// `--help` short-circuits before any file IO, so it works in any directory.
+if (wantsHelp(process.argv.slice(2))) {
+  console.log(buildHelpText(TARGETS.map((t) => t.id)));
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(0);
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..");
