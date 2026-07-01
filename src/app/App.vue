@@ -44,6 +44,8 @@ import {
 } from "./figma-mapping.js";
 import CommitPanel from "./components/CommitPanel.vue";
 import GitLoader from "./components/GitLoader.vue";
+import TokenSourceBadge from "./components/TokenSourceBadge.vue";
+import type { TokenSource } from "./git-import.js";
 import ResolvePanel from "./components/ResolvePanel.vue";
 import { heuristicExtendable, type ResolvableDeviation } from "./resolve/heuristic-extendable.js";
 import { RESOLVE_OVERRIDE_KEY } from "./resolve/override-key.js";
@@ -55,6 +57,12 @@ import type { SlotMappingOverride, SlotMappingEntry } from "@tg/grammar";
 
 const appVersion = __APP_VERSION__;
 const unpushed = __APP_UNPUSHED__;
+
+// Where the loaded tokens came from (set on a Git load, cleared on drag-drop).
+const tokenSource = ref<TokenSource | null>(null);
+function setTokenSource(source: TokenSource) {
+  tokenSource.value = source;
+}
 
 const builtInMapping = ref<FigmaMappingFile>({ components: [] });
 const droppedMapping = ref<FigmaMappingFile | null>(null);
@@ -482,6 +490,9 @@ const defaultIconForSelected = computed<string | undefined>(() => {
 
 async function handleFiles(files: FileList | readonly File[] | null) {
   if (!files || files.length === 0) return;
+  // Clear provenance up front (synchronously). A Git load re-sets it via its
+  // `source` event, emitted right after `files`; a drag-drop leaves it null.
+  tokenSource.value = null;
   state.loadError.value = null;
   try {
     const { sources, figmaMapping: dropped, slotMapping, warnings } = await loadSources([...files]);
@@ -557,6 +568,7 @@ function downloadAll() {
               ? `Token Inspector v${appVersion}`
               : `Token Inspector v${appVersion} · ${unpushed} unpushed`"
           >v{{ appVersion }}</span>
+          <TokenSourceBadge :source="tokenSource" />
         </div>
         <div class="flex items-center gap-3 text-xs text-muted">
           <span v-if="state.graph.value">
@@ -664,6 +676,7 @@ function downloadAll() {
             </label>
             <GitLoader
               @files="handleFiles"
+              @source="setTokenSource"
               @error="(m: string) => (state.loadError.value = m)"
             />
             <p v-if="state.loadError.value" class="mt-4 text-xs text-error">

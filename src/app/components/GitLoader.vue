@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { parseGitUrl, fetchTokenFiles } from "../git-import.js";
+import { parseGitUrl, fetchTokenFiles, fetchLatestCommit } from "../git-import.js";
+import type { TokenSource } from "../git-import.js";
 
-const emit = defineEmits<{ files: [files: File[]]; error: [message: string] }>();
+const emit = defineEmits<{
+  files: [files: File[]];
+  source: [source: TokenSource];
+  error: [message: string];
+}>();
 
 const repoUrl = ref<string>(
   typeof localStorage !== "undefined"
@@ -23,7 +28,11 @@ async function loadFromRepo() {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("figma-tokens-repo-url", repoUrl.value.trim());
     }
+    // Best-effort provenance for the header badge — never blocks the token load.
+    const commit = await fetchLatestCommit(ref_);
+    // Emit files first (handleFiles clears any previous source), then the source.
     emit("files", files);
+    emit("source", { ref: ref_, commit });
   } catch (e) {
     emit("error", e instanceof Error ? e.message : String(e));
   } finally {

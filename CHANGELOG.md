@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.66.0](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.66.0) — 2026-07-01
+
+### Added
+
+- **The header shows the provenance of the loaded tokens** — a badge next to the version badge with the Git source
+  and the loaded commit, e.g. `token-export@main · a1b2c3d · 2d ago`. When you **Load from Git**, the inspector now
+  fetches the latest commit touching the token directory and displays `repo@branch · <short-sha> · <relative time>`,
+  so you can see at a glance which token export is loaded and how fresh it is. Drag-and-dropped tokens have no source,
+  so the badge is hidden; if the commit lookup is rate-limited or fails it degrades to just `repo@branch` (the token
+  load is never blocked).
+- Backed by `fetchLatestCommit(ref)` (best-effort, GitHub + GitLab, `src/app/git-import.ts`), a pure `relativeTime`
+  helper, and a mount-tested `TokenSourceBadge.vue`. GitLoader emits a `source` event alongside `files`; a drag-drop
+  clears the source. 1102 tests.
+
 ## [0.65.12](https://github.com/clawdbot3535/token-inspector/releases/tag/v0.65.12) — 2026-06-28
 
 ### Added
