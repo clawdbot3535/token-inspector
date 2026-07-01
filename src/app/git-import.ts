@@ -103,3 +103,55 @@ export async function fetchTokenFiles(ref: GitRef): Promise<File[]> {
   }
   return files;
 }
+
+export interface TokenCommit {
+  sha: string;
+  date: string;
+  message: string;
+}
+
+/** Where a loaded token graph came from: the Git ref + (best-effort) its latest commit. */
+export interface TokenSource {
+  ref: GitRef;
+  commit: TokenCommit | null;
+}
+
+/**
+ * Best-effort: the latest commit touching the ref's token directory, for the
+ * header provenance badge. Returns null on ANY failure (rate-limit, network,
+ * unexpected shape) — the source is still shown, just without the commit.
+ */
+export async function fetchLatestCommit(ref: GitRef): Promise<TokenCommit | null> {
+  const dirQuery = ref.dir ? `&path=${encodeURIComponent(ref.dir)}` : "";
+  try {
+    if (ref.host === "github") {
+      const url = `https://api.github.com/repos/${ref.owner}/${ref.repo}/commits?sha=${encodeURIComponent(ref.branch)}&per_page=1${dirQuery}`;
+      const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+      if (!res.ok) return null;
+      const data: unknown = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return null;
+      const c = data[0] as { sha?: unknown; commit?: { author?: { date?: unknown }; message?: unknown } };
+      if (typeof c.sha !== "string") return null;
+      return {
+        sha: c.sha,
+        date: typeof c.commit?.author?.date === "string" ? c.commit.author.date : "",
+        message: typeof c.commit?.message === "string" ? c.commit.message : "",
+      };
+    }
+    const id = encodeURIComponent(`${ref.owner}/${ref.repo}`);
+    const url = `https://gitlab.com/api/v4/projects/${id}/repository/commits?ref_name=${encodeURIComponent(ref.branch)}&per_page=1${dirQuery}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data: unknown = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    const c = data[0] as { id?: unknown; created_at?: unknown; title?: unknown };
+    if (typeof c.id !== "string") return null;
+    return {
+      sha: c.id,
+      date: typeof c.created_at === "string" ? c.created_at : "",
+      message: typeof c.title === "string" ? c.title : "",
+    };
+  } catch {
+    return null;
+  }
+}
